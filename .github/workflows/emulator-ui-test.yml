@@ -1,0 +1,92 @@
+name: Emulator UI Test
+
+# Instrumented UI tests on a real Android emulator.
+#
+# Covers the acceptance criteria that cannot be checked by compiling alone:
+#   * four-page bottom navigation switches pages
+#   * appearance settings persist and drive the preview tokens
+#   * applicationId is org.fcitx5.xuexgao (and the namespace is unchanged)
+#   * 万象拼音 is the default scheme and the generated Rime config says so
+#   * function bar customisation round-trips and can be restored to defaults
+#   * the input method service and its file providers are declared
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - '*'
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+
+permissions:
+  contents: read
+
+jobs:
+  emulator:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        api-level:
+          - 30
+          - 34
+    steps:
+      - name: Fetch source code
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Setup Android environment
+        uses: android-actions/setup-android@v4
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: false
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Build debug APK and test APK
+        run: |
+          ./gradlew :app:assembleFxDebug :app:assembleFxDebugAndroidTest --console=plain
+
+      - name: Run UI tests on emulator
+        uses: ReactiveCircus/android-emulator-runner@v2.38.0
+        with:
+          api-level: ${{ matrix.api-level }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_5
+          disable-animations: true
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: |
+            adb wait-for-device
+            ./gradlew :app:connectedFxDebugAndroidTest \
+              -Pandroid.testInstrumentationRunnerArguments.class=\
+            org.fcitx.fcitx5.android.ui.PackageIdentityTest,\
+            org.fcitx.fcitx5.android.ui.MainShellNavigationTest,\
+            org.fcitx.fcitx5.android.ui.AppearanceSettingsTest,\
+            org.fcitx.fcitx5.android.ui.RimeDefaultsTest,\
+            org.fcitx.fcitx5.android.ui.FunctionBarConfigTest \
+              --console=plain
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ui-test-reports-api${{ matrix.api-level }}
+          path: |
+            app/build/reports/androidTests/
+            app/build/outputs/androidTest-results/
+          if-no-files-found: warn

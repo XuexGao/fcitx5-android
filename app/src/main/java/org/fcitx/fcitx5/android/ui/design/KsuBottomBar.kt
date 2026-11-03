@@ -153,6 +153,8 @@ class KsuBottomBar @JvmOverloads constructor(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
             )
             icon.setImageResource(item.icon)
+            // Exposed for accessibility and for instrumented tests selecting a tab by name.
+            contentDescription = item.label
             val iconSize = context.dp(23)
             addView(icon, LayoutParams(iconSize, iconSize))
             label.text = item.label
