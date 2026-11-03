@@ -7,8 +7,8 @@ package org.fcitx.fcitx5.android.data.rime
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.fcitx.fcitx5.android.core.FcitxAPI
 import org.fcitx.fcitx5.android.daemon.FcitxConnection
+import org.fcitx.fcitx5.android.utils.appContext
 import timber.log.Timber
 
 /**
@@ -52,23 +52,22 @@ object RimeAutoDeploy {
      * does something observable instead of failing silently.
      */
     suspend fun redeploy(fcitx: FcitxConnection): Boolean {
-        RimeManager.applyConfiguration(org.fcitx.fcitx5.android.utils.appContext, force = true)
+        RimeManager.applyConfiguration(appContext, force = true)
         var triggered = false
         runCatching {
-            fcitx.runOnReady { f ->
-                val action = deployAction(f)
-                if (action != null) {
-                    f.activateAction(action)
+            // runOnReady hands us an FcitxAPI receiver, so all calls below are on the live instance.
+            fcitx.runOnReady {
+                val deployActionId = runCatching {
+                    statusArea().firstOrNull { it.name == DEPLOY_ACTION }?.id
+                }.getOrNull()
+                if (deployActionId != null) {
+                    activateAction(deployActionId)
                     triggered = true
                 } else {
-                    f.reloadConfig()
+                    reloadConfig()
                 }
             }
         }.onFailure { Timber.w(it, "Rime redeploy failed") }
         return triggered
     }
-
-    private suspend fun deployAction(fcitx: FcitxAPI): Int? = runCatching {
-        fcitx.statusArea().firstOrNull { it.name == DEPLOY_ACTION }?.id
-    }.getOrNull()
 }
