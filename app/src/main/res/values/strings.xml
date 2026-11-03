@@ -968,4 +968,7 @@
     <string name="ksu_rime_unavailable">未检测到，请确认已安装 Rime 插件</string>
     <string name="ksu_home_default_scheme">默认中文方案</string>
     <string name="ksu_rime_bundled_license">万象拼音词库采用 CC-BY-4.0 许可，来源 https://github.com/amzxyz/rime-wanxiang</string>
+    <string name="ksu_bar_reset">恢复默认功能栏</string>
+    <string name="ksu_bar_preview_empty">还没有自定义按钮</string>
+    <string name="ksu_bar_preview">功能栏预览</string>
 </resources>

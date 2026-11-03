@@ -38,6 +38,7 @@ import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.data.theme.Theme
 import org.fcitx.fcitx5.android.data.theme.ThemeManager
 import org.fcitx.fcitx5.android.input.AutoScaleTextView
+import org.fcitx.fcitx5.android.input.action.ButtonAction
 import org.fcitx.fcitx5.android.input.config.ButtonsLayoutConfig
 import org.fcitx.fcitx5.android.input.config.ButtonIconFile
 import org.fcitx.fcitx5.android.input.config.ConfigProviders
@@ -97,6 +98,30 @@ class ButtonsCustomizerActivity : AppCompatActivity() {
             orientation = LinearLayout.VERTICAL
             val pad = dp(16)
             setPadding(pad, pad, pad, pad)
+        }
+    }
+
+    /**
+     * Live preview of the bar being edited: mirrors the current order and visibility of the
+     * Kawaii Bar buttons (and the two fixed system buttons) as you add, remove or drag them.
+     */
+    private val previewStrip by lazy {
+        LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+        }
+    }
+
+    private val previewScroll by lazy {
+        android.widget.HorizontalScrollView(this).apply {
+            isHorizontalScrollBarEnabled = false
+            addView(
+                previewStrip,
+                android.view.ViewGroup.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            )
         }
     }
 
@@ -205,6 +230,7 @@ class ButtonsCustomizerActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         saveMenuItem = menu.add(Menu.NONE, MENU_SAVE_ID, Menu.NONE, "${getString(R.string.save)}")
         saveMenuItem?.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS or MenuItem.SHOW_AS_ACTION_WITH_TEXT)
+        menu.add(Menu.NONE, MENU_RESET_ID, Menu.NONE, getString(R.string.ksu_bar_reset))
         updateSaveButtonState()
         return true
     }
@@ -216,6 +242,10 @@ class ButtonsCustomizerActivity : AppCompatActivity() {
         }
         MENU_SAVE_ID -> {
             saveConfig()
+            true
+        }
+        MENU_RESET_ID -> {
+            resetToDefault()
             true
         }
         else -> super.onOptionsItemSelected(item)
@@ -272,6 +302,99 @@ class ButtonsCustomizerActivity : AppCompatActivity() {
         }
     }
 
+    /** Restores the shipped Kawaii Bar / status area layout and marks the editor dirty. */
+    private fun resetToDefault() {
+        val config = ButtonsLayoutConfig.default()
+        toolbarToggleConfig = config.toolbarToggleButton.normalizedIcon()
+        hideKeyboardConfig = config.hideKeyboardButton.normalizedIcon()
+        items.clear()
+        items.add(ListItem.ButtonItem(toolbarToggleConfig, Section.SystemBar))
+        items.add(ListItem.ButtonItem(hideKeyboardConfig, Section.SystemBar))
+        config.kawaiiBarButtons.forEach { items.add(ListItem.ButtonItem(it, Section.KawaiiBar)) }
+        items.add(ListItem.AddButtonPlaceholder)
+        config.statusAreaButtons.filter { it.id != "input_method_options" }
+            .forEach { items.add(ListItem.ButtonItem(it, Section.StatusArea)) }
+        items.add(ListItem.StatusAreaAddButtonPlaceholder)
+        updateAddButtonsSection()
+        adapter?.notifyDataSetChanged()
+        updateSaveButtonState()
+        refreshPreview()
+    }
+
+    /**
+     * Renders the current Kawaii Bar order as icon chips. Section boundaries are shown with a small
+     * divider so "显示/隐藏" and ordering are visible at a glance.
+     */
+    private fun refreshPreview() {
+        previewStrip.removeAllViews()
+        var lastSection: Section? = null
+        items.forEach { item ->
+            if (item !is ListItem.ButtonItem) return@forEach
+            if (item.section != Section.KawaiiBar && item.section != Section.SystemBar) return@forEach
+            if (lastSection != null && lastSection != item.section) {
+                previewStrip.addView(
+                    android.view.View(this).apply {
+                        setBackgroundColor(styledColor(android.R.attr.textColorSecondary))
+                    },
+                    LinearLayout.LayoutParams(dp(1), dp(24)).apply {
+                        marginStart = dp(6)
+                        marginEnd = dp(6)
+                    }
+                )
+            }
+            lastSection = item.section
+            previewStrip.addView(buildPreviewChip(item.button))
+        }
+        if (previewStrip.childCount == 0) {
+            previewStrip.addView(
+                TextView(this).apply {
+                    text = getString(R.string.ksu_bar_preview_empty)
+                    textSize = 12f
+                    setTextColor(styledColor(android.R.attr.textColorSecondary))
+                }
+            )
+        }
+    }
+
+    private fun buildPreviewChip(button: ConfigurableButton): android.view.View {
+        val accent = styledColor(android.R.attr.colorAccent)
+        val action = ButtonAction.fromId(button.id)
+        val iconRes = action?.defaultIcon ?: R.drawable.ic_baseline_extension_24
+        val label = button.text
+            ?: button.label
+            ?: action?.let { runCatching { getString(it.defaultLabelRes) }.getOrNull() }
+            ?: button.id
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = android.view.Gravity.CENTER
+            setPadding(dp(8), dp(6), dp(8), dp(6))
+            background = android.graphics.drawable.GradientDrawable().apply {
+                cornerRadius = dp(14).toFloat()
+                setColor(0x1F000000)
+            }
+            layoutParams = LinearLayout.LayoutParams(wrapContent, wrapContent).apply {
+                marginEnd = dp(6)
+            }
+            addView(
+                ImageView(this@ButtonsCustomizerActivity).apply {
+                    setImageResource(iconRes)
+                    setColorFilter(accent)
+                    contentDescription = label
+                },
+                LinearLayout.LayoutParams(dp(22), dp(22))
+            )
+            addView(
+                TextView(this@ButtonsCustomizerActivity).apply {
+                    text = label
+                    textSize = 10f
+                    maxLines = 1
+                    setTextColor(styledColor(android.R.attr.textColorSecondary))
+                },
+                LinearLayout.LayoutParams(wrapContent, wrapContent).apply { topMargin = dp(2) }
+            )
+        }
+    }
+
     private fun buildUi() {
         mainContainer.removeAllViews()
 
@@ -284,9 +407,28 @@ class ButtonsCustomizerActivity : AppCompatActivity() {
         }
         mainContainer.addView(usageHint)
 
+        // Live preview of the edited bar.
+        mainContainer.addView(
+            previewScroll,
+            LinearLayout.LayoutParams(matchParent, wrapContent).apply {
+                bottomMargin = dp(12)
+            }
+        )
+
         // Setup RecyclerView
         adapter = CombinedAdapter()
+        adapter?.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            override fun onChanged() = refreshPreview()
+            override fun onItemRangeChanged(positionStart: Int, itemCount: Int) = refreshPreview()
+            override fun onItemRangeChanged(positionStart: Int, itemCount: Int, payload: Any?) =
+                refreshPreview()
+
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) = refreshPreview()
+            override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) = refreshPreview()
+            override fun onItemRangeMoved(from: Int, to: Int, itemCount: Int) = refreshPreview()
+        })
         recyclerView.adapter = adapter
+        refreshPreview()
         recyclerView.addItemDecoration(object : RecyclerView.ItemDecoration() {
             override fun getItemOffsets(outRect: android.graphics.Rect, view: android.view.View, parent: RecyclerView, state: RecyclerView.State) {
                 val position = parent.getChildAdapterPosition(view)
@@ -1267,3 +1409,4 @@ class ButtonEntryUi(
 }
 
 private const val MENU_SAVE_ID = 3001
+private const val MENU_RESET_ID = 3002
