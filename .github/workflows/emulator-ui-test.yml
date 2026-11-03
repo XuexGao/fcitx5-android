@@ -29,6 +29,10 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-22.04
+    env:
+      # The emulator is x86_64; building a single ABI keeps the job fast and yields exactly one APK
+      # per variant (ABI splits would otherwise produce four files per directory).
+      BUILD_ABI: x86_64
     steps:
       - name: Fetch source code
         uses: actions/checkout@v7
@@ -68,9 +72,12 @@ jobs:
 
       - name: Collect APKs
         run: |
+          set -e
           mkdir -p ui-test-apks
-          cp app/build/outputs/apk/fx/debug/*.apk ui-test-apks/app-debug.apk
-          cp app/build/outputs/apk/androidTest/fx/debug/*.apk ui-test-apks/app-debug-androidTest.apk
+          app_apk=$(ls app/build/outputs/apk/fx/debug/*.apk | head -1)
+          test_apk=$(ls app/build/outputs/apk/androidTest/fx/debug/*.apk | head -1)
+          cp "$app_apk" ui-test-apks/app-debug.apk
+          cp "$test_apk" ui-test-apks/app-debug-androidTest.apk
           ls -l ui-test-apks
 
       - name: Upload APKs
