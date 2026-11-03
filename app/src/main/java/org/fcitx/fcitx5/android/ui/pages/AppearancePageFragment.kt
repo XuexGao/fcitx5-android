@@ -47,7 +47,7 @@ class AppearancePageFragment : KsuPageFragment() {
         // ---- Live preview -------------------------------------------------------
         container.addView(KsuViews.sectionHeader(ctx, getString(R.string.ksu_appearance_preview)))
         container.addView(
-            KsuViews.card {
+            KsuViews.card(ctx) {
                 addView(previewContainer())
                 addView(
                     TextView(ctx).apply {
@@ -67,7 +67,7 @@ class AppearancePageFragment : KsuPageFragment() {
         // ---- Colours ------------------------------------------------------------
         container.addView(KsuViews.sectionHeader(ctx, getString(R.string.ksu_appearance_colors)))
         container.addView(
-            KsuViews.card {
+            KsuViews.card(ctx) {
                 addView(
                     KsuViews.colorRow(
                         ctx,
@@ -104,7 +104,7 @@ class AppearancePageFragment : KsuPageFragment() {
         // ---- Layout -------------------------------------------------------------
         container.addView(KsuViews.sectionHeader(ctx, getString(R.string.ksu_appearance_layout)))
         container.addView(
-            KsuViews.card {
+            KsuViews.card(ctx) {
                 addView(
                     KsuViews.sliderItem(
                         ctx,
@@ -161,7 +161,7 @@ class AppearancePageFragment : KsuPageFragment() {
         // ---- Keyboard keys ------------------------------------------------------
         container.addView(KsuViews.sectionHeader(ctx, getString(R.string.ksu_appearance_keys)))
         container.addView(
-            KsuViews.card {
+            KsuViews.card(ctx) {
                 addView(
                     KsuViews.sliderItem(
                         ctx,
@@ -249,7 +249,7 @@ class AppearancePageFragment : KsuPageFragment() {
         // ---- Bottom bar ---------------------------------------------------------
         container.addView(KsuViews.sectionHeader(ctx, getString(R.string.ksu_appearance_bottom_bar)))
         container.addView(
-            KsuViews.card {
+            KsuViews.card(ctx) {
                 addView(
                     KsuViews.choiceRow(
                         ctx,
