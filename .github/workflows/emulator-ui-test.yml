@@ -2,13 +2,16 @@ name: Emulator UI Test
 
 # Instrumented UI tests on a real Android emulator.
 #
-# Covers the acceptance criteria that cannot be checked by compiling alone:
+# Covers the acceptance criteria that compiling alone cannot check:
 #   * four-page bottom navigation switches pages
-#   * appearance settings persist and drive the preview tokens
+#   * appearance settings persist and drive the live preview tokens
 #   * applicationId is org.fcitx5.xuexgao (and the namespace is unchanged)
 #   * 万象拼音 is the default scheme and the generated Rime config says so
 #   * function bar customisation round-trips and can be restored to defaults
 #   * the input method service and its file providers are declared
+#
+# The APKs are built once (they need the NDK) and then installed on each emulator, so the native
+# build is not repeated per API level.
 
 on:
   workflow_dispatch:
@@ -24,17 +27,13 @@ permissions:
   contents: read
 
 jobs:
-  emulator:
+  build:
     runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        api-level:
-          - 30
-          - 34
     steps:
       - name: Fetch source code
         uses: actions/checkout@v7
+        with:
+          submodules: recursive
 
       - name: Setup Java
         uses: actions/setup-java@v5
@@ -45,10 +44,56 @@ jobs:
       - name: Setup Android environment
         uses: android-actions/setup-android@v4
 
+      - name: Install CMake
+        run: |
+          sdkmanager --install "cmake;3.31.6"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt update
+          sudo apt install extra-cmake-modules gettext
+
+      - name: Prepare personal build sources
+        run: |
+          ./prepare_personal_build.sh
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
         with:
           cache-read-only: false
+
+      - name: Build app and instrumentation APKs
+        run: |
+          ./gradlew :app:assembleFxDebug :app:assembleFxDebugAndroidTest --console=plain
+
+      - name: Collect APKs
+        run: |
+          mkdir -p ui-test-apks
+          cp app/build/outputs/apk/fx/debug/*.apk ui-test-apks/app-debug.apk
+          cp app/build/outputs/apk/androidTest/fx/debug/*.apk ui-test-apks/app-debug-androidTest.apk
+          ls -l ui-test-apks
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v7
+        with:
+          name: ui-test-apks
+          path: ui-test-apks/*.apk
+
+  emulator:
+    needs: build
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        api-level:
+          - 30
+          - 34
+    steps:
+      - name: Download APKs
+        uses: actions/download-artifact@v8
+        with:
+          name: ui-test-apks
+          path: ui-test-apks
 
       - name: Enable KVM
         run: |
@@ -57,11 +102,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Build debug APK and test APK
-        run: |
-          ./gradlew :app:assembleFxDebug :app:assembleFxDebugAndroidTest --console=plain
-
-      - name: Run UI tests on emulator
+      - name: Run UI tests
         uses: ReactiveCircus/android-emulator-runner@v2.38.0
         with:
           api-level: ${{ matrix.api-level }}
@@ -71,22 +112,10 @@ jobs:
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: |
+            set -e
             adb wait-for-device
-            ./gradlew :app:connectedFxDebugAndroidTest \
-              -Pandroid.testInstrumentationRunnerArguments.class=\
-            org.fcitx.fcitx5.android.ui.PackageIdentityTest,\
-            org.fcitx.fcitx5.android.ui.MainShellNavigationTest,\
-            org.fcitx.fcitx5.android.ui.AppearanceSettingsTest,\
-            org.fcitx.fcitx5.android.ui.RimeDefaultsTest,\
-            org.fcitx.fcitx5.android.ui.FunctionBarConfigTest \
-              --console=plain
-
-      - name: Upload test reports
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: ui-test-reports-api${{ matrix.api-level }}
-          path: |
-            app/build/reports/androidTests/
-            app/build/outputs/androidTest-results/
-          if-no-files-found: warn
+            adb install -r -t ui-test-apks/app-debug.apk
+            adb install -r -t ui-test-apks/app-debug-androidTest.apk
+            adb shell am instrument -w -r \
+              -e class org.fcitx.fcitx5.android.ui.PackageIdentityTest,org.fcitx.fcitx5.android.ui.MainShellNavigationTest,org.fcitx.fcitx5.android.ui.AppearanceSettingsTest,org.fcitx.fcitx5.android.ui.RimeDefaultsTest,org.fcitx.fcitx5.android.ui.FunctionBarConfigTest \
+              org.fcitx.fcitx5.android.test/androidx.test.runner.AndroidJUnitRunner
