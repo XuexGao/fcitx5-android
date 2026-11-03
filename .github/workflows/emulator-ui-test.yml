@@ -125,4 +125,7 @@ jobs:
             adb wait-for-device
             adb install -r -t ui-test-apks/app-debug.apk
             adb install -r -t ui-test-apks/app-debug-androidTest.apk
-            adb shell am instrument -w -r -e class org.fcitx.fcitx5.android.ui.PackageIdentityTest,org.fcitx.fcitx5.android.ui.MainShellNavigationTest,org.fcitx.fcitx5.android.ui.AppearanceSettingsTest,org.fcitx.fcitx5.android.ui.RimeDefaultsTest,org.fcitx.fcitx5.android.ui.FunctionBarConfigTest org.fcitx5.xuexgao.debug.test/androidx.test.runner.AndroidJUnitRunner
+            adb shell am instrument -w -r -e class org.fcitx.fcitx5.android.ui.PackageIdentityTest,org.fcitx.fcitx5.android.ui.MainShellNavigationTest,org.fcitx.fcitx5.android.ui.AppearanceSettingsTest,org.fcitx.fcitx5.android.ui.RimeDefaultsTest,org.fcitx.fcitx5.android.ui.FunctionBarConfigTest org.fcitx5.xuexgao.debug.test/androidx.test.runner.AndroidJUnitRunner | tee instrument-output.txt
+            grep -E "OK \(|Tests run|FAILURES" instrument-output.txt
+            grep -q "INSTRUMENTATION_CODE: -1" instrument-output.txt
+            ! grep -qE "FAILURES!!!|shortMsg=|INSTRUMENTATION_FAILED" instrument-output.txt

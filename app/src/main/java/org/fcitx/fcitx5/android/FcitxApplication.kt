@@ -156,8 +156,6 @@ class FcitxApplication : Application() {
         Timber.d("isDirectBootMode=$isDirectBootMode")
 
         AppPrefs.init(sharedPrefs)
-        // Apply the Gboard-style key preset once, before any keyboard view is created.
-        KeyboardStylePreset.applyDefaultOnce()
         SplitKeyboardStateManager.init(this)
         // Smart settings initialization (on first install)
         SmartDefaultInitializer.initialize(this, AppPrefs.getInstance())
@@ -170,6 +168,9 @@ class FcitxApplication : Application() {
         }
         ClipboardManager.init(ctx)
         ThemeManager.init(resources.configuration)
+        // Apply the Gboard-style key preset once, after the theme is available, so it can notify
+        // listeners without racing ThemeManager.init().
+        KeyboardStylePreset.applyDefaultOnce()
         // Start custom font I/O while the IME daemon is initializing so first view creation can
         // reuse the cached typefaces instead of doing all file work on the main thread.
         FontProviders.preloadFontsAsync()

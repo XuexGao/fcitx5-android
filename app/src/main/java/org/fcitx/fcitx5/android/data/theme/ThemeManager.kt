@@ -152,6 +152,9 @@ object ThemeManager {
     }
 
     private fun fireChange() {
+        // Consumers can legitimately touch appearance preferences before ThemeManager.init() runs
+        // (for example the first-run keyboard style preset), so never touch the lateinit theme then.
+        if (!::_activeTheme.isInitialized) return
         val theme = _activeTheme
         dispatchOnMain {
             onChangeListeners.toList().forEach { it.onThemeChange(theme) }
