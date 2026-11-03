@@ -70,6 +70,9 @@ class AppPrefs(private val sharedPreferences: SharedPreferences) {
 
         // Settings initialization flag
         val settingsInitialized = bool("settings_initialized", false)
+        // The setup wizard opens automatically once per install; afterwards it is reachable from
+        // the home page. Persisted so it does not reappear on every launch.
+        val setupWizardAutoShown = bool("setup_wizard_auto_shown", false)
         val splitKeyboardMigrated = bool("split_keyboard_migrated", false)
         val lastShareReceiveDirectory = string("last_share_receive_directory", "")
         val lastShareReceiveDirectoryRemembered = bool("last_share_receive_directory_remembered", false)

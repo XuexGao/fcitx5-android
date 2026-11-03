@@ -16,6 +16,7 @@ import androidx.viewpager2.widget.ViewPager2
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.ui.main.MainActivity
 import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -25,6 +26,21 @@ import org.junit.runner.RunWith
  */
 @RunWith(AndroidJUnit4::class)
 class MainShellNavigationTest {
+
+    /**
+     * Makes the shell deterministic: no first-run setup wizard on top and no notification
+     * permission dialog stealing clicks.
+     */
+    @Before
+    fun prepare() {
+        val ctx = androidx.test.platform.app.InstrumentationRegistry
+            .getInstrumentation().targetContext
+        androidx.preference.PreferenceManager.getDefaultSharedPreferences(ctx)
+            .edit()
+            .putBoolean("setup_wizard_auto_shown", true)
+            .putBoolean("need_notifications", false)
+            .commit()
+    }
 
     private fun currentPage(scenario: ActivityScenario<MainActivity>): Int {
         var page = -1

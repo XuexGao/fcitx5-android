@@ -24,6 +24,7 @@ import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.databinding.ActivitySetupBinding
 import org.fcitx.fcitx5.android.ui.setup.SetupPage.Companion.firstUndonePage
 import org.fcitx.fcitx5.android.ui.setup.SetupPage.Companion.isLastPage
+import org.fcitx.fcitx5.android.data.prefs.AppPrefs
 import org.fcitx.fcitx5.android.utils.AppUtil
 import org.fcitx.fcitx5.android.utils.notificationManager
 
@@ -145,6 +146,15 @@ class SetupActivity : FragmentActivity() {
         private var shown = false
         private const val CHANNEL_ID = "setup"
         private const val NOTIFY_ID = 233
-        fun shouldShowUp() = !shown && SetupPage.hasUndonePage()
+
+        /** True while the wizard still has unfinished steps and has not auto-opened before. */
+        fun shouldShowUp(): Boolean =
+            !shown && !AppPrefs.getInstance().internal.setupWizardAutoShown.getValue() &&
+                SetupPage.hasUndonePage()
+
+        /** Records that the automatic opening happened, so it only occurs once. */
+        fun markAutoShown() {
+            AppPrefs.getInstance().internal.setupWizardAutoShown.setValue(true)
+        }
     }
 }

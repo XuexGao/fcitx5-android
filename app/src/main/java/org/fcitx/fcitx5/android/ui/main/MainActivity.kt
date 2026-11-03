@@ -282,6 +282,7 @@ class MainActivity : AppCompatActivity() {
         val action = intent?.action ?: return
         when (action) {
             Intent.ACTION_MAIN -> if (SetupActivity.shouldShowUp()) {
+                SetupActivity.markAutoShown()
                 startActivity<SetupActivity>()
             }
             Intent.ACTION_VIEW -> intent.data?.let {
