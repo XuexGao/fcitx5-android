@@ -26,8 +26,19 @@ class PackageIdentityTest {
     @Test
     fun applicationIdIsXuexgao() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("org.fcitx5.xuexgao", context.packageName)
-        assertEquals("org.fcitx5.xuexgao", BuildConfig.APPLICATION_ID)
+        // The runtime identity must match what the build configured.
+        assertEquals(BuildConfig.APPLICATION_ID, context.packageName)
+        // Release identity is exactly org.fcitx5.xuexgao; the debug build type appends .debug so it
+        // can be installed side by side, which is the pre-existing project convention.
+        assertTrue(
+            "unexpected applicationId: ${BuildConfig.APPLICATION_ID}",
+            BuildConfig.APPLICATION_ID == "org.fcitx5.xuexgao" ||
+                BuildConfig.APPLICATION_ID == "org.fcitx5.xuexgao.debug"
+        )
+        assertTrue(
+            "the old package name must not appear: ${BuildConfig.APPLICATION_ID}",
+            !BuildConfig.APPLICATION_ID.contains("org.fcitx.fcitx5.android")
+        )
     }
 
     @Test

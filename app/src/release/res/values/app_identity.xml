@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Build-type specific app identity for the release build. See src/debug for the rationale. -->
+<resources>
+    <item name="app_icon" type="mipmap">@mipmap/ic_launcher</item>
+    <item name="app_icon_round" type="mipmap">@mipmap/ic_launcher_round</item>
+    <item name="app_name" type="string">@string/app_name_release</item>
+</resources>

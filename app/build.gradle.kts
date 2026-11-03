@@ -92,15 +92,13 @@ android {
 
     buildTypes {
         release {
-            resValue("mipmap", "app_icon", "@mipmap/ic_launcher")
-            resValue("mipmap", "app_icon_round", "@mipmap/ic_launcher_round")
-            resValue("string", "app_name", "@string/app_name_release")
+            // app_icon / app_icon_round / app_name live in src/release/res instead of resValue():
+            // resValue() declarations are re-applied to the androidTest variant, which then cannot
+            // resolve the referenced resources and fails resource linking.
             proguardFile("proguard-rules.pro")
         }
         debug {
-            resValue("mipmap", "app_icon", "@mipmap/ic_launcher_debug")
-            resValue("mipmap", "app_icon_round", "@mipmap/ic_launcher_round_debug")
-            resValue("string", "app_name", "@string/app_name_debug")
+            // See the release block: declared in src/debug/res.
         }
     }
 

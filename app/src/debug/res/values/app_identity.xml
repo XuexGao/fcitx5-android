@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Build-type specific app identity for the debug build.
+
+    These are plain resources rather than `resValue(...)` in build.gradle.kts: resValue entries
+    are also applied to the androidTest variant, whose resource table does not contain the
+    referenced icons/strings, which makes `processFxDebugAndroidTestResources` fail.
+-->
+<resources>
+    <item name="app_icon" type="mipmap">@mipmap/ic_launcher_debug</item>
+    <item name="app_icon_round" type="mipmap">@mipmap/ic_launcher_round_debug</item>
+    <item name="app_name" type="string">@string/app_name_debug</item>
+</resources>
