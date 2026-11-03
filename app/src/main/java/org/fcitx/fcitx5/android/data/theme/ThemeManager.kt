@@ -158,6 +158,15 @@ object ThemeManager {
         }
     }
 
+    /**
+     * Re-broadcasts the active theme.
+     *
+     * The theme object itself does not change, but consumers rebuild their views from
+     * [ThemeManager.prefs] (key radius, margins, borders, ripple). Firing the change is what makes
+     * edits on the appearance page show up on the real keyboard and in previews without a restart.
+     */
+    fun notifyAppearanceChanged() = fireChange()
+
     private fun fireThemeListChange() {
         val themes = getAllThemes().toList()
         dispatchOnMain {

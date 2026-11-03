@@ -1,0 +1,51 @@
+name: Compile Check
+
+# Fast feedback loop: Kotlin/Java/KSP compilation only, no NDK work.
+# The full APK build lives in ci.yml; this one exists so UI refactors can be validated in a few
+# minutes instead of waiting for a native build.
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - '*'
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+
+permissions:
+  contents: read
+
+jobs:
+  kotlin:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Fetch source code
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Setup Android environment
+        uses: android-actions/setup-android@v4
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: false
+
+      - name: Compile fx debug variant
+        run: |
+          ./gradlew :app:compileFxDebugKotlin --console=plain --stacktrace
+
+      - name: Compile mainline debug variant
+        run: |
+          ./gradlew -PincludeMainlineFlavor=true :app:compileMainlineDebugKotlin --console=plain
+
+      - name: Compile unit tests
+        run: |
+          ./gradlew :app:testFxDebugUnitTestClasses --console=plain

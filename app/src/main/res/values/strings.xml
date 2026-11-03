@@ -862,4 +862,75 @@
     <string name="voice_error_audio_construct">AudioRecord construct denied: %s</string>
     <string name="voice_error_audio_not_init">AudioRecord not initialized</string>
     <string name="voice_error_audio_start_failed">startRecording failed: %s</string>
+
+    <!-- KernelSU-style shell: bottom navigation -->
+    <string name="ksu_tab_home">主页</string>
+    <string name="ksu_tab_appearance">界面</string>
+    <string name="ksu_tab_features">功能</string>
+    <string name="ksu_tab_settings">设置</string>
+
+    <!-- Home page -->
+    <string name="ksu_home_status">状态</string>
+    <string name="ksu_home_ime_enabled">输入法已启用</string>
+    <string name="ksu_home_ime_disabled">输入法未启用</string>
+    <string name="ksu_home_ime_default">当前为默认输入法</string>
+    <string name="ksu_home_ime_not_default">不是当前默认输入法</string>
+    <string name="ksu_home_enable_ime">启用输入法</string>
+    <string name="ksu_home_enable_ime_summary">前往系统设置勾选本输入法</string>
+    <string name="ksu_home_pick_ime">切换输入法</string>
+    <string name="ksu_home_pick_ime_summary">唤出系统输入法选择器</string>
+    <string name="ksu_home_quick_actions">快捷操作</string>
+    <string name="ksu_home_about">关于</string>
+    <string name="ksu_home_version">版本</string>
+    <string name="ksu_home_package">包名</string>
+    <string name="ksu_home_ime_status">输入法状态</string>
+    <string name="ksu_home_setup_wizard">安装向导</string>
+    <string name="ksu_home_setup_wizard_summary">重新运行首次配置流程</string>
+
+    <!-- Appearance page -->
+    <string name="ksu_appearance_preview">实时预览</string>
+    <string name="ksu_appearance_preview_hint">下面的改动会立即反映到预览和键盘上</string>
+    <string name="ksu_appearance_colors">配色</string>
+    <string name="ksu_appearance_accent">主题色</string>
+    <string name="ksu_appearance_layout">布局</string>
+    <string name="ksu_appearance_corner_radius">卡片圆角</string>
+    <string name="ksu_appearance_spacing">页面边距</string>
+    <string name="ksu_appearance_card_style">卡片样式</string>
+    <string name="ksu_appearance_card_elevated">浮起</string>
+    <string name="ksu_appearance_card_flat">扁平</string>
+    <string name="ksu_appearance_card_outlined">描边</string>
+    <string name="ksu_appearance_keys">键盘按键</string>
+    <string name="ksu_appearance_key_radius">按键圆角</string>
+    <string name="ksu_appearance_key_h_margin">按键横向间距</string>
+    <string name="ksu_appearance_key_v_margin">按键纵向间距</string>
+    <string name="ksu_appearance_key_border">显示按键边框</string>
+    <string name="ksu_appearance_key_ripple">按键水波纹</string>
+    <string name="ksu_appearance_key_oval">特殊键胶囊外形</string>
+    <string name="ksu_appearance_bottom_bar">底栏</string>
+    <string name="ksu_appearance_function_bar_style">功能栏样式</string>
+    <string name="ksu_appearance_style_icon">仅图标</string>
+    <string name="ksu_appearance_style_label">仅文字</string>
+    <string name="ksu_appearance_style_icon_label">图标和文字</string>
+    <string name="ksu_appearance_floating_bar">浮动底栏</string>
+    <string name="ksu_appearance_liquid_glass">液态玻璃效果</string>
+    <string name="ksu_appearance_liquid_glass_summary">低版本系统会自动降级为半透明</string>
+    <string name="ksu_appearance_reset">恢复默认外观</string>
+    <string name="ksu_appearance_reset_done">已恢复默认外观</string>
+    <string name="ksu_appearance_theme">主题</string>
+    <string name="ksu_appearance_theme_summary">选择配色方案，支持实时预览</string>
+
+    <!-- Features page -->
+    <string name="ksu_features_input">输入</string>
+    <string name="ksu_features_tools">文本工具</string>
+    <string name="ksu_features_efficiency">效率</string>
+    <string name="ksu_features_toolbar">功能栏</string>
+    <string name="ksu_features_toolbar_customize">自定义功能栏按钮</string>
+    <string name="ksu_features_toolbar_customize_summary">增删、排序、显示/隐藏按钮，可恢复默认</string>
+
+    <!-- Settings page -->
+    <string name="ksu_settings_app">应用</string>
+    <string name="ksu_settings_about">关于</string>
+    <string name="ksu_settings_faq">常见问题</string>
+    <string name="ksu_pinyin_custom_phrase">拼音自定义短语</string>
+    <string name="ksu_clipboard_sync">剪贴板同步</string>
 </resources>

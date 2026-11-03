@@ -21,7 +21,6 @@ import org.fcitx.fcitx5.android.data.quickphrase.QuickPhrase
 import org.fcitx.fcitx5.android.ui.main.AboutFragment
 import org.fcitx.fcitx5.android.ui.main.DeveloperFragment
 import org.fcitx.fcitx5.android.ui.main.LicensesFragment
-import org.fcitx.fcitx5.android.ui.main.MainFragment
 import org.fcitx.fcitx5.android.ui.main.PluginFragment
 import org.fcitx.fcitx5.android.ui.main.settings.addon.AddonConfigFragment
 import org.fcitx.fcitx5.android.ui.main.settings.addon.AddonListFragment
@@ -211,7 +210,7 @@ sealed class SettingsRoute : Parcelable {
 
             /* ========== Index ========== */
 
-            fragment<MainFragment, Index> {
+            fragment<IndexPlaceholderFragment, Index> {
                 label = appLabel
             }
 

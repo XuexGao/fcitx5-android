@@ -1,6 +1,6 @@
 /*
  * SPDX-License-Identifier: LGPL-2.1-or-later
- * SPDX-FileCopyrightText: Copyright 2021-2025 Fcitx5 for Android Contributors
+ * SPDX-FileCopyrightText: Copyright 2021-2026 Fcitx5 for Android Contributors
  */
 package org.fcitx.fcitx5.android.ui.main
 
@@ -9,24 +9,35 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.view.ViewGroup
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.graphics.drawable.DrawerArrowDrawable
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
+import androidx.fragment.app.Fragment
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.fragment.NavHostFragment
+import androidx.viewpager2.adapter.FragmentStateAdapter
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.snackbar.Snackbar
 import org.fcitx.fcitx5.android.BuildConfig
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.data.prefs.AppPrefs
 import org.fcitx.fcitx5.android.databinding.ActivityMainBinding
+import org.fcitx.fcitx5.android.ui.design.KsuBottomBar
+import org.fcitx.fcitx5.android.ui.design.bottomBarFloating
+import org.fcitx.fcitx5.android.ui.design.bottomBarGlass
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
+import org.fcitx.fcitx5.android.ui.pages.AppearancePageFragment
+import org.fcitx.fcitx5.android.ui.pages.FeaturesPageFragment
+import org.fcitx.fcitx5.android.ui.pages.HomePageFragment
+import org.fcitx.fcitx5.android.ui.pages.SettingsPageFragment
 import org.fcitx.fcitx5.android.ui.setup.SetupActivity
 import org.fcitx.fcitx5.android.utils.navigateWithAnim
 import org.fcitx.fcitx5.android.utils.parcelable
@@ -38,13 +49,21 @@ class MainActivity : AppCompatActivity() {
 
     private val viewModel: MainViewModel by viewModels()
 
+    private lateinit var binding: ActivityMainBinding
     private lateinit var navController: NavController
     private lateinit var shareReceiveManager: ShareReceiveManager
+
+    private var navBarInset = 0
+    private var lastGlassRefresh = 0L
+
+    /** `true` while a detail route is covering the pager. */
+    private val detailVisible: Boolean
+        get() = binding.navHostContainer.visibility == View.VISIBLE
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        val binding = ActivityMainBinding.inflate(layoutInflater)
+        binding = ActivityMainBinding.inflate(layoutInflater)
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
             val statusBars = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars())
             val navBars = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
@@ -53,6 +72,9 @@ class MainActivity : AppCompatActivity() {
                 rightMargin = navBars.right
             }
             binding.toolbar.topPadding = statusBars.top
+            navBarInset = navBars.bottom
+            binding.pageContainer.updatePadding(bottom = navBars.bottom)
+            applyBottomBarInsets()
             windowInsets
         }
         setContentView(binding.root)
@@ -74,8 +96,9 @@ class MainActivity : AppCompatActivity() {
                 onBackPressedDispatcher.onBackPressed()
                 return@setNavigationOnClickListener
             }
+            if (navigateBack()) return@setNavigationOnClickListener
             // "minimize" the activity if we can't go back
-            navController.navigateUp() || onSupportNavigateUp() || moveTaskToBack(false)
+            moveTaskToBack(false)
         }
         viewModel.toolbarTitle.observe(this) {
             supportActionBar!!.title = it
@@ -84,16 +107,150 @@ class MainActivity : AppCompatActivity() {
             binding.toolbar.elevation = dp(if (it) 4f else 0f)
         }
         navController.addOnDestinationChangedListener { _, dest, _ ->
-            dest.label?.let { viewModel.setToolbarTitle(it.toString()) }
+            if (dest.hasRoute<SettingsRoute.Index>()) {
+                hideDetailHost()
+            } else {
+                showDetailHost()
+                dest.label?.let { viewModel.setToolbarTitle(it.toString()) }
+            }
             if (dest.hasRoute<SettingsRoute.Theme>()) {
                 viewModel.disableToolbarShadow()
             } else {
                 viewModel.enableToolbarShadow()
             }
         }
+        setupPages()
         processIntent(intent, savedInstanceState)
         checkNotificationPermission()
     }
+
+    // ---- Four-page shell --------------------------------------------------------
+
+    private fun setupPages() {
+        binding.pagePager.adapter = PagesAdapter()
+        binding.pagePager.offscreenPageLimit = 1
+        binding.bottomBar.setItems(
+            listOf(
+                KsuBottomBar.Item(R.drawable.ic_baseline_home_24, getString(R.string.ksu_tab_home)),
+                KsuBottomBar.Item(
+                    R.drawable.ic_baseline_palette_24, getString(R.string.ksu_tab_appearance)
+                ),
+                KsuBottomBar.Item(
+                    R.drawable.ic_baseline_extension_24, getString(R.string.ksu_tab_features)
+                ),
+                KsuBottomBar.Item(
+                    R.drawable.ic_baseline_settings_24, getString(R.string.ksu_tab_settings)
+                )
+            )
+        )
+        binding.bottomBar.floating = bottomBarFloating()
+        binding.bottomBar.glassEnabled = bottomBarGlass()
+        binding.bottomBar.onSelect = { index ->
+            binding.pagePager.setCurrentItem(index, true)
+        }
+        binding.pagePager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                binding.bottomBar.select(position)
+                binding.bottomBar.refreshBackdrop(binding.pageContainer)
+                if (!detailVisible) {
+                    viewModel.setToolbarTitle(tabTitle(position))
+                    supportActionBar?.setDisplayHomeAsUpEnabled(false)
+                }
+            }
+
+            override fun onPageScrollStateChanged(state: Int) {
+                if (state == ViewPager2.SCROLL_STATE_IDLE) {
+                    binding.bottomBar.refreshBackdrop(binding.pageContainer)
+                }
+            }
+        })
+        viewModel.setToolbarTitle(tabTitle(0))
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)
+        binding.bottomBar.post { binding.bottomBar.refreshBackdrop(binding.pageContainer) }
+
+        // Keep the blurred strip in sync while any page scrolls.
+        binding.pageContainer.viewTreeObserver.addOnScrollChangedListener {
+            val now = System.currentTimeMillis()
+            if (now - lastGlassRefresh < 120L) return@addOnScrollChangedListener
+            lastGlassRefresh = now
+            binding.bottomBar.refreshBackdrop(binding.pageContainer)
+        }
+    }
+
+    private fun tabTitle(position: Int): String = getString(
+        when (position) {
+            0 -> R.string.ksu_tab_home
+            1 -> R.string.ksu_tab_appearance
+            2 -> R.string.ksu_tab_features
+            else -> R.string.ksu_tab_settings
+        }
+    )
+
+    private fun applyBottomBarInsets() {
+        val params = binding.bottomBar.layoutParams as? ViewGroup.MarginLayoutParams ?: return
+        val target = navBarInset + if (bottomBarFloating()) dp(12) else 0
+        if (params.bottomMargin != target) {
+            params.bottomMargin = target
+            binding.bottomBar.layoutParams = params
+        }
+    }
+
+    /**
+     * Opens a settings route on top of the pager. The four pages live outside the navigation host,
+     * so they cannot call `findNavController()` themselves.
+     */
+    fun openRoute(route: SettingsRoute) {
+        showDetailHost()
+        navController.popBackStack(SettingsRoute.Index, false)
+        navController.navigateWithAnim(route)
+    }
+
+    private fun showDetailHost() {
+        binding.navHostContainer.visibility = View.VISIBLE
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
+
+    private fun hideDetailHost() {
+        binding.navHostContainer.visibility = View.GONE
+        binding.bottomBar.select(binding.pagePager.currentItem)
+        viewModel.setToolbarTitle(tabTitle(binding.pagePager.currentItem))
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)
+    }
+
+    /** Returns true when the back press was handled inside the app. */
+    private fun navigateBack(): Boolean {
+        if (detailVisible) {
+            return navController.navigateUp()
+        }
+        if (binding.pagePager.currentItem != 0) {
+            binding.pagePager.setCurrentItem(0, true)
+            return true
+        }
+        return false
+    }
+
+    override fun onBackPressed() {
+        if (onBackPressedDispatcher.hasEnabledCallbacks()) {
+            onBackPressedDispatcher.onBackPressed()
+            return
+        }
+        if (navigateBack()) return
+        @Suppress("DEPRECATION")
+        super.onBackPressed()
+    }
+
+    private inner class PagesAdapter : FragmentStateAdapter(this) {
+        override fun getItemCount(): Int = PAGE_COUNT
+
+        override fun createFragment(position: Int): Fragment = when (position) {
+            0 -> HomePageFragment()
+            1 -> AppearancePageFragment()
+            2 -> FeaturesPageFragment()
+            else -> SettingsPageFragment()
+        }
+    }
+
+    // ---- Existing behaviour -----------------------------------------------------
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -107,8 +264,7 @@ class MainActivity : AppCompatActivity() {
             onBackPressedDispatcher.onBackPressed()
             return true
         }
-        // "minimize" the activity if we can't go back
-        return navController.navigateUp() || super.onSupportNavigateUp() || moveTaskToBack(false)
+        return navigateBack() || super.onSupportNavigateUp() || moveTaskToBack(false)
     }
 
     private fun processIntent(intent: Intent?, savedInstanceState: Bundle? = null) {
@@ -123,15 +279,13 @@ class MainActivity : AppCompatActivity() {
                     .setMessage(R.string.whether_import_dict)
                     .setNegativeButton(android.R.string.cancel) { _, _ -> }
                     .setPositiveButton(android.R.string.ok) { _, _ ->
-                        navController.popBackStack(SettingsRoute.Index, false)
-                        navController.navigateWithAnim(SettingsRoute.PinyinDict(it))
+                        openRoute(SettingsRoute.PinyinDict(it))
                     }
                     .show()
             }
             Intent.ACTION_RUN -> {
                 val route = intent.parcelable<SettingsRoute>(EXTRA_SETTINGS_ROUTE) ?: return
-                navController.popBackStack(SettingsRoute.Index, false)
-                navController.navigateWithAnim(route)
+                openRoute(route)
             }
             Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE -> {
                 shareReceiveManager.handle(intent, savedInstanceState)
@@ -177,6 +331,16 @@ class MainActivity : AppCompatActivity() {
         needNotifications = grantResults.getOrNull(0) == PackageManager.PERMISSION_GRANTED
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Appearance prefs may have changed while another screen was in front.
+        binding.bottomBar.floating = bottomBarFloating()
+        binding.bottomBar.glassEnabled = bottomBarGlass()
+        binding.bottomBar.refreshChrome()
+        applyBottomBarInsets()
+        binding.bottomBar.post { binding.bottomBar.refreshBackdrop(binding.pageContainer) }
+    }
+
     override fun onStop() {
         viewModel.fcitx.runIfReady {
             save()
@@ -186,6 +350,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_SETTINGS_ROUTE = "${BuildConfig.APPLICATION_ID}.EXTRA_SETTINGS_ROUTE"
+        private const val PAGE_COUNT = 4
     }
-
 }
