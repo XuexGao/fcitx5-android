@@ -147,9 +147,16 @@
 
 | Workflow | 内容 | 结果 |
 | --- | --- | --- |
-| `compile-check.yml` | 仅 Kotlin/KSP：fx debug、mainline debug、单元测试编译 | 见下 |
-| `ci.yml`（Commit CI） | 完整 NDK 构建：standard / plugins / mainline 三个矩阵，签名 APK，校验 apksigner | 见下 |
-| `emulator-ui-test.yml` | 构建 APK → API 30 与 API 34 模拟器上跑仪器化测试 | 见下 |
+| `compile-check.yml` | 仅 Kotlin/KSP：fx debug、mainline debug、单元测试编译 | ✅ 通过 |
+| `ci.yml`（Commit CI） | 完整 NDK 构建：standard / plugins / mainline 三个矩阵，签名 APK，校验 apksigner | ✅ 通过 |
+| `emulator-ui-test.yml` | 构建 APK → API 30 与 API 34 模拟器上跑仪器化测试 | ✅ 通过（**22 tests / OK**，`INSTRUMENTATION_CODE: -1`） |
+
+最近一次全绿提交：`cf910c4b`（三条流水线均 success）。
+
+模拟器实测还发现并修复了一个**真实崩溃**：`KeyboardStylePreset.applyDefaultOnce()` 在
+`ThemeManager.init()` 之前触发主题变更，`fireChange()` 访问未初始化的 `lateinit` 主题属性，
+导致全新安装启动即 `UninitializedPropertyAccessException`。修复方式：预设改到
+`ThemeManager.init()` 之后应用，并让 `fireChange()` 在初始化前安全返回。
 
 仪器化测试覆盖（`app/src/androidTest/.../ui/`）：
 
