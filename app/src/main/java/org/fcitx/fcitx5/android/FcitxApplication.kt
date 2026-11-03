@@ -25,6 +25,7 @@ import org.fcitx.fcitx5.android.data.clipboard.ClipboardManager
 import org.fcitx.fcitx5.android.data.prefs.AppPrefs
 import org.fcitx.fcitx5.android.data.prefs.SmartDefaultInitializer
 import org.fcitx.fcitx5.android.data.prefs.SplitKeyboardStateManager
+import org.fcitx.fcitx5.android.ui.design.KeyboardStylePreset
 import org.fcitx.fcitx5.android.data.theme.ThemeManager
 import org.fcitx.fcitx5.android.input.font.FontProviders
 import org.fcitx.fcitx5.android.ui.main.LogActivity
@@ -155,6 +156,8 @@ class FcitxApplication : Application() {
         Timber.d("isDirectBootMode=$isDirectBootMode")
 
         AppPrefs.init(sharedPrefs)
+        // Apply the Gboard-style key preset once, before any keyboard view is created.
+        KeyboardStylePreset.applyDefaultOnce()
         SplitKeyboardStateManager.init(this)
         // Smart settings initialization (on first install)
         SmartDefaultInitializer.initialize(this, AppPrefs.getInstance())

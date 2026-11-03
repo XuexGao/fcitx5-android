@@ -933,4 +933,7 @@
     <string name="ksu_settings_faq">常见问题</string>
     <string name="ksu_pinyin_custom_phrase">拼音自定义短语</string>
     <string name="ksu_clipboard_sync">剪贴板同步</string>
+    <string name="ksu_appearance_keyboard_style">键盘风格</string>
+    <string name="ksu_appearance_keyboard_style_classic">经典</string>
+    <string name="ksu_appearance_keyboard_style_gboard">Gboard</string>
 </resources>

@@ -30,6 +30,14 @@ class AppearancePrefs(sharedPreferences: SharedPreferences) : ManagedPreferenceP
         Outlined
     }
 
+    enum class KeyboardStyle {
+        /** fcitx5-android's historical look: tight radius, square action keys. */
+        Classic,
+
+        /** Gboard-like: softer radius, tighter gaps, ripple feedback, pill action keys. */
+        Gboard
+    }
+
     enum class FunctionBarStyle {
         /** Icon only, like Gboard's compact tool row. */
         Icon,
@@ -70,6 +78,15 @@ class AppearancePrefs(sharedPreferences: SharedPreferences) : ManagedPreferenceP
         ManagedPreference.PBool(sharedPreferences, KEY_FLOATING_BOTTOM_BAR, true)
             .apply { register() }
 
+    val keyboardStyle =
+        ManagedPreference.PString(sharedPreferences, KEY_KEYBOARD_STYLE, KeyboardStyle.Gboard.name)
+            .apply { register() }
+
+    /** Set once the default keyboard preset has been written, so user tweaks are never clobbered. */
+    val keyboardStyleApplied =
+        ManagedPreference.PBool(sharedPreferences, KEY_KEYBOARD_STYLE_APPLIED, false)
+            .apply { register() }
+
     /** Card style as an enum, falling back to the default when the stored value is unknown. */
     val cardStyleValue: CardStyle
         get() = enumOrDefault(cardStyle.getValue(), CardStyle.entries, CardStyle.Elevated)
@@ -80,6 +97,12 @@ class AppearancePrefs(sharedPreferences: SharedPreferences) : ManagedPreferenceP
             functionBarStyle.getValue(), FunctionBarStyle.entries, FunctionBarStyle.IconAndLabel
         )
 
+    /** Keyboard style as an enum, falling back to the default. */
+    val keyboardStyleValue: KeyboardStyle
+        get() = enumOrDefault(
+            keyboardStyle.getValue(), KeyboardStyle.entries, KeyboardStyle.Gboard
+        )
+
     /**
      * Keys written by [resetToDefaults]. Kept explicit so a future preference is never
      * silently dropped from the reset path.
@@ -87,7 +110,7 @@ class AppearancePrefs(sharedPreferences: SharedPreferences) : ManagedPreferenceP
     private val allKeys: List<ManagedPreference<*>>
         get() = listOf(
             accentColor, cornerRadius, spacing, cardStyle,
-            functionBarStyle, liquidGlass, floatingBottomBar
+            functionBarStyle, liquidGlass, floatingBottomBar, keyboardStyle
         )
 
     fun resetToDefaults() {
@@ -103,6 +126,8 @@ class AppearancePrefs(sharedPreferences: SharedPreferences) : ManagedPreferenceP
         const val KEY_FUNCTION_BAR_STYLE = "appearance_function_bar_style"
         const val KEY_LIQUID_GLASS = "appearance_liquid_glass"
         const val KEY_FLOATING_BOTTOM_BAR = "appearance_floating_bottom_bar"
+        const val KEY_KEYBOARD_STYLE = "appearance_keyboard_style"
+        const val KEY_KEYBOARD_STYLE_APPLIED = "appearance_keyboard_style_applied"
 
         /** KernelSU/Miuix-ish blue. */
         const val DEFAULT_ACCENT_COLOR = 0xFF0A84FF.toInt()
@@ -123,7 +148,7 @@ class AppearancePrefs(sharedPreferences: SharedPreferences) : ManagedPreferenceP
 
         val ALL_KEYS = listOf(
             KEY_ACCENT_COLOR, KEY_CORNER_RADIUS, KEY_SPACING, KEY_CARD_STYLE,
-            KEY_FUNCTION_BAR_STYLE, KEY_LIQUID_GLASS, KEY_FLOATING_BOTTOM_BAR
+            KEY_FUNCTION_BAR_STYLE, KEY_LIQUID_GLASS, KEY_FLOATING_BOTTOM_BAR, KEY_KEYBOARD_STYLE
         )
 
         private var instance: AppearancePrefs? = null

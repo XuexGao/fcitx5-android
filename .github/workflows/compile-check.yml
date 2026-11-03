@@ -48,4 +48,4 @@ jobs:
 
       - name: Compile unit tests
         run: |
-          ./gradlew :app:testFxDebugUnitTestClasses --console=plain
+          ./gradlew :app:compileFxDebugUnitTestKotlin --console=plain

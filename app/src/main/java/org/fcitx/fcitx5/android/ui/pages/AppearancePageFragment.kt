@@ -15,6 +15,7 @@ import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.data.prefs.AppearancePrefs
 import org.fcitx.fcitx5.android.data.theme.ThemeManager
 import org.fcitx.fcitx5.android.ui.design.KsuTokens
+import org.fcitx.fcitx5.android.ui.design.KeyboardStylePreset
 import org.fcitx.fcitx5.android.ui.design.KsuViews
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
 import org.fcitx.fcitx5.android.ui.main.settings.icon.IconThemeListActivity
@@ -162,6 +163,24 @@ class AppearancePageFragment : KsuPageFragment() {
         container.addView(KsuViews.sectionHeader(ctx, getString(R.string.ksu_appearance_keys)))
         container.addView(
             KsuViews.card(ctx) {
+                addView(
+                    KsuViews.choiceRow(
+                        ctx,
+                        getString(R.string.ksu_appearance_keyboard_style),
+                        listOf(
+                            getString(R.string.ksu_appearance_keyboard_style_classic),
+                            getString(R.string.ksu_appearance_keyboard_style_gboard)
+                        ),
+                        appearance.keyboardStyleValue.ordinal,
+                        onSelect = { index ->
+                            val style = AppearancePrefs.KeyboardStyle.entries[index]
+                            appearance.keyboardStyle.setValue(style.name)
+                            KeyboardStylePreset.apply(style)
+                            rebuildPage()
+                        }
+                    )
+                )
+                addView(KsuViews.divider(ctx))
                 addView(
                     KsuViews.sliderItem(
                         ctx,
