@@ -118,11 +118,11 @@ jobs:
           profile: pixel_5
           disable-animations: true
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          # NOTE: android-emulator-runner executes this script line by line with `sh -c`, so every
+          # command must fit on a single line (no backslash continuations).
           script: |
             set -e
             adb wait-for-device
             adb install -r -t ui-test-apks/app-debug.apk
             adb install -r -t ui-test-apks/app-debug-androidTest.apk
-            adb shell am instrument -w -r \
-              -e class org.fcitx.fcitx5.android.ui.PackageIdentityTest,org.fcitx.fcitx5.android.ui.MainShellNavigationTest,org.fcitx.fcitx5.android.ui.AppearanceSettingsTest,org.fcitx.fcitx5.android.ui.RimeDefaultsTest,org.fcitx.fcitx5.android.ui.FunctionBarConfigTest \
-              org.fcitx.fcitx5.android.test/androidx.test.runner.AndroidJUnitRunner
+            adb shell am instrument -w -r -e class org.fcitx.fcitx5.android.ui.PackageIdentityTest,org.fcitx.fcitx5.android.ui.MainShellNavigationTest,org.fcitx.fcitx5.android.ui.AppearanceSettingsTest,org.fcitx.fcitx5.android.ui.RimeDefaultsTest,org.fcitx.fcitx5.android.ui.FunctionBarConfigTest org.fcitx5.xuexgao.debug.test/androidx.test.runner.AndroidJUnitRunner
