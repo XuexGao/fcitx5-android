@@ -39,6 +39,46 @@ set(RIME_TARGET $<LINK_LIBRARY:WHOLE_ARCHIVE,Rime_static>)
 set(RIME_DATA_DIR "${CMAKE_INSTALL_DATADIR}/rime-data")
 add_subdirectory(fcitx5-rime)
 
+# ---------------------------------------------------------------------------
+# rime-wanxiang (万象拼音) — default Chinese schema source.
+#
+# The submodule is pinned in .gitmodules. Its schemas, Lua processors and the
+# required dictionaries are installed into the same `rime-data` tree as the
+# stock luna_pinyin data, so the app's normal data-descriptor deployment copies
+# them to the device on first run without any extra step.
+#
+# Configure with -DINCLUDE_WANXIANG_DICT=OFF to ship the schemas without the
+# ~54 MB dictionaries (useful for size-constrained builds; the schema then
+# falls back to the bundled luna_pinyin data).
+# ---------------------------------------------------------------------------
+set(WANXIANG_DIR "${CMAKE_CURRENT_SOURCE_DIR}/rime-wanxiang")
+option(INCLUDE_WANXIANG_DICT "Bundle the rime-wanxiang dictionaries" ON)
+if (EXISTS "${WANXIANG_DIR}/wanxiang.schema.yaml")
+    file(GLOB WANXIANG_YAML "${WANXIANG_DIR}/wanxiang*.yaml")
+    install(FILES
+            ${WANXIANG_YAML}
+            "${WANXIANG_DIR}/custom_phrase.dict.yaml"
+            "${WANXIANG_DIR}/version.txt"
+            DESTINATION "${FCITX_INSTALL_DATADIR}/rime-data"
+            COMPONENT prebuilt-assets
+            )
+    install(DIRECTORY
+            "${WANXIANG_DIR}/lua"
+            "${WANXIANG_DIR}/opencc"
+            DESTINATION "${FCITX_INSTALL_DATADIR}/rime-data"
+            COMPONENT prebuilt-assets
+            )
+    if (INCLUDE_WANXIANG_DICT)
+        install(DIRECTORY
+                "${WANXIANG_DIR}/dicts"
+                DESTINATION "${FCITX_INSTALL_DATADIR}/rime-data"
+                COMPONENT prebuilt-assets
+                )
+    endif ()
+else ()
+    message(WARNING "rime-wanxiang submodule is missing; building without it")
+endif ()
+
 install(FILES
         "default.yaml"
         "rime-essay/essay.txt"

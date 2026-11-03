@@ -936,4 +936,36 @@
     <string name="ksu_appearance_keyboard_style">键盘风格</string>
     <string name="ksu_appearance_keyboard_style_classic">经典</string>
     <string name="ksu_appearance_keyboard_style_gboard">Gboard</string>
+    <!-- Rime schema configuration -->
+    <string name="ksu_rime_title">Rime 方案</string>
+    <string name="ksu_rime_default_schema">默认方案</string>
+    <string name="ksu_rime_default_schema_summary">启动 Rime 时使用的输入方案</string>
+    <string name="ksu_rime_schema_list">方案列表</string>
+    <string name="ksu_rime_schema_list_summary">启用或关闭候选方案，开关立即写入配置</string>
+    <string name="ksu_rime_double_pinyin">双拼方案</string>
+    <string name="ksu_rime_double_pinyin_summary">万象拼音使用的双拼键位，默认自然码</string>
+    <string name="ksu_rime_page_size">候选数量</string>
+    <string name="ksu_rime_fuzzy">模糊音</string>
+    <string name="ksu_rime_fuzzy_z_zh">z / zh 模糊</string>
+    <string name="ksu_rime_fuzzy_c_ch">c / ch 模糊</string>
+    <string name="ksu_rime_fuzzy_s_sh">s / sh 模糊</string>
+    <string name="ksu_rime_fuzzy_n_l">n / l 模糊</string>
+    <string name="ksu_rime_fuzzy_in_ing">in / ing 模糊</string>
+    <string name="ksu_rime_fuzzy_an_ang">an / ang 模糊</string>
+    <string name="ksu_rime_actions">操作</string>
+    <string name="ksu_rime_redeploy">重新部署</string>
+    <string name="ksu_rime_redeploy_summary">重新编译词库，首次安装后会自动执行</string>
+    <string name="ksu_rime_redeploy_done">已触发 Rime 部署</string>
+    <string name="ksu_rime_export">导出配置</string>
+    <string name="ksu_rime_export_done">配置已导出</string>
+    <string name="ksu_rime_import">导入配置</string>
+    <string name="ksu_rime_import_done">配置已导入</string>
+    <string name="ksu_rime_import_failed">导入失败，请检查文件格式</string>
+    <string name="ksu_rime_reset">恢复默认方案设置</string>
+    <string name="ksu_rime_reset_done">已恢复默认方案设置</string>
+    <string name="ksu_rime_status">万象拼音状态</string>
+    <string name="ksu_rime_available">已安装，可直接使用</string>
+    <string name="ksu_rime_unavailable">未检测到，请确认已安装 Rime 插件</string>
+    <string name="ksu_home_default_scheme">默认中文方案</string>
+    <string name="ksu_rime_bundled_license">万象拼音词库采用 CC-BY-4.0 许可，来源 https://github.com/amzxyz/rime-wanxiang</string>
 </resources>

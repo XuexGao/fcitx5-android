@@ -77,6 +77,7 @@ import org.fcitx.fcitx5.android.daemon.FcitxConnection
 import org.fcitx.fcitx5.android.daemon.FcitxDaemon
 import org.fcitx.fcitx5.android.data.InputFeedbacks
 import org.fcitx.fcitx5.android.data.prefs.AppPrefs
+import org.fcitx.fcitx5.android.data.rime.RimeAutoDeploy
 import org.fcitx.fcitx5.android.input.candidates.floating.FloatingCandidatesMode
 import org.fcitx.fcitx5.android.data.prefs.ManagedPreference
 import org.fcitx.fcitx5.android.data.prefs.ManagedPreferenceProvider
@@ -1007,6 +1008,8 @@ class FcitxInputMethodService : LifecycleInputMethodService() {
     override fun onCreateInputView(): View? {
         val startedAt = SystemClock.elapsedRealtime()
         android.util.Log.i("FcitxColdStart", "service.onCreateInputView begin")
+        // Write the Rime custom config on first use so 万象拼音 is ready without opening settings.
+        lifecycleScope.launch { RimeAutoDeploy.ensureDeployed(this@FcitxInputMethodService) }
         replaceInputViews(ThemeManager.activeTheme)
         android.util.Log.i(
             "FcitxColdStart",

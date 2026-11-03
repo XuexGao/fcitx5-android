@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.clipboardsync.ui.ClipboardSyncSettingsActivity
+import org.fcitx.fcitx5.android.data.rime.RimePrefs
 import org.fcitx.fcitx5.android.ui.design.KsuTokens
 import org.fcitx.fcitx5.android.ui.design.KsuViews
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
@@ -49,6 +50,13 @@ class FeaturesPageFragment : KsuPageFragment() {
                         null,
                         icon = R.drawable.ic_baseline_tune_24,
                         onClick = { openRoute(SettingsRoute.GlobalConfig) }
+                    ),
+                    KsuViews.listItem(
+                        ctx,
+                        getString(R.string.ksu_rime_title),
+                        rimeSchemaSummary(),
+                        icon = R.drawable.ic_status_rime,
+                        onClick = { openRoute(SettingsRoute.RimeSchemas) }
                     )
                 )
             ),
@@ -145,6 +153,13 @@ class FeaturesPageFragment : KsuPageFragment() {
             ),
             cardParams(inset)
         )
+    }
+
+    /** Shows the active 万象拼音 double-pinyin layout, or a hint to open the page. */
+    private fun rimeSchemaSummary(): String {
+        val prefs = RimePrefs.ensureInitialized(requireContext())
+        val layout = RimePrefs.DoublePinyin.fromId(prefs.doublePinyin.getValue())
+        return "${prefs.defaultSchema.getValue()} · ${layout.label}"
     }
 
     private fun cardParams(inset: Int): LinearLayout.LayoutParams =

@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import org.fcitx.fcitx5.android.BuildConfig
 import org.fcitx.fcitx5.android.R
+import org.fcitx.fcitx5.android.data.rime.RimePrefs
 import org.fcitx.fcitx5.android.ui.design.KsuTokens
 import org.fcitx.fcitx5.android.ui.design.KsuViews
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
@@ -43,6 +44,13 @@ class HomePageFragment : KsuPageFragment() {
                         getString(R.string.ksu_home_enable_ime_summary),
                         icon = R.drawable.ic_baseline_settings_24,
                         onClick = { InputMethodUtil.startSettingsActivity(ctx) }
+                    ),
+                    KsuViews.listItem(
+                        ctx,
+                        getString(R.string.ksu_home_default_scheme),
+                        defaultSchemeSummary(),
+                        icon = R.drawable.ic_status_rime,
+                        onClick = { openRoute(SettingsRoute.RimeSchemas) }
                     )
                 )
             ),
@@ -119,6 +127,13 @@ class HomePageFragment : KsuPageFragment() {
             else R.drawable.ic_baseline_info_24,
             iconTint = if (enabled) KsuTokens.accent(ctx) else KsuTokens.onSurfaceVariant(ctx)
         )
+    }
+
+    /** `wanxiang · 自然码` style summary of the default Chinese scheme. */
+    private fun defaultSchemeSummary(): String {
+        val prefs = RimePrefs.ensureInitialized(requireContext())
+        val layout = RimePrefs.DoublePinyin.fromId(prefs.doublePinyin.getValue())
+        return "${prefs.defaultSchema.getValue()} · ${layout.label}"
     }
 
     private fun imeSelectionSummary(): String {
