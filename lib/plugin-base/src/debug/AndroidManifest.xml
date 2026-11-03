@@ -8,7 +8,8 @@
 
     <queries>
         <package android:name="${mainApplicationId}" />
-        <!-- Compatibility: also query original Fcitx5 Android debug package -->
+        <!-- Compatibility: also query the original Fcitx5 Android packages -->
+        <package android:name="org.fcitx.fcitx5.android" />
         <package android:name="org.fcitx.fcitx5.android.debug" />
     </queries>
 

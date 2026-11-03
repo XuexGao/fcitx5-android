@@ -9,9 +9,23 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+/**
+ * Java/Kotlin package and JNI symbol prefix.
+ *
+ * This deliberately stays `org.fcitx.fcitx5.android`: it is the code namespace, it is baked into
+ * the native `Java_org_fcitx_fcitx5_android_*` JNI entry points, and it is what the original
+ * fcitx5-android plugin packages interoperate with. Only the install identity changes below.
+ */
 val packageBase = "org.fcitx.fcitx5.android"
-val appIdBase = packageBase
-val appIdFxSuffix = ".fx"
+
+/** Install identity (what users see as the app's package name). */
+val appIdBase = "org.fcitx5.xuexgao"
+
+/** fx is the canonical variant, so it carries no suffix. */
+val appIdFxSuffix = ""
+
+/** The optional mainline variant gets its own identity so both can be installed side by side. */
+val appIdMainlineSuffix = ".mainline"
 val flavorFx = "fx"
 val flavorMainline = "mainline"
 val appLabelDefault = "@string/app_name"
@@ -61,11 +75,12 @@ android {
     productFlavors {
         create(flavorFx) {
             dimension = "brand"
-            applicationIdSuffix = appIdFxSuffix
+            if (appIdFxSuffix.isNotEmpty()) applicationIdSuffix = appIdFxSuffix
             buildConfigField("boolean", "IS_FX_BUILD", "true")
         }
         create(flavorMainline) {
             dimension = "brand"
+            applicationIdSuffix = appIdMainlineSuffix
             buildConfigField("boolean", "IS_FX_BUILD", "false")
         }
     }
@@ -184,7 +199,7 @@ androidComponents {
                     if (output is com.android.build.api.variant.impl.VariantOutputImpl) {
                         output.outputFileName.set(
                             output.outputFileName.get()
-                                .replace("org.fcitx.fcitx5.android-", "org.fcitx.fcitx5.android.fx-")
+                                .replace("$appIdBase-", "$appIdBase-fx-")
                                 .replace("-fx-", "-")
                         )
                     }

@@ -195,6 +195,7 @@ class FileBrowserActivity : AppCompatActivity() {
         // Try plausible main-app package names; the first installed one wins.
         val candidates = linkedSetOf(
             BuildConfig.MAIN_APPLICATION_ID,
+            "org.fcitx5.xuexgao.mainline",
             "org.fcitx.fcitx5.android.fx",
             "org.fcitx.fcitx5.android.fx.debug",
             "org.fcitx.fcitx5.android",

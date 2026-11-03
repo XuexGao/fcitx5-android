@@ -3,13 +3,17 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!--
-        Cover all main-app applicationId variants explicitly. We deliberately don't use
+        Cover the other main-app applicationId variants explicitly. We deliberately don't use
         ${mainApplicationId} here: it resolves to whichever variant the plugin is built
-        against (mainline/fx × release/debug), which always overlaps one of the four
-        entries below and triggers a duplicate-package merger warning.
-        `org.fcitx.fcitx5.android` is already declared by lib:plugin-base.
+        against and would overlap the entry declared by lib:plugin-base, triggering a
+        duplicate-package merger warning.
+        The new app identity is `org.fcitx5.xuexgao` (mainline variant: `.mainline`);
+        the legacy `org.fcitx.fcitx5.android` entries stay so the plugin keeps working with
+        existing upstream-style installs.
     -->
     <queries>
+        <package android:name="org.fcitx5.xuexgao.mainline" />
+        <package android:name="org.fcitx.fcitx5.android" />
         <package android:name="org.fcitx.fcitx5.android.debug" />
         <package android:name="org.fcitx.fcitx5.android.fx" />
         <package android:name="org.fcitx.fcitx5.android.fx.debug" />

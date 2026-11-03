@@ -4,7 +4,9 @@
 
 *** 停止更新了，留意相关fork可能有更优秀的修复隐藏bug或性能改善 ***
 
-本mod是基于原仓几乎全程 vibe coding 而成，在原仓上增加了相当若干特性，包名为了方便网友同时使用体验使用改成了`org.fcitx.fcitx5.android.fx`，总体上可以理解成原仓做的超集, 可在[releases](https://github.com/fxliang/fcitx5-android/releases)下面下载体验。
+本mod是基于原仓几乎全程 vibe coding 而成，在原仓上增加了相当若干特性，安装包名为 `org.fcitx5.xuexgao`（可与上游共用同一台设备），总体上可以理解成原仓做的超集。
+
+> Java/Kotlin 代码命名空间（namespace）仍为 `org.fcitx.fcitx5.android`，因为它同时是 JNI 符号前缀与上游插件互通协议的一部分；仅安装身份（applicationId）改为 `org.fcitx5.xuexgao`。
 
 
 微信赞赏码

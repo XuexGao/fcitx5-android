@@ -79,8 +79,11 @@ object VoiceInputProviderManager {
         val releaseLikeId = appId.removeSuffix(".debug")
         add(releaseLikeId)
         add("$releaseLikeId.debug")
+        // Legacy upstream identities, kept for providers built against them.
         add("org.fcitx.fcitx5.android")
         add("org.fcitx.fcitx5.android.debug")
+        add("org.fcitx.fcitx5.android.fx")
+        add("org.fcitx.fcitx5.android.fx.debug")
     }.map { it + VoiceInputIpc.SERVICE_ACTION_SUFFIX }
 
     private var activeConnection: ServiceConnection? = null
