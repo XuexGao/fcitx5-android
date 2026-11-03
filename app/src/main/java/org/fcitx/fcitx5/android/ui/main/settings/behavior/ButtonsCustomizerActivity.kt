@@ -410,7 +410,10 @@ class ButtonsCustomizerActivity : AppCompatActivity() {
         // Live preview of the edited bar.
         mainContainer.addView(
             previewScroll,
-            LinearLayout.LayoutParams(matchParent, wrapContent).apply {
+            LinearLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
                 bottomMargin = dp(12)
             }
         )
