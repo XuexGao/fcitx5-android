@@ -91,15 +91,29 @@ class MainActivity : AppCompatActivity() {
             }.show()
         }
         binding.toolbar.setNavigationOnClickListener {
-            // prevent navigate up when child fragment has enabled `OnBackPressedCallback`
-            if (onBackPressedDispatcher.hasEnabledCallbacks()) {
+            // A detail screen may have an active OnBackPressedCallback (for example "save before
+            // leaving"), so route through the dispatcher first.
+            if (detailVisible) {
                 onBackPressedDispatcher.onBackPressed()
-                return@setNavigationOnClickListener
+            } else if (binding.pagePager.currentItem != 0) {
+                binding.pagePager.setCurrentItem(0, true)
+            } else {
+                // "minimize" the activity if we can't go back
+                moveTaskToBack(false)
             }
-            if (navigateBack()) return@setNavigationOnClickListener
-            // "minimize" the activity if we can't go back
-            moveTaskToBack(false)
         }
+        // Modern back handling: register a callback instead of overriding onBackPressed(), so the
+        // system default (finish) still runs once we are done.
+        onBackPressedDispatcher.addCallback(
+            this, object : androidx.activity.OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (navigateBackInternal()) return
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                    isEnabled = true
+                }
+            }
+        )
         viewModel.toolbarTitle.observe(this) {
             supportActionBar!!.title = it
         }
@@ -217,8 +231,12 @@ class MainActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(false)
     }
 
-    /** Returns true when the back press was handled inside the app. */
-    private fun navigateBack(): Boolean {
+    /**
+     * Returns true when the back press was handled inside the app.
+     *
+     * Order: close a detail screen, otherwise return to the home tab.
+     */
+    private fun navigateBackInternal(): Boolean {
         if (detailVisible) {
             return navController.navigateUp()
         }
@@ -227,16 +245,6 @@ class MainActivity : AppCompatActivity() {
             return true
         }
         return false
-    }
-
-    override fun onBackPressed() {
-        if (onBackPressedDispatcher.hasEnabledCallbacks()) {
-            onBackPressedDispatcher.onBackPressed()
-            return
-        }
-        if (navigateBack()) return
-        @Suppress("DEPRECATION")
-        super.onBackPressed()
     }
 
     private inner class PagesAdapter : FragmentStateAdapter(this) {
@@ -259,12 +267,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        // prevent navigate up when child fragment has enabled `OnBackPressedCallback`
-        if (onBackPressedDispatcher.hasEnabledCallbacks()) {
+        if (detailVisible) {
             onBackPressedDispatcher.onBackPressed()
             return true
         }
-        return navigateBack() || super.onSupportNavigateUp() || moveTaskToBack(false)
+        if (binding.pagePager.currentItem != 0) {
+            binding.pagePager.setCurrentItem(0, true)
+            return true
+        }
+        return super.onSupportNavigateUp() || moveTaskToBack(false)
     }
 
     private fun processIntent(intent: Intent?, savedInstanceState: Bundle? = null) {
