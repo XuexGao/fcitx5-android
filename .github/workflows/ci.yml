@@ -2,6 +2,11 @@ name: Commit CI
 
 on:
   workflow_dispatch:
+    inputs:
+      publish_release:
+        description: "Create a nightly GitHub release from the built APKs"
+        type: boolean
+        default: false
   push:
     branches:
       - '*'
@@ -81,8 +86,20 @@ jobs:
         run: |
           ./prepare_personal_build.sh
 
+      - name: Setup ccache (native build cache)
+        uses: hendrikmuhs/ccache-action@v1.2.24
+        with:
+          key: ${{ matrix.build_type }}-${{ matrix.abi }}
+          max-size: 2G
+          verbose: 1
+
+      - name: Show ccache stats before build
+        run: ccache --show-stats || true
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-read-only: false
 
       - name: Build Standard APK
         if: matrix.build_type == 'standard'
@@ -98,6 +115,47 @@ jobs:
         if: matrix.build_type == 'mainline'
         run: |
           ./gradlew -PincludeMainlineFlavor=true :app:assembleMainlineRelease
+
+      - name: Show ccache stats after build
+        if: always()
+        run: ccache --show-stats || true
+
+      - name: Verify APK signing
+        shell: bash
+        run: |
+          case "${{ matrix.build_type }}" in
+            plugins) dirs=(plugin/*/build/outputs/apk/release) ;;
+            mainline) dirs=(app/build/outputs/apk/mainline/release) ;;
+            *) dirs=(app/build/outputs/apk/release) ;;
+          esac
+
+          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner 2>/dev/null | sort -V | tail -1)
+          if [ -z "$apksigner" ]; then
+            echo "::error::apksigner not found under \$ANDROID_HOME/build-tools"
+            exit 1
+          fi
+          echo "Using $apksigner"
+
+          count=0
+          unsigned=0
+          for dir in "${dirs[@]}"; do
+            for apk in "$dir"/*.apk; do
+              [ -f "$apk" ] || continue
+              echo "== $apk"
+              if ! "$apksigner" verify --print-certs "$apk" | head -8; then
+                echo "::error::$apk is not signed properly"
+                unsigned=$((unsigned+1))
+              fi
+              count=$((count+1))
+            done
+          done
+
+          if [ "$count" -eq 0 ]; then
+            echo "::error::No APK found for ${{ matrix.build_type }}"
+            exit 1
+          fi
+          echo "Checked $count APK(s), $unsigned unsigned"
+          [ "$unsigned" -eq 0 ]
 
       - name: Collect plugin APKs
         if: matrix.build_type == 'plugins'
@@ -133,6 +191,9 @@ jobs:
           path: app/build/outputs/apk/mainline/release/*.apk
 
   nightly_release:
+    # Publishing is opt-in: the build only produces artifacts by default.
+    # Start a run from the Actions tab and tick "publish_release" to cut a nightly release.
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_release
     needs: build_commit
     runs-on: ubuntu-22.04
     steps:

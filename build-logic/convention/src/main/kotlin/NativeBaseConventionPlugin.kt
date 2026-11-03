@@ -29,6 +29,16 @@ open class NativeBaseConventionPlugin : Plugin<Project> {
                             "-DVERSION_NAME=${Versions.baseVersionName}",
                             "-DPREBUILT_DIR=${prebuiltDir.absolutePath}"
                         )
+                        // Reuse object files through ccache when it is installed (CI installs it
+                        // via hendrikmuhs/ccache-action, local builds get it from PATH if present).
+                        // NDK/CMake builds are the slowest part of this project, so a warm ccache
+                        // cache noticeably cuts incremental CI build time.
+                        target.ccachePath?.let { ccache ->
+                            arguments(
+                                "-DCMAKE_C_COMPILER_LAUNCHER=$ccache",
+                                "-DCMAKE_CXX_COMPILER_LAUNCHER=$ccache"
+                            )
+                        }
                     }
                 }
             }

@@ -59,6 +59,19 @@ val Project.buildTimestamp
 val Project.buildAbiOverride: String?
     get() = epn("BUILD_ABI", "buildABI")
 
+/**
+ * Path to the ccache binary, or null when ccache is not available.
+ *
+ * When present it is passed to CMake as `CMAKE_C_COMPILER_LAUNCHER`/`CMAKE_CXX_COMPILER_LAUNCHER`
+ * so native object files are reused between builds. Set `CCACHE_PATH` to override the lookup.
+ * The lookup is best-effort: on hosts without `which` (Windows) this simply yields null.
+ */
+val Project.ccachePath: String?
+    get() = epn("CCACHE_PATH", "ccachePath")?.takeIf { File(it).canExecute() }
+        ?: runCatching {
+            runCmd("which ccache").lines().firstOrNull()
+        }.getOrNull()?.takeIf { it.isNotBlank() && File(it).canExecute() }
+
 val Project.signKeyBase64: String?
     get() = epn("SIGN_KEY_BASE64", "signKeyBase64")
 
