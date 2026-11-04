@@ -75,7 +75,24 @@ rime 插件 APK assets/usr/share/rime-data/   ← 与 luna_pinyin 数据同一�
 - fcitx5-rime / librime：LGPL-2.1-or-later
 - 关于页与 Rime 方案页底部均注明了词库来源与许可证。
 
-## 七、已知限制
+## 七、"代替默认中文 26 键"的准确含义
+
+要求 6 的这一句落地为两点，避免误解：
+
+1. **26 键布局本来就是默认**：`TextKeyboard.A` 的 `getDefaultLayout()` 就是 QWERTY 26 键，
+   本次没有改动键盘布局与输入逻辑。
+2. **默认中文输入源改为万象拼音**：Rime 的 `schema_list` 首位为 `wanxiang`，用户配置里默认启用
+   自然码双拼，因此启用 Rime 后默认就是"万象拼音 · 26 键 · 双拼"。
+
+需要说明的边界：Rime 引擎来自独立的 `plugin/rime` APK（本仓库构建产物之一），
+Android 不允许应用静默安装另一个 APK，因此**"默认"成立的前提是已安装 Rime 插件**。
+未安装时：
+
+- 主页"默认中文方案"仍会显示 `wanxiang`（这是期望配置），
+- Rime 方案页会显示"未检测到，请确认已安装 Rime 插件"，
+- 输入仍由内置拼音提供（同样是 26 键），不会出现输入法不可用。
+
+## 八、已知限制
 
 1. 首次部署需编译约 54 MB 词典，中低端机型可能耗时数十秒；期间输入法仍可切换到
    `luna_pinyin_simp` 使用。

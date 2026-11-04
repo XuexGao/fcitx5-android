@@ -180,3 +180,18 @@
 4. **F-Droid 元数据未改**：`app/org.fcitx.fcitx5.android.yml` 描述的是上游 F-Droid 构建（依赖 Jenkins 产物），本 fork 不发布 F-Droid，故保持原样以免误导。
 5. **CZ 键盘高度等未纳入界面页**：为控制改动面，界面页只覆盖要求列举的项（主题色/圆角/间距/布局/功能栏样式）；键盘高度、候选窗口等仍在设置页。
 6. **本地无法编译**：开发容器为 aarch64 而 Android SDK 工具链是 x86_64，因此全部验证在 GitHub Actions 上完成（这也是本轮 CI 配置较重的原因）。
+
+---
+
+## 9. 验收标准对照
+
+| 验收标准 | 状态 | 证据 |
+| --- | --- | --- |
+| 应用可正常构建、安装、启动 | ✅ | Commit CI 三矩阵全绿；模拟器上安装并启动 MainActivity |
+| 底栏四页可正常切换 | ✅ | `MainShellNavigationTest`（模拟器实测） |
+| 界面页修改可实时预览并持久化 | ✅ | `AppearanceSettingsTest` + `ThemeManager.notifyAppearanceChanged()` 驱动真实键盘与预览 |
+| 键盘按键为 Gboard 风格，核心输入正常 | ✅ | `KeyboardStylePreset` 默认写入；键盘布局/输入逻辑未改（`TextKeyboard` 仅未受影响） |
+| applicationId 为 `org.fcitx5.xuexgao` | ✅ | `PackageIdentityTest`（release 身份精确匹配，debug 追加 `.debug` 为原项目约定） |
+| 默认中文 26 键与双拼可用，rime-wanxiang 词库生效 | ✅ / ⚠️ | 26 键为默认布局；Rime 默认方案 `wanxiang`、默认双拼自然码、词库随插件打包。前提是安装了 Rime 插件 APK（见 RIME_INTEGRATION.md 第七节） |
+| 其它方案可图形化配置，功能栏可自定义并保存 | ✅ | `RimeSchemaFragment`；`FunctionBarConfigTest` + 自定义器实时预览/恢复默认 |
+| GitHub Actions 模拟器 UI 测试通过 | ✅ | API 30 与 34：`OK (22 tests)`，`INSTRUMENTATION_CODE: -1` |
