@@ -129,3 +129,16 @@ jobs:
             grep -E "OK \(|Tests run|FAILURES" instrument-output.txt
             grep -q "INSTRUMENTATION_CODE: -1" instrument-output.txt
             ! grep -qE "FAILURES!!!|shortMsg=|INSTRUMENTATION_FAILED" instrument-output.txt
+            adb shell am instrument -w -e class org.fcitx.fcitx5.android.ui.ScreenshotTest org.fcitx5.xuexgao.debug.test/androidx.test.runner.AndroidJUnitRunner
+            rm -rf screenshots
+            mkdir -p screenshots
+            adb pull /sdcard/Android/data/org.fcitx5.xuexgao.debug/files/screenshots screenshots
+            ls -l screenshots
+
+      - name: Upload screenshots
+        if: always() && matrix.api-level == 34
+        uses: actions/upload-artifact@v7
+        with:
+          name: screenshots
+          path: screenshots/**
+          if-no-files-found: warn
