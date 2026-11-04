@@ -107,11 +107,15 @@ fun FcitxApp(
         }
 
         Box(modifier = Modifier.fillMaxSize()) {
-            // The bar is placed as a sibling *after* the content instead of in Scaffold's bottomBar
-            // slot: miuix's Scaffold paints content last, which would let the pages cover the bar
-            // (visible in the emulator screenshots). Drawing it on top also matches the reference,
-            // where content scrolls underneath the floating bar.
             Scaffold(
+                bottomBar = {
+                    BottomBar(
+                        selected = pagerState.currentPage,
+                        onSelect = { index ->
+                            scope.launch { pagerState.animateScrollToPage(index) }
+                        },
+                    )
+                },
                 contentWindowInsets = WindowInsets.systemBars
                     .add(WindowInsets.displayCutout)
                     .only(WindowInsetsSides.Horizontal),
@@ -132,14 +136,6 @@ fun FcitxApp(
                     }
                 }
             }
-
-            BottomBar(
-                selected = pagerState.currentPage,
-                onSelect = { index ->
-                    scope.launch { pagerState.animateScrollToPage(index) }
-                },
-                modifier = Modifier.align(Alignment.BottomCenter),
-            )
 
             AnimatedVisibility(
                 visible = composeDetail != null,
