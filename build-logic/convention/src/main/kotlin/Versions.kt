@@ -9,8 +9,8 @@ object Versions {
 
     val java = JavaVersion.VERSION_17
     // miuix 0.9.4 (the KernelSU-Style-UI-Kit component library) requires compiling against API 37.
-    // minSdk stays at 23 so Android 8+ devices keep working; compileSdk only affects which APIs
-    // are available at compile time.
+    // compileSdk only affects which APIs are available at compile time; the install-time floor is
+    // minSdk below.
     const val compileSdk = 37
     // miuix requires 24. Android 8 (the oldest release the redesign targets) is API 26, so 24 still
     // covers everything the project promises and a bit more.
