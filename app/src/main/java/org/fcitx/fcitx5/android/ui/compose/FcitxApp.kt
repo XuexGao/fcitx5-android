@@ -29,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -106,23 +107,18 @@ fun FcitxApp(
         }
 
         Box(modifier = Modifier.fillMaxSize()) {
+            // The bar is placed as a sibling *after* the content instead of in Scaffold's bottomBar
+            // slot: miuix's Scaffold paints content last, which would let the pages cover the bar
+            // (visible in the emulator screenshots). Drawing it on top also matches the reference,
+            // where content scrolls underneath the floating bar.
             Scaffold(
-                bottomBar = {
-                    BottomBar(
-                        selected = pagerState.currentPage,
-                        onSelect = { index ->
-                            scope.launch { pagerState.animateScrollToPage(index) }
-                        },
-                    )
-                },
                 contentWindowInsets = WindowInsets.systemBars
                     .add(WindowInsets.displayCutout)
                     .only(WindowInsetsSides.Horizontal),
             ) { innerPadding ->
-                // The floating bar overhangs the content: reserve its height plus a comfortable gap
-                // so the last card is never hidden behind it (visible in the emulator screenshots).
+                // Reserve the bar's height plus a comfortable gap so the last card is never hidden.
                 val bottomInnerPadding = innerPadding.calculateBottomPadding() +
-                    if (floating) 76.dp else 24.dp
+                    if (floating) 96.dp else 72.dp
                 HorizontalPager(
                     state = pagerState,
                     modifier = Modifier.fillMaxSize(),
@@ -136,6 +132,14 @@ fun FcitxApp(
                     }
                 }
             }
+
+            BottomBar(
+                selected = pagerState.currentPage,
+                onSelect = { index ->
+                    scope.launch { pagerState.animateScrollToPage(index) }
+                },
+                modifier = Modifier.align(Alignment.BottomCenter),
+            )
 
             AnimatedVisibility(
                 visible = composeDetail != null,
@@ -191,12 +195,16 @@ private fun ComposeDetailHost(
 }
 
 @Composable
-private fun BottomBar(selected: Int, onSelect: (Int) -> Unit) {
+private fun BottomBar(
+    selected: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val floating = LocalEnableFloatingBottomBar.current
     val barBlur = LocalEnableFloatingBottomBarBlur.current
     val color = if (barBlur) Color.Transparent else colorScheme.surface
     if (floating) {
-        FloatingNavigationBar(color = color) {
+        FloatingNavigationBar(color = color, modifier = modifier) {
             TABS.forEachIndexed { index, tab ->
                 FloatingNavigationBarItem(
                     selected = selected == index,
@@ -208,7 +216,7 @@ private fun BottomBar(selected: Int, onSelect: (Int) -> Unit) {
             }
         }
     } else {
-        NavigationBar(color = color) {
+        NavigationBar(color = color, modifier = modifier) {
             TABS.forEachIndexed { index, tab ->
                 NavigationBarItem(
                     selected = selected == index,
