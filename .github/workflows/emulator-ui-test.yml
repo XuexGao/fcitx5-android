@@ -130,9 +130,11 @@ jobs:
             grep -q "INSTRUMENTATION_CODE: -1" instrument-output.txt
             ! grep -qE "FAILURES!!!|shortMsg=|INSTRUMENTATION_FAILED" instrument-output.txt
             adb shell am instrument -w -e class org.fcitx.fcitx5.android.ui.ScreenshotTest org.fcitx5.xuexgao.debug.test/androidx.test.runner.AndroidJUnitRunner
-            rm -rf screenshots
+            rm -rf screenshots screenshots.tar
             mkdir -p screenshots
-            adb pull /sdcard/Android/data/org.fcitx5.xuexgao.debug/files/screenshots screenshots
+            adb exec-out run-as org.fcitx5.xuexgao.debug tar -cf - -C files screenshots > screenshots.tar
+            tar -xf screenshots.tar
+            rm -f screenshots.tar
             ls -l screenshots
 
       - name: Upload screenshots

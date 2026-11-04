@@ -56,8 +56,12 @@ class ScreenshotTest {
 
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
 
+    /**
+     * Internal storage: `adb pull` cannot read app-specific external storage on API 30+, while
+     * `run-as <pkg> tar` can read the internal dir of a debuggable build.
+     */
     private val outputDir: File
-        get() = File(context.getExternalFilesDir(null), "screenshots").apply { mkdirs() }
+        get() = File(context.filesDir, "screenshots").apply { mkdirs() }
 
     private var index = 0
 
