@@ -65,11 +65,9 @@ fun PageScaffold(
                         if (onBack != null) {
                             top.yukonga.miuix.kmp.basic.IconButton(
                                 onClick = onBack,
-                                minWidth = 40.dp,
-                                minHeight = 40.dp,
                             ) {
-                                androidx.compose.material3.Icon(
-                                    imageVector = androidx.compose.material.icons.Icons.Rounded.ArrowBack,
+                                top.yukonga.miuix.kmp.basic.Icon(
+                                    imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Rounded.ArrowBack,
                                     contentDescription = null,
                                     tint = colorScheme.onSurface,
                                 )

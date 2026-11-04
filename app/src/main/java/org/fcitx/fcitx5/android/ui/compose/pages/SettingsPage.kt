@@ -36,7 +36,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.Text
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.data.prefs.AppearancePrefs
 import org.fcitx.fcitx5.android.ui.compose.component.ChoiceRow
@@ -144,10 +143,10 @@ private fun ColorSwatchRow(pref: org.fcitx.fcitx5.android.data.prefs.ManagedPref
                 contentAlignment = Alignment.Center,
             ) {
                 if (value == 0) {
-                    Text(
+                    top.yukonga.miuix.kmp.basic.Text(
                         text = "A",
                         color = colorScheme.onSurfaceContainerHighest,
-                        style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                        style = top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.footnote1,
                     )
                 }
             }

@@ -16,7 +16,7 @@ import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.LibraryBooks
 import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.MoreHoriz
-import androidx.compose.material.icons.rounded.Paste
+import androidx.compose.material.icons.rounded.ContentPaste
 import androidx.compose.material.icons.rounded.Speaker
 import androidx.compose.material.icons.rounded.Spellcheck
 import androidx.compose.material.icons.rounded.SwapHoriz
@@ -139,10 +139,12 @@ private fun LazyListScope.typingBehaviourSection() {
             EnumChoiceRow(
                 pref = keyboard.spaceKeyLongPressBehavior,
                 title = stringResource(R.string.space_long_press_behavior),
+                entries = org.fcitx.fcitx5.android.input.keyboard.SpaceLongPressBehavior.entries,
             )
             EnumChoiceRow(
                 pref = keyboard.spaceKeyLabelMode,
                 title = stringResource(R.string.space_key_label_mode),
+                entries = org.fcitx.fcitx5.android.input.keyboard.SpaceKeyLabelMode.entries,
             )
             SwitchRow(
                 pref = keyboard.showLangSwitchKey,
@@ -152,11 +154,13 @@ private fun LazyListScope.typingBehaviourSection() {
             EnumChoiceRow(
                 pref = keyboard.langSwitchKeyBehavior,
                 title = stringResource(R.string.lang_switch_key_behavior),
+                entries = org.fcitx.fcitx5.android.input.keyboard.LangSwitchBehavior.entries,
                 enabled = keyboard.showLangSwitchKey.getValue(),
             )
             EnumChoiceRow(
                 pref = keyboard.swipeSymbolDirection,
                 title = stringResource(R.string.swipe_symbol_behavior),
+                entries = org.fcitx.fcitx5.android.input.keyboard.SwipeSymbolDirection.entries,
             )
             SliderRow(
                 pref = keyboard.longPressDelay,
@@ -209,6 +213,7 @@ private fun LazyListScope.feedbackSection() {
             EnumChoiceRow(
                 pref = keyboard.hapticOnKeyPress,
                 title = stringResource(R.string.button_haptic_feedback),
+                entries = org.fcitx.fcitx5.android.data.InputFeedbacks.InputFeedbackMode.entries,
                 icon = Icons.Rounded.Vibration,
             )
             SwitchRow(
@@ -235,9 +240,10 @@ private fun LazyListScope.feedbackSection() {
                 range = 0f..100f,
                 valueText = { "$it ms" },
             )
-            SwitchRow(
+            EnumChoiceRow(
                 pref = keyboard.soundOnKeyPress,
                 title = stringResource(R.string.button_sound),
+                entries = org.fcitx.fcitx5.android.data.InputFeedbacks.InputFeedbackMode.entries,
                 icon = Icons.Rounded.Speaker,
             )
             SliderRow(
@@ -245,7 +251,8 @@ private fun LazyListScope.feedbackSection() {
                 title = stringResource(R.string.button_sound_volume),
                 range = 0f..100f,
                 valueText = { "$it%" },
-                enabled = keyboard.soundOnKeyPress.getValue(),
+                enabled = keyboard.soundOnKeyPress.getValue() !=
+                    org.fcitx.fcitx5.android.data.InputFeedbacks.InputFeedbackMode.Disabled,
             )
         }
     }
@@ -261,7 +268,7 @@ private fun LazyListScope.clipboardSection(onOpenRoute: (SettingsRoute) -> Unit)
             SwitchRow(
                 pref = clipboard.clipboardListening,
                 title = stringResource(R.string.clipboard_listening),
-                icon = Icons.Rounded.Paste,
+                icon = Icons.Rounded.ContentPaste,
             )
             SwitchRow(
                 pref = clipboard.clipboardSuggestion,

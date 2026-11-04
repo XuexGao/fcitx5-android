@@ -204,11 +204,11 @@ fun IndexChoiceRow(
 fun <T> EnumChoiceRow(
     pref: ManagedPreference.PStringLike<T>,
     title: String,
+    entries: List<T>,
     summary: String? = null,
     icon: ImageVector? = null,
     enabled: Boolean = true,
 ) where T : Enum<T>, T : ManagedPreferenceEnum {
-    val entries = enumValues<T>().toList()
     val state = rememberPref(pref)
     val labels = entries.map { stringResource(it.stringRes) }
     OverlayDropdownPreference(

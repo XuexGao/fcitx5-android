@@ -140,10 +140,10 @@ private fun LazyListScope.statusSection(prefs: RimePrefs, revision: Int) {
     }
 }
 
-private inline fun LazyListScope.defaultSchemaSection(
+private fun LazyListScope.defaultSchemaSection(
     prefs: RimePrefs,
     revision: Int,
-    crossinline onChanged: () -> Unit,
+    onChanged: () -> Unit,
 ) {
     item {
         val context = LocalContext.current
@@ -181,10 +181,10 @@ private inline fun LazyListScope.defaultSchemaSection(
     }
 }
 
-private inline fun LazyListScope.doublePinyinSection(
+private fun LazyListScope.doublePinyinSection(
     prefs: RimePrefs,
     revision: Int,
-    crossinline onChanged: () -> Unit,
+    onChanged: () -> Unit,
 ) {
     item {
         val context = LocalContext.current
@@ -210,7 +210,7 @@ private inline fun LazyListScope.doublePinyinSection(
     }
 }
 
-private inline fun LazyListScope.parametersSection(prefs: RimePrefs, crossinline onChanged: () -> Unit) {
+private fun LazyListScope.parametersSection(prefs: RimePrefs, onChanged: () -> Unit) {
     item {
         SettingsGroup(
             title = stringResource(R.string.ksu_rime_parameters),
@@ -293,9 +293,10 @@ private fun LazyListScope.actionsSection(
     }
 
     item {
-        androidx.compose.material3.Text(
+        top.yukonga.miuix.kmp.basic.Text(
             text = stringResource(R.string.ksu_rime_bundled_license),
-            style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+            style = top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.footnote1,
+            color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceVariantSummary,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
         )
     }

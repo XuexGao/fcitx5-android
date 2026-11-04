@@ -113,9 +113,10 @@ private fun LazyListScope.previewSection() {
                             .fillMaxWidth()
                             .height(200.dp),
                     )
-                    androidx.compose.material3.Text(
+                    top.yukonga.miuix.kmp.basic.Text(
                         text = stringResource(R.string.ksu_ime_appearance_preview_hint),
-                        style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
+                        style = top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.footnote1,
+                        color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     )
                 }
@@ -256,6 +257,7 @@ private fun LazyListScope.keyAppearanceSection() {
             EnumChoiceRow(
                 pref = prefs.navbarBackground,
                 title = stringResource(R.string.ksu_ime_navbar_background),
+                entries = org.fcitx.fcitx5.android.data.theme.ThemePrefs.NavbarBackground.entries,
                 icon = Icons.Rounded.AspectRatio,
             )
         }
@@ -339,6 +341,7 @@ private fun LazyListScope.keyboardLayoutSection(onOpenRoute: (SettingsRoute) -> 
 private fun LazyListScope.candidateSection(onOpenRoute: (SettingsRoute) -> Unit) {
     item {
         val prefs = AppPrefs.getInstance().candidates
+        val keyboard = AppPrefs.getInstance().keyboard
         SettingsGroup(
             title = stringResource(R.string.ksu_ime_section_candidates),
             modifier = Modifier.padding(top = 12.dp),
@@ -376,12 +379,14 @@ private fun LazyListScope.candidateSection(onOpenRoute: (SettingsRoute) -> Unit)
                 valueText = { "$it dp" },
             )
             EnumChoiceRow(
-                pref = prefs.horizontalCandidateStyle,
+                pref = keyboard.horizontalCandidateStyle,
                 title = stringResource(R.string.ksu_ime_horizontal_candidate_style),
+                entries = org.fcitx.fcitx5.android.input.candidates.horizontal.HorizontalCandidateMode.entries,
             )
             EnumChoiceRow(
-                pref = prefs.expandedCandidateStyle,
+                pref = keyboard.expandedCandidateStyle,
                 title = stringResource(R.string.ksu_ime_expanded_candidate_style),
+                entries = org.fcitx.fcitx5.android.input.candidates.expanded.ExpandedCandidateStyle.entries,
             )
             NavRow(
                 title = stringResource(R.string.candidates_window),
