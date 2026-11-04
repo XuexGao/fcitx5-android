@@ -13,6 +13,14 @@ import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
  * an overlay. As screens get ported, they are added here and the fragment is deleted.
  */
 fun isComposeRoute(route: SettingsRoute): Boolean = when (route) {
-    is SettingsRoute.RimeSchemas -> true
+    is SettingsRoute.RimeSchemas,
+    is SettingsRoute.CandidatesWindow,
+    is SettingsRoute.Symbol,
+    is SettingsRoute.Clipboard,
+    is SettingsRoute.Advanced,
+    is SettingsRoute.Developer,
+    is SettingsRoute.About,
+    -> true
+
     else -> false
 }

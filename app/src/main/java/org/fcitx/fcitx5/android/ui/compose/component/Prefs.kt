@@ -222,5 +222,31 @@ fun <T> EnumChoiceRow(
     )
 }
 
+/**
+ * Dropdown row for a `PStringLike<*>` preference whose concrete enum type is only known at runtime
+ * (used by the generic provider renderer). [values] and [labels] must line up.
+ */
+@Composable
+fun StringLikeRow(
+    pref: ManagedPreference.PStringLike<Any>,
+    title: String,
+    values: List<Any>,
+    labels: List<String>,
+    summary: String? = null,
+    icon: ImageVector? = null,
+    enabled: Boolean = true,
+) {
+    val state = rememberPref(pref)
+    OverlayDropdownPreference(
+        title = title,
+        summary = summary,
+        items = labels,
+        selectedIndex = values.indexOf(state.value).coerceAtLeast(0),
+        enabled = enabled,
+        startAction = icon?.let { vector -> { LeadingIcon(vector, title) } },
+        onSelectedIndexChange = { index -> state.value = values[index] },
+    )
+}
+
 /** Exposed for callers that need the raw miuix inside margin. */
 val DefaultInsideMargin: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 12.dp)

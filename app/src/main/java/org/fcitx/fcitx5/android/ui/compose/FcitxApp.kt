@@ -42,7 +42,13 @@ import org.fcitx.fcitx5.android.ui.compose.pages.AppearancePage
 import org.fcitx.fcitx5.android.ui.compose.pages.FeaturesPage
 import org.fcitx.fcitx5.android.ui.compose.pages.HomePage
 import org.fcitx.fcitx5.android.ui.compose.pages.SettingsPage
+import org.fcitx.fcitx5.android.ui.compose.screens.AboutScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.AdvancedScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.CandidatesScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.ClipboardScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.DeveloperScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.RimeScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.SymbolScreen
 import org.fcitx.fcitx5.android.ui.compose.theme.FcitxTheme
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBar
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBarBlur
@@ -138,6 +144,7 @@ fun FcitxApp(
                         route = route,
                         viewModel = viewModel,
                         onBack = { composeDetail = null },
+                        onOpenLegacyRoute = onOpenLegacyRoute,
                     )
                 }
             }
@@ -151,16 +158,30 @@ private fun ComposeDetailHost(
     route: SettingsRoute,
     viewModel: MainViewModel,
     onBack: () -> Unit,
+    onOpenLegacyRoute: (SettingsRoute) -> Unit,
 ) {
+    val padding = 24.dp
     when (route) {
         is SettingsRoute.RimeSchemas -> RimeScreen(
-            bottomInnerPadding = 24.dp,
+            bottomInnerPadding = padding,
             onBack = onBack,
             onRedeploy = {
                 // Triggering a deploy needs the running fcitx instance; the ViewModel owns it.
                 viewModel.requestRimeRedeploy()
             },
         )
+
+        is SettingsRoute.CandidatesWindow -> CandidatesScreen(padding, onBack)
+        is SettingsRoute.Symbol -> SymbolScreen(padding, onBack)
+        is SettingsRoute.Clipboard -> ClipboardScreen(padding, onBack)
+        is SettingsRoute.Advanced -> AdvancedScreen(padding, onBack, viewModel)
+        is SettingsRoute.Developer -> DeveloperScreen(padding, onBack)
+        is SettingsRoute.About -> AboutScreen(
+            bottomInnerPadding = padding,
+            onBack = onBack,
+            onOpenLicenses = { onOpenLegacyRoute(SettingsRoute.License) },
+        )
+
         else -> onBack()
     }
 }
