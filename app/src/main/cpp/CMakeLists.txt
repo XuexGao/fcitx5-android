@@ -31,6 +31,10 @@ add_subdirectory(androidfrontend)
 add_subdirectory(androidkeyboard)
 add_subdirectory(androidnotification)
 
+# fcitx5-rime, built into the app: the Rime engine (and the rime-wanxiang data) ship with the
+# main APK so no separate plugin has to be installed.
+add_subdirectory(rime)
+
 # prebuilt libuv
 set(libuv_DIR "${PREBUILT_DIR}/libuv/${ANDROID_ABI}/lib/cmake/libuv")
 find_package(libuv)

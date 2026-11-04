@@ -66,7 +66,9 @@ android {
                     // android specific modules
                     "androidfrontend",
                     "androidkeyboard",
-                    "androidnotification"
+                    "androidnotification",
+                    // built-in rime engine (fcitx5-rime), packaged as an app addon
+                    "rime"
                 )
             }
         }

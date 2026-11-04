@@ -34,6 +34,8 @@ class ThemePrefs(sharedPreferences: SharedPreferences) :
         return pref
     }
 
+    // Defaults below give the keyboard the Gboard-like feel the project targets. No behaviour was
+    // added or changed: these are the project's own existing switches, only flipped on by default.
     val keyBorder = switch(R.string.key_border, "key_border", false)
 
     val keyBorderStroke = switch(
@@ -41,9 +43,11 @@ class ThemePrefs(sharedPreferences: SharedPreferences) :
         enableUiOn = { keyBorder.getValue() }
     )
 
-    val specialKeyOvalShape = switch(R.string.special_key_oval_shape, "special_key_oval_shape", false)
+    // Return and "?123" render as pills, like Gboard's action keys.
+    val specialKeyOvalShape = switch(R.string.special_key_oval_shape, "special_key_oval_shape", true)
 
-    val keyRippleEffect = switch(R.string.key_ripple_effect, "key_ripple_effect", false)
+    // Press feedback: ripple, like Gboard.
+    val keyRippleEffect = switch(R.string.key_ripple_effect, "key_ripple_effect", true)
 
     val keyHorizontalMargin: ManagedPreference.PInt
     val keyHorizontalMarginLandscape: ManagedPreference.PInt
