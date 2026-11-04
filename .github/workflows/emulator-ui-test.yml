@@ -50,7 +50,7 @@ jobs:
 
       - name: Install CMake
         run: |
-          sdkmanager --install "cmake;3.31.6" "platforms;android-37" "build-tools;37.0.0"
+          sdkmanager --install "cmake;3.31.6" "platforms;android-37.0" "build-tools;37.0.0"
 
       - name: Install system dependencies
         run: |
