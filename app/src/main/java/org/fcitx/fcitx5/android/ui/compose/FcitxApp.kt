@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -55,6 +56,9 @@ import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 
 private const val PAGE_COUNT = 4
+
+/** Test tag for a bottom-bar tab, used by the instrumented UI tests. */
+fun tabTag(index: Int): String = "bottom_tab_$index"
 
 /** One bottom-bar entry. */
 private data class Tab(val icon: ImageVector, val labelRes: Int)
@@ -174,6 +178,7 @@ private fun BottomBar(selected: Int, onSelect: (Int) -> Unit) {
                     onClick = { onSelect(index) },
                     icon = tab.icon,
                     label = stringResource(tab.labelRes),
+                    modifier = Modifier.testTag(tabTag(index)),
                 )
             }
         }
@@ -185,6 +190,7 @@ private fun BottomBar(selected: Int, onSelect: (Int) -> Unit) {
                     onClick = { onSelect(index) },
                     icon = tab.icon,
                     label = stringResource(tab.labelRes),
+                    modifier = Modifier.testTag(tabTag(index)),
                 )
             }
         }
