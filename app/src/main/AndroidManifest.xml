@@ -2,6 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!--
+        miuix-blur declares minSdk 33 because its RuntimeShader based refraction needs API 33 and the
+        RenderEffect blur needs API 31. The settings app only reaches those code paths when
+        isRenderEffectSupported() says so, and falls back to a translucent surface below that, which
+        keeps the design intact on Android 8..12 (API 24+). Overriding the library's floor is what
+        lets one APK cover the whole range the project promises.
+    -->
+    <uses-sdk tools:overrideLibrary="top.yukonga.miuix.kmp.blur" />
+
     <!-- remove unused permission from AppCompat -->
     <permission
         android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
