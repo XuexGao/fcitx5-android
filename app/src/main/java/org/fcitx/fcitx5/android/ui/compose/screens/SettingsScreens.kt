@@ -211,7 +211,7 @@ fun AdvancedScreen(
         footer = {
             item {
                 SettingsGroup(
-                    title = stringResource(R.string.user_data),
+                    title = stringResource(R.string.export_user_data),
                     modifier = Modifier.padding(top = 12.dp),
                 ) {
                     NavRow(
@@ -339,7 +339,7 @@ fun AboutScreen(bottomInnerPadding: Dp, onBack: () -> Unit, onOpenLicenses: () -
         }
         item {
             SettingsGroup(
-                title = stringResource(R.string.appearance),
+                title = stringResource(R.string.ksu_app_section_theme),
                 modifier = Modifier.padding(top = 12.dp),
             ) {
                 NavRow(
