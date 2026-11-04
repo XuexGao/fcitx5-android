@@ -8,13 +8,16 @@ import org.gradle.api.JavaVersion
 object Versions {
 
     val java = JavaVersion.VERSION_17
-    const val compileSdk = 36
+    // miuix 0.9.4 (the KernelSU-Style-UI-Kit component library) requires compiling against API 37.
+    // minSdk stays at 23 so Android 8+ devices keep working; compileSdk only affects which APIs
+    // are available at compile time.
+    const val compileSdk = 37
     const val minSdk = 23
     const val targetSdk = 36
 
     const val defaultCMake = "3.31.6"
     const val defaultNDK = "28.0.13004108"
-    const val defaultBuildTools = "36.1.0"
+    const val defaultBuildTools = "37.0.0"
 
     // NOTE: increase this value to bump version code
     const val baseVersionCode = 11
