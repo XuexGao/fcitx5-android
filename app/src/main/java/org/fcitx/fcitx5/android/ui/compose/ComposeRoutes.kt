@@ -20,6 +20,9 @@ fun isComposeRoute(route: SettingsRoute): Boolean = when (route) {
     is SettingsRoute.Advanced,
     is SettingsRoute.Developer,
     is SettingsRoute.About,
+    is SettingsRoute.GlobalConfig,
+    is SettingsRoute.InputMethodConfig,
+    is SettingsRoute.AddonConfig,
     -> true
 
     else -> false

@@ -44,6 +44,9 @@ import org.fcitx.fcitx5.android.ui.compose.pages.FeaturesPage
 import org.fcitx.fcitx5.android.ui.compose.pages.HomePage
 import org.fcitx.fcitx5.android.ui.compose.pages.SettingsPage
 import org.fcitx.fcitx5.android.ui.compose.screens.AboutScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.AddonConfigScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.GlobalConfigScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.InputMethodConfigScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.AdvancedScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.CandidatesScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.ClipboardScreen
@@ -160,6 +163,14 @@ fun FcitxApp(
     }
 }
 
+/**
+ * Routes opened from inside a Compose detail screen: ported screens are handled by the Compose
+ * host, the rest still go to the legacy graph.
+ */
+private fun composeRouteToLegacy(route: SettingsRoute, onOpenLegacyRoute: (SettingsRoute) -> Unit) {
+    if (!isComposeRoute(route)) onOpenLegacyRoute(route)
+}
+
 /** Renders the Compose detail screen for [route]. */
 @Composable
 private fun ComposeDetailHost(
@@ -184,6 +195,31 @@ private fun ComposeDetailHost(
         is SettingsRoute.Clipboard -> ClipboardScreen(padding, onBack)
         is SettingsRoute.Advanced -> AdvancedScreen(padding, onBack, viewModel)
         is SettingsRoute.Developer -> DeveloperScreen(padding, onBack)
+        is SettingsRoute.GlobalConfig -> GlobalConfigScreen(
+            bottomInnerPadding = padding,
+            onBack = onBack,
+            viewModel = viewModel,
+            onOpenRoute = { route -> composeRouteToLegacy(route, onOpenLegacyRoute) },
+        )
+
+        is SettingsRoute.InputMethodConfig -> InputMethodConfigScreen(
+            uniqueName = route.uniqueName,
+            title = route.name,
+            bottomInnerPadding = padding,
+            onBack = onBack,
+            viewModel = viewModel,
+            onOpenRoute = { r -> composeRouteToLegacy(r, onOpenLegacyRoute) },
+        )
+
+        is SettingsRoute.AddonConfig -> AddonConfigScreen(
+            addon = route.uniqueName,
+            title = route.name,
+            bottomInnerPadding = padding,
+            onBack = onBack,
+            viewModel = viewModel,
+            onOpenRoute = { r -> composeRouteToLegacy(r, onOpenLegacyRoute) },
+        )
+
         is SettingsRoute.About -> AboutScreen(
             bottomInnerPadding = padding,
             onBack = onBack,
