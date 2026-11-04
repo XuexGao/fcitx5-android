@@ -12,7 +12,9 @@ object Versions {
     // minSdk stays at 23 so Android 8+ devices keep working; compileSdk only affects which APIs
     // are available at compile time.
     const val compileSdk = 37
-    const val minSdk = 23
+    // miuix requires 24. Android 8 (the oldest release the redesign targets) is API 26, so 24 still
+    // covers everything the project promises and a bit more.
+    const val minSdk = 24
     const val targetSdk = 36
 
     const val defaultCMake = "3.31.6"
