@@ -214,3 +214,32 @@
 | 默认中文 26 键与双拼可用，rime-wanxiang 词库生效 | ✅ / ⚠️ | 26 键为默认布局；Rime 默认方案 `wanxiang`、默认双拼自然码、词库随插件打包。前提是安装了 Rime 插件 APK（见 RIME_INTEGRATION.md 第七节） |
 | 其它方案可图形化配置，功能栏可自定义并保存 | ✅ | `RimeSchemaFragment`；`FunctionBarConfigTest` + 自定义器实时预览/恢复默认 |
 | GitHub Actions 模拟器 UI 测试通过 | ✅ | API 30 与 34：`OK (22 tests)`，`INSTRUMENTATION_CODE: -1` |
+
+---
+
+## 10. 第三阶段进行中的交接说明（Compose + miuix）
+
+已完成并验证（提交 `25aaddd2` 起）：
+
+- 四页 Compose 外壳（miuix `Scaffold` + `FloatingNavigationBar` + `PageScaffold` 大标题+模糊栏）
+- 界面页键盘实时预览（`AndroidView` + `key(revision)` 重建真实键盘）
+- 二级页批次 A：候选窗口 / 表情与符号 / 剪贴板 / 高级 / 开发者 / 关于，以及 Rime 方案页
+- 通用渲染器 `ManagedPrefsScreen`：任何 `ManagedPreferenceProvider` 都能直接渲染成 miuix 行
+- 模拟器截图流水线（`ScreenshotTest` + `run-as tar` 拉图 + artifact），仓库内留存 5 张样张于
+  `docs/screenshots/`
+
+待续（下一步直接从这里接着做）：
+
+1. **批次 B**：`PreferenceScreenFactory`（442 行）的 Compose 版。
+   - 描述符类型映射：`ConfigInt`→滑杆、`ConfigString`→文本、`ConfigBool`→开关、`ConfigKey`→按键选择、
+     `ConfigEnum`→下拉、`ConfigList`→子页（ListConfig）、`ConfigEnumList`→多选、
+     `ConfigCustom`→按 customType 名分派到拼音词典/标点/快捷短语/码表/自定义短语/Rime 数据目录/附加组件配置
+   - 值读写沿用 `FcitxRawConfigStore`（写入 `RawConfig` 树），保存时机沿用"返回时统一保存"
+   - 覆盖路由：`GlobalConfig`、`InputMethodConfig`、`AddonConfig`、`ListConfig`、`Punctuation`、
+     `PinyinDict`、`QuickPhraseList/Edit`、`TableInputMethods`、`PinyinCustomPhrase`、`MultiSelect`
+2. **批次 C**：主题列表与编辑器、图标主题、输入法列表、插件、附加组件列表、`AddonDirProfileManager`
+3. **删除旧实现**：以上迁完后逐个 `git rm` 对应 Fragment，最后删除 `SettingsRoute.createGraph` 与
+   `MainActivity` 的导航宿主覆盖层，`isComposeRoute` 恒为 true
+4. **细节对齐**：底栏换成模板同款液态玻璃样式（当前 miuix 悬浮栏只有图标+选中胶囊，模板还会显示选中项文字），
+   并根据截图逐页微调间距/字重/圆角
+5. **CI**：`ScreenshotTest` 增加更多页面（每个迁移完的二级页都截一张），保持三条流水线全绿

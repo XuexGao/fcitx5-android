@@ -118,7 +118,10 @@ fun FcitxApp(
                     .add(WindowInsets.displayCutout)
                     .only(WindowInsetsSides.Horizontal),
             ) { innerPadding ->
-                val bottomInnerPadding = innerPadding.calculateBottomPadding() + 12.dp
+                // The floating bar overhangs the content: reserve its height plus a comfortable gap
+                // so the last card is never hidden behind it (visible in the emulator screenshots).
+                val bottomInnerPadding = innerPadding.calculateBottomPadding() +
+                    if (floating) 76.dp else 24.dp
                 HorizontalPager(
                     state = pagerState,
                     modifier = Modifier.fillMaxSize(),
