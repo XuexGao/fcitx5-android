@@ -93,6 +93,7 @@ fun FcitxApp(
     FcitxTheme(prefs = prefs) {
         val pagerState = rememberPagerState(pageCount = { PAGE_COUNT })
         val scope = rememberCoroutineScope()
+        val floating = LocalEnableFloatingBottomBar.current
         var composeDetail by remember { mutableStateOf<SettingsRoute?>(null) }
 
         val openRoute: (SettingsRoute) -> Unit = { route ->
