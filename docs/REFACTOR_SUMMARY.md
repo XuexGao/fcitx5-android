@@ -183,6 +183,25 @@
 
 ---
 
+## 8.5 重做说明（第二轮，按反馈）
+
+第一轮把 KernelSU 风格"用 View 复刻"了一遍，方向错了。第二轮按反馈重做：
+
+| 反馈 | 处理 |
+| --- | --- |
+| 要模板同款风格，不是模仿 | 引入模板使用的同一个库 **miuix 0.9.4**（Apache-2.0，Maven Central），四页与设置组件都是 miuix 原生组件 |
+| 二级菜单还是原样 | 二级页转为 Compose：Rime 方案页已完成；其余按批次迁移，迁移期间旧的 Fragment 页暂时由覆盖层承载，功能不断档 |
+| 键盘实时预览用不了 | 界面页顶部用 `AndroidView` 承载真实的 `KeyboardPreviewUi`，由外观偏好变更驱动重建（`key(revision)`） |
+| Rime 要直接集成，不要装插件 | `app/src/main/cpp/rime/CMakeLists.txt` 把 fcitx5-rime 引擎与万象词库编译进主 APK，addon 作为应用自带 native 库被 fcitx5 加载 |
+| Gboard 只要默认打开原版功能 | 撤掉自创的 Geometry 预设，仅把现成开关的默认值改为：水波纹=开、回车/?123 胶囊=开、边框=关（本来就是）、空格显示当前语言（本来就是） |
+
+构建层面的连带调整：
+- `compileSdk` 36 → **37**（miuix 的 AAR 元数据要求）
+- `minSdk` 23 → **24**（miuix-preference 要求 24）
+- `miuix-blur` 声明 minSdk 33，用 `tools:overrideLibrary` 放行，运行时以 `isRenderEffectSupported()`
+  判定：API 31+ 才有模糊/折射，低版本自动降级为半透明表面，**整体风格与布局不变**
+- CI 安装 `platforms;android-37.0`（android-37 以次版本号发布）
+
 ## 9. 验收标准对照
 
 | 验收标准 | 状态 | 证据 |
