@@ -108,14 +108,6 @@ fun FcitxApp(
 
         Box(modifier = Modifier.fillMaxSize()) {
             Scaffold(
-                bottomBar = {
-                    BottomBar(
-                        selected = pagerState.currentPage,
-                        onSelect = { index ->
-                            scope.launch { pagerState.animateScrollToPage(index) }
-                        },
-                    )
-                },
                 contentWindowInsets = WindowInsets.systemBars
                     .add(WindowInsets.displayCutout)
                     .only(WindowInsetsSides.Horizontal),
@@ -135,6 +127,18 @@ fun FcitxApp(
                         else -> SettingsPage(bottomInnerPadding, openRoute)
                     }
                 }
+            }
+
+            // Drawn after the content so the floating bar sits above the pages (the reference has
+            // content scrolling underneath it). miuix's FloatingNavigationBar ignores a modifier
+            // passed to it, so the alignment has to live on a wrapper.
+            Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+                BottomBar(
+                    selected = pagerState.currentPage,
+                    onSelect = { index ->
+                        scope.launch { pagerState.animateScrollToPage(index) }
+                    },
+                )
             }
 
             AnimatedVisibility(
