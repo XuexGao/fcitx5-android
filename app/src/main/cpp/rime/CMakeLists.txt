@@ -12,11 +12,12 @@ cmake_minimum_required(VERSION 3.18)
 # through the same `prebuilt-assets` / `config` install components the app already deploys.
 # ---------------------------------------------------------------------------
 
-set(RIME_PLUGIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../plugin/rime/src/main/cpp")
+set(RIME_PLUGIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../../../../plugin/rime/src/main/cpp")
 
 if (NOT EXISTS "${RIME_PLUGIN_DIR}/fcitx5-rime/src/CMakeLists.txt")
-    message(WARNING "fcitx5-rime sources are missing; building without the built-in Rime engine")
-    return()
+    message(FATAL_ERROR
+            "fcitx5-rime sources not found at ${RIME_PLUGIN_DIR}; the built-in Rime engine is part "
+            "of this build, so the submodule must be checked out (git submodule update --init)")
 endif ()
 
 set(Rime_VERSION "1.12.0")
