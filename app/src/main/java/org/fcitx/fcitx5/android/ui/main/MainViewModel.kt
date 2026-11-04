@@ -6,6 +6,8 @@ package org.fcitx.fcitx5.android.ui.main
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.daemon.FcitxConnection
 import org.fcitx.fcitx5.android.daemon.FcitxDaemon
@@ -35,6 +37,16 @@ class MainViewModel : ViewModel() {
 
     fun disableToolbarShadow() {
         toolbarShadow.value = false
+    }
+
+    /**
+     * Asks the running fcitx instance to redeploy Rime. Fire-and-forget: the result is reflected by
+     * the Rime screen's status section on the next composition.
+     */
+    fun requestRimeRedeploy() {
+        viewModelScope.launch {
+            org.fcitx.fcitx5.android.data.rime.RimeAutoDeploy.redeploy(fcitx)
+        }
     }
 
     fun disableToolbarEditButton() {

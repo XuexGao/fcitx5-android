@@ -4,28 +4,29 @@
  */
 package org.fcitx.fcitx5.android.ui
 
-import androidx.test.core.app.ActivityScenario
-import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.action.ViewActions.click
-import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
-import androidx.test.espresso.matcher.ViewMatchers.withContentDescription
-import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.preference.PreferenceManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.viewpager2.widget.ViewPager2
+import androidx.test.platform.app.InstrumentationRegistry
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.ui.main.MainActivity
-import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Covers the four-tab shell: the bottom bar exists, switching tabs moves the pager, and the toolbar
- * title follows the selection.
+ * Verifies the four-page Compose shell: the bottom bar offers four tabs and every tab renders its
+ * page.
  */
 @RunWith(AndroidJUnit4::class)
 class MainShellNavigationTest {
+
+    @get:Rule
+    val composeRule = createAndroidComposeRule<MainActivity>()
 
     /**
      * Makes the shell deterministic: no first-run setup wizard on top and no notification
@@ -33,59 +34,47 @@ class MainShellNavigationTest {
      */
     @Before
     fun prepare() {
-        val ctx = androidx.test.platform.app.InstrumentationRegistry
-            .getInstrumentation().targetContext
-        androidx.preference.PreferenceManager.getDefaultSharedPreferences(ctx)
+        val ctx = InstrumentationRegistry.getInstrumentation().targetContext
+        PreferenceManager.getDefaultSharedPreferences(ctx)
             .edit()
             .putBoolean("setup_wizard_auto_shown", true)
             .putBoolean("need_notifications", false)
             .commit()
     }
 
-    private fun currentPage(scenario: ActivityScenario<MainActivity>): Int {
-        var page = -1
-        scenario.onActivity { activity ->
-            page = activity.findViewById<ViewPager2>(R.id.page_pager).currentItem
-        }
-        return page
-    }
+    private fun label(res: Int): String =
+        InstrumentationRegistry.getInstrumentation().targetContext.getString(res)
 
     @Test
-    fun bottomBarHasFourTabs() {
-        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            listOf(
-                R.string.ksu_tab_home, R.string.ksu_tab_appearance,
-                R.string.ksu_tab_features, R.string.ksu_tab_settings
-            ).forEach { label ->
-                val text = androidx.test.platform.app.InstrumentationRegistry
-                    .getInstrumentation().targetContext.getString(label)
-                onView(withContentDescription(text)).check(matches(isDisplayed()))
-            }
-            assertEquals(0, currentPage(scenario))
+    fun bottomBarShowsFourTabs() {
+        listOf(
+            R.string.ksu_tab_home, R.string.ksu_tab_appearance,
+            R.string.ksu_tab_features, R.string.ksu_tab_settings
+        ).forEach { res ->
+            composeRule.onNodeWithText(label(res)).assertIsDisplayed()
         }
     }
 
     @Test
-    fun switchingTabsMovesThePager() {
-        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
-            val labels = listOf(
-                R.string.ksu_tab_appearance, R.string.ksu_tab_features, R.string.ksu_tab_settings
-            )
-            labels.forEachIndexed { index, label ->
-                val text = androidx.test.platform.app.InstrumentationRegistry
-                    .getInstrumentation().targetContext.getString(label)
-                onView(withContentDescription(text)).perform(click())
-                // ViewPager2 animates; give it a moment before asserting.
-                Thread.sleep(600)
-                assertEquals(index + 1, currentPage(scenario))
-                onView(withId(R.id.page_pager)).check(matches(isDisplayed()))
-            }
-            // Back to home.
-            val home = androidx.test.platform.app.InstrumentationRegistry
-                .getInstrumentation().targetContext.getString(R.string.ksu_tab_home)
-            onView(withContentDescription(home)).perform(click())
-            Thread.sleep(600)
-            assertEquals(0, currentPage(scenario))
-        }
+    fun switchingTabsRendersEveryPage() {
+        // 界面
+        composeRule.onNodeWithText(label(R.string.ksu_tab_appearance)).performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(label(R.string.ksu_ime_section_key)).assertIsDisplayed()
+
+        // 功能
+        composeRule.onNodeWithText(label(R.string.ksu_tab_features)).performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(label(R.string.ksu_features_input)).assertIsDisplayed()
+
+        // 设置
+        composeRule.onNodeWithText(label(R.string.ksu_tab_settings)).performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(label(R.string.ksu_app_section_theme)).assertIsDisplayed()
+
+        // 主页
+        composeRule.onNodeWithText(label(R.string.ksu_tab_home)).performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(label(R.string.ksu_home_status)).assertIsDisplayed()
     }
 }

@@ -4,12 +4,11 @@
  */
 package org.fcitx.fcitx5.android.ui
 
+import androidx.preference.PreferenceManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.fcitx.fcitx5.android.data.prefs.AppearancePrefs
 import org.fcitx.fcitx5.android.data.theme.ThemeManager
-import org.fcitx.fcitx5.android.ui.design.KeyboardStylePreset
-import org.fcitx.fcitx5.android.ui.design.KsuTokens
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
@@ -18,8 +17,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * The appearance page is the only place where "live preview" can be verified without a screenshot:
- * editing a preference must be visible immediately through the same objects the keyboard reads.
+ * The settings app's own appearance must persist, and the keyboard appearance preferences the
+ * "界面" page edits must round-trip too.
  */
 @RunWith(AndroidJUnit4::class)
 class AppearanceSettingsTest {
@@ -27,9 +26,9 @@ class AppearanceSettingsTest {
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
     private val appearance get() = AppearancePrefs.ensureInitialized(context)
 
-    /** A separate reader over the same SharedPreferences file, used to prove persistence. */
+    /** A separate reader over the same file, used to prove persistence. */
     private fun reopenedPrefs() = AppearancePrefs(
-        androidx.preference.PreferenceManager.getDefaultSharedPreferences(context)
+        PreferenceManager.getDefaultSharedPreferences(context)
     )
 
     @Before
@@ -38,59 +37,67 @@ class AppearanceSettingsTest {
     }
 
     @Test
-    fun accentColourChangeIsPersistedAndObservable() {
-        val original = appearance.accentColor.getValue()
-        val target = AppearancePrefs.ACCENT_PRESETS.first { it != original }
-        appearance.accentColor.setValue(target)
-        // A fresh instance reads from the same SharedPreferences file, proving persistence.
-        assertEquals(target, reopenedPrefs().accentColor.getValue())
+    fun appThemeSettingsPersist() {
+        appearance.colorMode.setValue(AppearancePrefs.ColorMode.Dark.value)
+        appearance.paletteStyle.setValue("Vibrant")
+        appearance.keyColor.setValue(0xFF34C759.toInt())
+        val reopened = reopenedPrefs()
+        assertEquals(AppearancePrefs.ColorMode.Dark.value, reopened.colorMode.getValue())
+        assertEquals("Vibrant", reopened.paletteStyle.getValue())
+        assertEquals(0xFF34C759.toInt(), reopened.keyColor.getValue())
     }
 
     @Test
-    fun cornerRadiusChangeIsPersisted() {
-        appearance.cornerRadius.setValue(30)
-        assertEquals(30, AppearancePrefs.ensureInitialized(context).cornerRadius.getValue())
-        // Card radius must follow the preference without a restart.
-        val radiusPx = KsuTokens.cardRadius(context)
-        assertTrue("card radius should scale with the preference", radiusPx > 0f)
+    fun shellOptionsPersist() {
+        appearance.enableBlur.setValue(false)
+        appearance.floatingBottomBar.setValue(false)
+        appearance.floatingBottomBarBlur.setValue(false)
+        val reopened = reopenedPrefs()
+        assertTrue(!reopened.enableBlur.getValue())
+        assertTrue(!reopened.floatingBottomBar.getValue())
+        assertTrue(!reopened.floatingBottomBarBlur.getValue())
     }
 
     @Test
     fun resetRestoresDefaults() {
-        appearance.cornerRadius.setValue(33)
-        appearance.spacing.setValue(30)
+        appearance.colorMode.setValue(AppearancePrefs.ColorMode.Amoled.value)
+        appearance.enableBlur.setValue(false)
         appearance.resetToDefaults()
-        assertEquals(AppearancePrefs.DEFAULT_CORNER_RADIUS, appearance.cornerRadius.getValue())
-        assertEquals(AppearancePrefs.DEFAULT_SPACING, appearance.spacing.getValue())
         assertEquals(
-            AppearancePrefs.DEFAULT_ACCENT_COLOR, appearance.accentColor.getValue()
+            AppearancePrefs.ColorMode.System.value, appearance.colorMode.getValue()
         )
+        assertTrue(appearance.enableBlur.getValue())
     }
 
     @Test
-    fun keyboardStylePresetWritesKeyAppearance() {
-        KeyboardStylePreset.applyGboard()
+    fun colourModeParsingIsSafe() {
+        assertEquals(
+            AppearancePrefs.ColorMode.System, AppearancePrefs.ColorMode.fromValue(-1)
+        )
+        assertTrue(AppearancePrefs.ColorMode.MonetDark.isMonet)
+        assertTrue(AppearancePrefs.ColorMode.Amoled.isDark)
+        assertTrue(AppearancePrefs.ColorMode.System.isSystem)
+    }
+
+    /**
+     * The keyboard look is owned by ThemePrefs; the "界面" page edits these values directly, so they
+     * must round-trip without any UI in the loop.
+     */
+    @Test
+    fun keyboardAppearanceRoundTrips() {
         val prefs = ThemeManager.prefs
-        assertEquals(KeyboardStylePreset.GBOARD_KEY_RADIUS, prefs.keyRadius.getValue())
-        assertEquals(KeyboardStylePreset.GBOARD_H_MARGIN, prefs.keyHorizontalMargin.getValue())
-        assertTrue(prefs.keyRippleEffect.getValue())
-        assertTrue("Gboard style uses pill action keys", prefs.specialKeyOvalShape.getValue())
-
-        KeyboardStylePreset.applyClassic()
-        assertEquals(KeyboardStylePreset.CLASSIC_KEY_RADIUS, prefs.keyRadius.getValue())
-        assertTrue(!prefs.specialKeyOvalShape.getValue())
-    }
-
-    @Test
-    fun keyboardStylePreferenceSurvivesReopen() {
-        appearance.keyboardStyle.setValue(AppearancePrefs.KeyboardStyle.Gboard.name)
-        assertEquals(
-            AppearancePrefs.KeyboardStyle.Gboard, reopenedPrefs().keyboardStyleValue
-        )
-        appearance.keyboardStyle.setValue(AppearancePrefs.KeyboardStyle.Classic.name)
-        assertNotEquals(
-            AppearancePrefs.KeyboardStyle.Gboard,
-            AppearancePrefs.ensureInitialized(context).keyboardStyleValue
-        )
+        val originalRadius = prefs.keyRadius.getValue()
+        val originalRipple = prefs.keyRippleEffect.getValue()
+        try {
+            prefs.keyRadius.setValue(9)
+            prefs.keyRippleEffect.setValue(!originalRipple)
+            val reopened = ThemeManager.prefs
+            assertEquals(9, reopened.keyRadius.getValue())
+            assertEquals(!originalRipple, reopened.keyRippleEffect.getValue())
+            assertNotEquals(originalRadius, reopened.keyRadius.getValue())
+        } finally {
+            prefs.keyRadius.setValue(originalRadius)
+            prefs.keyRippleEffect.setValue(originalRipple)
+        }
     }
 }

@@ -25,7 +25,6 @@ import org.fcitx.fcitx5.android.data.clipboard.ClipboardManager
 import org.fcitx.fcitx5.android.data.prefs.AppPrefs
 import org.fcitx.fcitx5.android.data.prefs.SmartDefaultInitializer
 import org.fcitx.fcitx5.android.data.prefs.SplitKeyboardStateManager
-import org.fcitx.fcitx5.android.ui.design.KeyboardStylePreset
 import org.fcitx.fcitx5.android.data.theme.ThemeManager
 import org.fcitx.fcitx5.android.input.font.FontProviders
 import org.fcitx.fcitx5.android.ui.main.LogActivity
@@ -168,9 +167,6 @@ class FcitxApplication : Application() {
         }
         ClipboardManager.init(ctx)
         ThemeManager.init(resources.configuration)
-        // Apply the Gboard-style key preset once, after the theme is available, so it can notify
-        // listeners without racing ThemeManager.init().
-        KeyboardStylePreset.applyDefaultOnce()
         // Start custom font I/O while the IME daemon is initializing so first view creation can
         // reuse the cached typefaces instead of doing all file work on the main thread.
         FontProviders.preloadFontsAsync()

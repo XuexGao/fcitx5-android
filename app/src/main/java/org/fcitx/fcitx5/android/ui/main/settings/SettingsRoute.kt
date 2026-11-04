@@ -34,7 +34,6 @@ import org.fcitx.fcitx5.android.ui.main.settings.global.GlobalConfigFragment
 import org.fcitx.fcitx5.android.ui.main.settings.im.InputMethodConfigFragment
 import org.fcitx.fcitx5.android.ui.main.settings.im.InputMethodListFragment
 import org.fcitx.fcitx5.android.ui.main.settings.theme.ThemeFragment
-import org.fcitx.fcitx5.android.ui.rime.RimeSchemaFragment
 import org.fcitx.fcitx5.android.utils.AppUtil
 import org.fcitx.fcitx5.android.utils.config.ConfigDescriptor
 import org.fcitx.fcitx5.android.utils.parcelable
@@ -250,9 +249,6 @@ sealed class SettingsRoute : Parcelable {
             }
             fragment<PluginFragment, Plugin> {
                 label = ctx.getString(R.string.plugins)
-            }
-            fragment<RimeSchemaFragment, RimeSchemas> {
-                label = ctx.getString(R.string.ksu_rime_title)
             }
             fragment<AdvancedSettingsFragment, Advanced> {
                 label = ctx.getString(R.string.advanced)

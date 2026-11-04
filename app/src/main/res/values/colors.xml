@@ -13,4 +13,6 @@
     <color name="zxing_viewfinder_mask">#55000000</color>
     <color name="zxing_viewfinder_laser">#2196F3</color>
     <color name="zxing_possible_result_points">#8033B5E5</color>
+    <color name="toolbar_background">#F2F2F7</color>
+    <color name="window_background">#F2F2F7</color>
 </resources>
