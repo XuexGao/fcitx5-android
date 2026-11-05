@@ -1043,4 +1043,6 @@
     <string name="ksu_features_feedback">按键反馈</string>
     <string name="ksu_rime_parameters">方案参数</string>
     <string name="ksu_placeholder_migrating">该页面正在迁移到新界面</string>
+    <string name="theme_dark">深色</string>
+    <string name="theme_light">浅色</string>
 </resources>

@@ -53,6 +53,7 @@ import org.fcitx.fcitx5.android.ui.compose.screens.ClipboardScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.DeveloperScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.RimeScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.SymbolScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.ThemeScreen
 import org.fcitx.fcitx5.android.ui.compose.theme.FcitxTheme
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBar
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBarBlur
@@ -219,6 +220,8 @@ private fun ComposeDetailHost(
             viewModel = viewModel,
             onOpenRoute = { r -> composeRouteToLegacy(r, onOpenLegacyRoute) },
         )
+
+        is SettingsRoute.Theme -> ThemeScreen(bottomInnerPadding = padding, onBack = onBack)
 
         is SettingsRoute.About -> AboutScreen(
             bottomInnerPadding = padding,
