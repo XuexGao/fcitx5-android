@@ -48,6 +48,7 @@ import org.fcitx.fcitx5.android.ui.compose.screens.AddonScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.AddonConfigScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.GlobalConfigScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.InputMethodConfigScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.InputMethodListScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.AdvancedScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.CandidatesScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.ClipboardScreen
@@ -225,6 +226,13 @@ private fun ComposeDetailHost(
 
         is SettingsRoute.Theme -> ThemeScreen(bottomInnerPadding = padding, onBack = onBack)
         is SettingsRoute.Plugin -> PluginScreen(bottomInnerPadding = padding, onBack = onBack)
+        is SettingsRoute.InputMethodList -> InputMethodListScreen(
+            bottomInnerPadding = padding,
+            onBack = onBack,
+            viewModel = viewModel,
+            onOpenRoute = { r -> composeRouteToLegacy(r, onOpenLegacyRoute) },
+        )
+
         is SettingsRoute.AddonList -> AddonScreen(
             bottomInnerPadding = padding,
             onBack = onBack,
