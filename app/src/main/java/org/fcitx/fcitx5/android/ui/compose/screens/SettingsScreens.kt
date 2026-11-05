@@ -100,17 +100,6 @@ fun SymbolScreen(bottomInnerPadding: Dp, onBack: () -> Unit) {
     )
 }
 
-/** 键盘外观主题的附加设置（跟随系统 / 浅色 / 深色主题选择等） */
-@Composable
-fun ThemeSettingsScreen(bottomInnerPadding: Dp, onBack: () -> Unit) {
-    ProviderScreen(
-        title = stringResource(R.string.configure),
-        provider = ThemeManager.prefs,
-        bottomInnerPadding = bottomInnerPadding,
-        onBack = onBack,
-    )
-}
-
 /** 剪贴板：偏好行 + 剪贴板同步入口 */
 @Composable
 fun ClipboardScreen(bottomInnerPadding: Dp, onBack: () -> Unit) {
@@ -351,99 +340,4 @@ fun AboutScreen(bottomInnerPadding: Dp, onBack: () -> Unit, onOpenLicenses: () -
             }
         }
     }
-}
-
-/** 输入法列表 / 附加组件 等列表型页面的占位入口（后续批次逐个替换）。 */
-@Composable
-fun ListPlaceholderScreen(title: String, bottomInnerPadding: Dp, onBack: () -> Unit) {
-    PageScaffold(title = title, bottomInnerPadding = bottomInnerPadding, onBack = onBack) {
-        item {
-            SettingsGroup(modifier = Modifier.padding(top = 12.dp)) {
-                NavRow(
-                    title = stringResource(R.string.ksu_placeholder_migrating),
-                    icon = Icons.Rounded.ListAlt,
-                    onClick = onBack,
-                )
-            }
-        }
-    }
-}
-
-/** 全局选项：Fcitx 全局配置 */
-@Composable
-fun GlobalConfigScreen(
-    bottomInnerPadding: Dp,
-    onBack: () -> Unit,
-    viewModel: MainViewModel,
-    onOpenRoute: (SettingsRoute) -> Unit,
-) {
-    FcitxConfigScreen(
-        title = stringResource(R.string.global_options),
-        bottomInnerPadding = bottomInnerPadding,
-        onBack = onBack,
-        fcitx = viewModel.fcitx,
-        loadConfig = { getGlobalConfig() },
-        saveConfig = { setGlobalConfig(it) },
-        onOpenRoute = onOpenRoute,
-    )
-}
-
-/** 单个输入法的配置 */
-@Composable
-fun InputMethodConfigScreen(
-    uniqueName: String,
-    title: String,
-    bottomInnerPadding: Dp,
-    onBack: () -> Unit,
-    viewModel: MainViewModel,
-    onOpenRoute: (SettingsRoute) -> Unit,
-) {
-    FcitxConfigScreen(
-        title = title,
-        bottomInnerPadding = bottomInnerPadding,
-        onBack = onBack,
-        fcitx = viewModel.fcitx,
-        loadConfig = { getImConfig(uniqueName) },
-        saveConfig = { setImConfig(uniqueName, it) },
-        onOpenRoute = onOpenRoute,
-    )
-}
-
-/** 附加组件配置；table 组件额外挂上"码表输入法"入口，与旧实现一致。 */
-@Composable
-fun AddonConfigScreen(
-    addon: String,
-    title: String,
-    bottomInnerPadding: Dp,
-    onBack: () -> Unit,
-    viewModel: MainViewModel,
-    onOpenRoute: (SettingsRoute) -> Unit,
-) {
-    val context = LocalContext.current
-    FcitxConfigScreen(
-        title = title,
-        bottomInnerPadding = bottomInnerPadding,
-        onBack = onBack,
-        fcitx = viewModel.fcitx,
-        loadConfig = {
-            val raw = getAddonConfig(addon)
-            if (addon == "table") {
-                raw.findByName("desc")?.findByName("TableGlobalConfig")?.let { node ->
-                    node.subItems = (node.subItems ?: emptyArray()) + org.fcitx.fcitx5.android.core.RawConfig(
-                        "AndroidTable",
-                        subItems = arrayOf(
-                            org.fcitx.fcitx5.android.core.RawConfig("Type", "External"),
-                            org.fcitx.fcitx5.android.core.RawConfig(
-                                "Description",
-                                context.getString(R.string.manage_table_im)
-                            ),
-                        ),
-                    )
-                }
-            }
-            raw
-        },
-        saveConfig = { setAddonConfig(addon, it) },
-        onOpenRoute = onOpenRoute,
-    )
 }
