@@ -31,6 +31,7 @@ import org.fcitx.fcitx5.android.core.RawConfig
 import org.fcitx.fcitx5.android.daemon.FcitxConnection
 import org.fcitx.fcitx5.android.daemon.FcitxDaemon
 import org.fcitx.fcitx5.android.data.prefs.AppPrefs
+import org.fcitx.fcitx5.android.ui.compose.component.ListConfigDialog
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
@@ -67,10 +68,10 @@ fun FcitxConfigScreen(
     saveConfig: suspend FcitxAPI.(RawConfig) -> Unit,
     onOpenRoute: (SettingsRoute) -> Unit,
 ) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var root by remember { mutableStateOf<RawConfig?>(null) }
     var failure by remember { mutableStateOf<String?>(null) }
+    var listDialog by remember { mutableStateOf<Pair<RawConfig, ConfigDescriptor<*, *>>?>(null) }
 
     LaunchedEffect(Unit) {
         runCatching {
@@ -121,6 +122,19 @@ fun FcitxConfigScreen(
             descriptors = descriptor.values,
             onChanged = { persist() },
             onOpenRoute = onOpenRoute,
+            onEditList = { listCfg, listDescriptor -> listDialog = listCfg to listDescriptor },
+        )
+    }
+
+    val editingList = listDialog
+    if (editingList != null) {
+        val (listCfg, listDescriptor) = editingList
+        ListConfigDialog(
+            title = listDescriptor.description ?: listDescriptor.name,
+            descriptor = listDescriptor,
+            cfg = listCfg,
+            onDismiss = { listDialog = null },
+            onChanged = { persist() },
         )
     }
 }
@@ -131,6 +145,7 @@ private fun LazyListScope.cfgRows(
     descriptors: List<ConfigDescriptor<*, *>>,
     onChanged: () -> Unit,
     onOpenRoute: (SettingsRoute) -> Unit,
+    onEditList: (RawConfig, ConfigDescriptor<*, *>) -> Unit,
     title: String? = null,
 ) {
     val plain = descriptors.filterNot { it is ConfigDescriptor.ConfigCustom }
@@ -138,7 +153,9 @@ private fun LazyListScope.cfgRows(
     item {
         if (title != null) SmallTitle(text = title)
         SettingsGroup(modifier = Modifier.padding(top = if (title == null) 12.dp else 2.dp)) {
-            plain.forEach { descriptor -> CfgRow(cfg, descriptor, onChanged, onOpenRoute) }
+            plain.forEach { descriptor ->
+                CfgRow(cfg, descriptor, onChanged, onOpenRoute, onEditList)
+            }
         }
     }
     // "Custom" descriptors are just grouping: render their members as their own titled group.
@@ -149,6 +166,7 @@ private fun LazyListScope.cfgRows(
             descriptors = custom.customTypeDef?.values.orEmpty(),
             onChanged = onChanged,
             onOpenRoute = onOpenRoute,
+            onEditList = onEditList,
             title = custom.description ?: custom.name,
         )
     }
@@ -160,6 +178,7 @@ private fun CfgRow(
     descriptor: ConfigDescriptor<*, *>,
     onChanged: () -> Unit,
     onOpenRoute: (SettingsRoute) -> Unit,
+    onEditList: (RawConfig, ConfigDescriptor<*, *>) -> Unit,
 ) {
     // Key bindings are hidden when the user asked for it, same as the old screen.
     if (AppPrefs.getInstance().advanced.hideKeyConfig.getValue() &&
@@ -266,11 +285,7 @@ private fun CfgRow(
                 title = label,
                 summary = keys?.joinToString(", ") { it.value }.orEmpty()
                     .ifEmpty { stringResource(R.string.none) },
-                onClick = {
-                    onOpenRoute(
-                        SettingsRoute.ListConfig(SettingsRoute.ListConfig.Params(cfg, descriptor))
-                    )
-                },
+                onClick = { onEditList(cfg, descriptor) },
             )
         }
 

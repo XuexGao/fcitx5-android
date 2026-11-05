@@ -43,11 +43,16 @@ import org.fcitx.fcitx5.android.ui.compose.pages.FeaturesPage
 import org.fcitx.fcitx5.android.ui.compose.pages.HomePage
 import org.fcitx.fcitx5.android.ui.compose.pages.SettingsPage
 import org.fcitx.fcitx5.android.ui.compose.screens.AboutScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.AddonDirProfileScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.AddonScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.AddonConfigScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.GlobalConfigScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.InputMethodConfigScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.InputMethodListScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.KeyboardGroupScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.KeyboardSettingsScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.LicenseScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.MultiSelectScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.AdvancedScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.CandidatesScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.ClipboardScreen
@@ -173,6 +178,7 @@ fun FcitxApp(
                             viewModel = viewModel,
                             onBack = closeTop,
                             onOpenRoute = openRoute,
+                            onOpenActivity = onOpenActivity,
                         )
                     }
                 }
@@ -188,6 +194,7 @@ private fun ComposeDetailHost(
     viewModel: MainViewModel,
     onBack: () -> Unit,
     onOpenRoute: (SettingsRoute) -> Unit,
+    onOpenActivity: (Class<*>) -> Unit,
 ) {
     val padding = 24.dp
     when (route) {
@@ -237,6 +244,41 @@ private fun ComposeDetailHost(
             onBack = onBack,
             viewModel = viewModel,
             onOpenRoute = onOpenRoute,
+        )
+
+        is SettingsRoute.MultiSelect -> MultiSelectScreen(
+            title = route.title,
+            addon = route.addon,
+            path = route.path,
+            option = route.option,
+            min = route.min,
+            bottomInnerPadding = padding,
+            onBack = onBack,
+            viewModel = viewModel,
+        )
+
+        is SettingsRoute.AddonDirProfileManager -> AddonDirProfileScreen(
+            title = route.title,
+            addon = route.addon,
+            path = route.path,
+            bottomInnerPadding = padding,
+            onBack = onBack,
+            viewModel = viewModel,
+        )
+
+        is SettingsRoute.License -> LicenseScreen(bottomInnerPadding = padding, onBack = onBack)
+
+        is SettingsRoute.VirtualKeyboard -> KeyboardSettingsScreen(
+            bottomInnerPadding = padding,
+            onBack = onBack,
+            onOpenRoute = onOpenRoute,
+        )
+
+        is SettingsRoute.KeyboardGroup -> KeyboardGroupScreen(
+            group = route.group,
+            bottomInnerPadding = padding,
+            onBack = onBack,
+            onOpenActivity = onOpenActivity,
         )
 
         is SettingsRoute.PinyinDict -> PinyinDictionaryScreen(

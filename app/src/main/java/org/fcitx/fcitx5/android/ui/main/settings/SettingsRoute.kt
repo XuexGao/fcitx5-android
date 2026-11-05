@@ -18,9 +18,6 @@ import kotlinx.serialization.json.Json
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.core.RawConfig
 import org.fcitx.fcitx5.android.data.quickphrase.QuickPhrase
-import org.fcitx.fcitx5.android.ui.main.LicensesFragment
-import org.fcitx.fcitx5.android.ui.main.settings.behavior.KeyboardGroupFragment
-import org.fcitx.fcitx5.android.ui.main.settings.behavior.KeyboardSettingsFragment
 import org.fcitx.fcitx5.android.ui.main.settings.theme.ThemeFragment
 import org.fcitx.fcitx5.android.utils.AppUtil
 import org.fcitx.fcitx5.android.utils.config.ConfigDescriptor
@@ -94,43 +91,6 @@ sealed class SettingsRoute : Parcelable {
     data object About : SettingsRoute()
 
     /* ========== External ========== */
-
-    @Serializable
-    data class ListConfig(val params: Params) : SettingsRoute() {
-        @Parcelize
-        @Serializable
-        data class Params(val cfg: RawConfig, val desc: ConfigDescriptor<*, *>) : Parcelable {
-            companion object {
-                // https://developer.android.com/guide/navigation/design/kotlin-dsl#custom-types
-                val NavType = object : NavType<Params>(isNullableAllowed = false) {
-                    override fun put(bundle: SavedState, key: String, value: Params) {
-                        bundle.putParcelable(key, value)
-                    }
-
-                    override fun get(bundle: SavedState, key: String): Params? {
-                        return bundle.parcelable<Params>(key)
-                    }
-
-                    override fun serializeAsValue(value: Params): String {
-                        // Serialized values must always be Uri encoded
-                        return Uri.encode(Json.encodeToString(value))
-                    }
-
-                    override fun parseValue(value: String): Params {
-                        // Navigation decodes the string before passing it to parseValue()
-                        return Json.decodeFromString(value)
-                    }
-                }
-            }
-        }
-
-        constructor(cfg: RawConfig, desc: ConfigDescriptor<*, *>) : this(Params(cfg, desc))
-
-        val desc: ConfigDescriptor<*, *>
-            get() = params.desc
-        val cfg: RawConfig
-            get() = params.cfg
-    }
 
     @Serializable
     data class PinyinDict(val uri: String? = null) : SettingsRoute() {
@@ -213,21 +173,9 @@ sealed class SettingsRoute : Parcelable {
             fragment<ThemeFragment, Theme> {
                 label = ctx.getString(R.string.theme)
             }
-            fragment<KeyboardSettingsFragment, VirtualKeyboard> {
-                label = ctx.getString(R.string.virtual_keyboard)
-            }
-            fragment<KeyboardGroupFragment, KeyboardGroup>()
-            fragment<LicensesFragment, License> {
-                label = ctx.getString(R.string.license)
-            }
 
             /* ========== External ========== */
 
-            fragment<ListFragment, ListConfig>(
-                typeMap = mapOf(typeOf<ListConfig.Params>() to ListConfig.Params.NavType)
-            )
-            fragment<GenericMultiSelectFragment, MultiSelect>()
-            fragment<AddonDirProfileManagerFragment, AddonDirProfileManager>()
         }
     }
 }

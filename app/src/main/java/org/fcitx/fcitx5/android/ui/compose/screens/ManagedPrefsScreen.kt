@@ -46,6 +46,7 @@ fun ManagedPrefsScreen(
     onBack: () -> Unit,
     header: (LazyListScope.() -> Unit)? = null,
     footer: (LazyListScope.() -> Unit)? = null,
+    filter: (String) -> Boolean = { true },
 ) {
     PageScaffold(
         title = title,
@@ -55,17 +56,21 @@ fun ManagedPrefsScreen(
         header?.invoke(this)
         item {
             SettingsGroup(modifier = Modifier.padding(top = 12.dp)) {
-                ProviderRows(provider)
+                ProviderRows(provider, filter)
             }
         }
         footer?.invoke(this)
     }
 }
 
-/** All rows declared by [provider], in declaration order. */
+/**
+ * All rows declared by [provider], in declaration order. [filter] receives each preference key and
+ * is used by screens that only show a subset of a provider (the keyboard settings groups).
+ */
 @Composable
-fun ProviderRows(provider: ManagedPreferenceProvider) {
+fun ProviderRows(provider: ManagedPreferenceProvider, filter: (String) -> Boolean = { true }) {
     provider.managedPreferencesUi.forEach { ui ->
+        if (!filter(ui.key)) return@forEach
         val pref = provider.managedPreferences[ui.key] ?: return@forEach
         ManagedPrefRow(provider, ui, pref)
     }

@@ -33,6 +33,11 @@ fun isComposeRoute(route: SettingsRoute): Boolean = when (route) {
     is SettingsRoute.TableInputMethods,
     is SettingsRoute.PinyinDict,
     is SettingsRoute.PinyinCustomPhrase,
+    is SettingsRoute.MultiSelect,
+    is SettingsRoute.AddonDirProfileManager,
+    is SettingsRoute.License,
+    is SettingsRoute.VirtualKeyboard,
+    is SettingsRoute.KeyboardGroup,
     -> true
 
     else -> false
