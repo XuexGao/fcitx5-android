@@ -18,21 +18,9 @@ import kotlinx.serialization.json.Json
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.core.RawConfig
 import org.fcitx.fcitx5.android.data.quickphrase.QuickPhrase
-import org.fcitx.fcitx5.android.ui.main.AboutFragment
-import org.fcitx.fcitx5.android.ui.main.DeveloperFragment
 import org.fcitx.fcitx5.android.ui.main.LicensesFragment
-import org.fcitx.fcitx5.android.ui.main.PluginFragment
-import org.fcitx.fcitx5.android.ui.main.settings.addon.AddonConfigFragment
-import org.fcitx.fcitx5.android.ui.main.settings.addon.AddonListFragment
-import org.fcitx.fcitx5.android.ui.main.settings.behavior.AdvancedSettingsFragment
-import org.fcitx.fcitx5.android.ui.main.settings.behavior.CandidatesSettingsFragment
-import org.fcitx.fcitx5.android.ui.main.settings.behavior.ClipboardSettingsFragment
 import org.fcitx.fcitx5.android.ui.main.settings.behavior.KeyboardGroupFragment
 import org.fcitx.fcitx5.android.ui.main.settings.behavior.KeyboardSettingsFragment
-import org.fcitx.fcitx5.android.ui.main.settings.behavior.SymbolSettingsFragment
-import org.fcitx.fcitx5.android.ui.main.settings.global.GlobalConfigFragment
-import org.fcitx.fcitx5.android.ui.main.settings.im.InputMethodConfigFragment
-import org.fcitx.fcitx5.android.ui.main.settings.im.InputMethodListFragment
 import org.fcitx.fcitx5.android.ui.main.settings.theme.ThemeFragment
 import org.fcitx.fcitx5.android.utils.AppUtil
 import org.fcitx.fcitx5.android.utils.config.ConfigDescriptor
@@ -219,15 +207,6 @@ sealed class SettingsRoute : Parcelable {
 
             /* ========== Fcitx ========== */
 
-            fragment<GlobalConfigFragment, GlobalConfig>()
-            fragment<InputMethodListFragment, InputMethodList> {
-                label = ctx.getString(R.string.input_methods)
-            }
-            fragment<InputMethodConfigFragment, InputMethodConfig>()
-            fragment<AddonListFragment, AddonList> {
-                label = ctx.getString(R.string.addons)
-            }
-            fragment<AddonConfigFragment, AddonConfig>()
 
             /* ========== Android ========== */
 
@@ -238,29 +217,8 @@ sealed class SettingsRoute : Parcelable {
                 label = ctx.getString(R.string.virtual_keyboard)
             }
             fragment<KeyboardGroupFragment, KeyboardGroup>()
-            fragment<CandidatesSettingsFragment, CandidatesWindow> {
-                label = ctx.getString(R.string.candidates_window)
-            }
-            fragment<ClipboardSettingsFragment, Clipboard> {
-                label = ctx.getString(R.string.clipboard)
-            }
-            fragment<SymbolSettingsFragment, Symbol> {
-                label = ctx.getString(R.string.emoji_and_symbols)
-            }
-            fragment<PluginFragment, Plugin> {
-                label = ctx.getString(R.string.plugins)
-            }
-            fragment<AdvancedSettingsFragment, Advanced> {
-                label = ctx.getString(R.string.advanced)
-            }
-            fragment<DeveloperFragment, Developer> {
-                label = ctx.getString(R.string.developer)
-            }
             fragment<LicensesFragment, License> {
                 label = ctx.getString(R.string.license)
-            }
-            fragment<AboutFragment, About> {
-                label = ctx.getString(R.string.about)
             }
 
             /* ========== External ========== */
