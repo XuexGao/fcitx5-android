@@ -11,8 +11,10 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToNode
 import androidx.preference.PreferenceManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -74,6 +76,18 @@ class ScreenshotTest {
         file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
+    /**
+     * Clicks a row, scrolling the enclosing list to it first: rows can sit under the floating bottom
+     * bar or below the fold, where touch injection would fail.
+     */
+    private fun clickRow(text: String) {
+        runCatching {
+            composeRule.onNode(hasScrollAction()).performScrollToNode(hasText(text))
+        }
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(text).performClick()
+    }
+
     private fun tab(index: Int, name: String, assertText: Int) {
         composeRule.onNodeWithTag(tabTag(index)).performClick()
         composeRule.waitForIdle()
@@ -97,7 +111,7 @@ class ScreenshotTest {
         // Detail screens that are already Compose
         composeRule.onNodeWithTag(tabTag(2)).performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText(context.getString(R.string.ksu_rime_title)).performScrollTo().performClick()
+        clickRow(context.getString(R.string.ksu_rime_title))
         composeRule.waitForIdle()
         Thread.sleep(600)
         capture("rime-scheme")
@@ -107,7 +121,7 @@ class ScreenshotTest {
         // 界面 → 键盘主题
         composeRule.onNodeWithTag(tabTag(1)).performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText(context.getString(R.string.theme)).performScrollTo().performClick()
+        clickRow(context.getString(R.string.theme))
         composeRule.waitForIdle()
         Thread.sleep(600)
         capture("theme-list")
@@ -117,7 +131,7 @@ class ScreenshotTest {
         // 功能 → 全局选项（Fcitx 动态配置）
         composeRule.onNodeWithTag(tabTag(2)).performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText(context.getString(R.string.global_options)).performScrollTo().performClick()
+        clickRow(context.getString(R.string.global_options))
         composeRule.waitForIdle()
         Thread.sleep(1500)
         capture("global-config")
@@ -125,7 +139,7 @@ class ScreenshotTest {
         composeRule.waitForIdle()
 
         // 功能 → 候选窗口
-        composeRule.onNodeWithText(context.getString(R.string.candidates_window)).performScrollTo().performClick()
+        clickRow(context.getString(R.string.candidates_window))
         composeRule.waitForIdle()
         Thread.sleep(500)
         capture("candidates")
