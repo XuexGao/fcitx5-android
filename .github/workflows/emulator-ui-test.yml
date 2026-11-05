@@ -129,7 +129,8 @@ jobs:
             grep -E "OK \(|Tests run|FAILURES" instrument-output.txt
             grep -q "INSTRUMENTATION_CODE: -1" instrument-output.txt
             ! grep -qE "FAILURES!!!|shortMsg=|INSTRUMENTATION_FAILED" instrument-output.txt
-            adb shell am instrument -w -e class org.fcitx.fcitx5.android.ui.ScreenshotTest org.fcitx5.xuexgao.debug.test/androidx.test.runner.AndroidJUnitRunner
+            adb shell am instrument -w -r -e class org.fcitx.fcitx5.android.ui.ScreenshotTest org.fcitx5.xuexgao.debug.test/androidx.test.runner.AndroidJUnitRunner | tee screenshot-output.txt
+            grep -q "OK (1 test)" screenshot-output.txt
             rm -rf screenshots screenshots.tar
             mkdir -p screenshots
             adb exec-out run-as org.fcitx5.xuexgao.debug tar -cf - -C files screenshots > screenshots.tar

@@ -100,7 +100,7 @@ class ScreenshotTest {
         composeRule.waitForIdle()
         Thread.sleep(600)
         capture("rime-scheme")
-        composeRule.onNodeWithText(context.getString(R.string.ksu_rime_title)).performClick()
+        composeRule.runOnUiThread { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
         composeRule.waitForIdle()
 
         // 界面 → 键盘主题
