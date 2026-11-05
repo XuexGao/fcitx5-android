@@ -341,3 +341,82 @@ fun AboutScreen(bottomInnerPadding: Dp, onBack: () -> Unit, onOpenLicenses: () -
         }
     }
 }
+
+/** 全局选项：Fcitx 全局配置 */
+@Composable
+fun GlobalConfigScreen(
+    bottomInnerPadding: Dp,
+    onBack: () -> Unit,
+    viewModel: MainViewModel,
+    onOpenRoute: (SettingsRoute) -> Unit,
+) {
+    FcitxConfigScreen(
+        title = stringResource(R.string.global_options),
+        bottomInnerPadding = bottomInnerPadding,
+        onBack = onBack,
+        fcitx = viewModel.fcitx,
+        loadConfig = { getGlobalConfig() },
+        saveConfig = { setGlobalConfig(it) },
+        onOpenRoute = onOpenRoute,
+    )
+}
+
+/** 单个输入法的配置 */
+@Composable
+fun InputMethodConfigScreen(
+    uniqueName: String,
+    title: String,
+    bottomInnerPadding: Dp,
+    onBack: () -> Unit,
+    viewModel: MainViewModel,
+    onOpenRoute: (SettingsRoute) -> Unit,
+) {
+    FcitxConfigScreen(
+        title = title,
+        bottomInnerPadding = bottomInnerPadding,
+        onBack = onBack,
+        fcitx = viewModel.fcitx,
+        loadConfig = { getImConfig(uniqueName) },
+        saveConfig = { setImConfig(uniqueName, it) },
+        onOpenRoute = onOpenRoute,
+    )
+}
+
+/** 附加组件配置；table 组件额外挂上"码表输入法"入口，与旧实现一致。 */
+@Composable
+fun AddonConfigScreen(
+    addon: String,
+    title: String,
+    bottomInnerPadding: Dp,
+    onBack: () -> Unit,
+    viewModel: MainViewModel,
+    onOpenRoute: (SettingsRoute) -> Unit,
+) {
+    val context = LocalContext.current
+    FcitxConfigScreen(
+        title = title,
+        bottomInnerPadding = bottomInnerPadding,
+        onBack = onBack,
+        fcitx = viewModel.fcitx,
+        loadConfig = {
+            val raw = getAddonConfig(addon)
+            if (addon == "table") {
+                raw.findByName("desc")?.findByName("TableGlobalConfig")?.let { node ->
+                    node.subItems = (node.subItems ?: emptyArray()) + org.fcitx.fcitx5.android.core.RawConfig(
+                        "AndroidTable",
+                        subItems = arrayOf(
+                            org.fcitx.fcitx5.android.core.RawConfig("Type", "External"),
+                            org.fcitx.fcitx5.android.core.RawConfig(
+                                "Description",
+                                context.getString(R.string.manage_table_im)
+                            ),
+                        ),
+                    )
+                }
+            }
+            raw
+        },
+        saveConfig = { setAddonConfig(addon, it) },
+        onOpenRoute = onOpenRoute,
+    )
+}
