@@ -27,6 +27,10 @@ fun isComposeRoute(route: SettingsRoute): Boolean = when (route) {
     is SettingsRoute.Plugin,
     is SettingsRoute.AddonList,
     is SettingsRoute.InputMethodList,
+    is SettingsRoute.QuickPhraseList,
+    is SettingsRoute.QuickPhraseEdit,
+    is SettingsRoute.Punctuation,
+    is SettingsRoute.TableInputMethods,
     -> true
 
     else -> false

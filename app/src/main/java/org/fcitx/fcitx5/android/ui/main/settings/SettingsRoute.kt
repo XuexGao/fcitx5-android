@@ -229,16 +229,6 @@ sealed class SettingsRoute : Parcelable {
             fragment<PinyinDictionaryFragment, PinyinDict> {
                 label = ctx.getString(R.string.pinyin_dict)
             }
-            fragment<PunctuationEditorFragment, Punctuation>()
-            fragment<QuickPhraseListFragment, QuickPhraseList> {
-                label = ctx.getString(R.string.quickphrase_editor)
-            }
-            fragment<QuickPhraseEditFragment, QuickPhraseEdit>(
-                typeMap = mapOf(typeOf<QuickPhraseEdit.Param>() to QuickPhraseEdit.Param.NavType)
-            )
-            fragment<TableInputMethodFragment, TableInputMethods> {
-                label = ctx.getString(R.string.table_im)
-            }
             fragment<PinyinCustomPhraseFragment, PinyinCustomPhrase>()
             fragment<GenericMultiSelectFragment, MultiSelect>()
             fragment<AddonDirProfileManagerFragment, AddonDirProfileManager>()

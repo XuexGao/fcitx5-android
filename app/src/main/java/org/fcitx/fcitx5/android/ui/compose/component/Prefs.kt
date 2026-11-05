@@ -6,6 +6,7 @@ package org.fcitx.fcitx5.android.ui.compose.component
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -71,13 +72,14 @@ fun SettingsGroup(
     }
 }
 
-/** Standard navigable row. */
+/** Standard navigable row, with optional trailing action buttons. */
 @Composable
 fun NavRow(
     title: String,
     summary: String? = null,
     icon: ImageVector? = null,
     enabled: Boolean = true,
+    endActions: (@Composable RowScope.() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
 ) {
     ArrowPreference(
@@ -85,6 +87,7 @@ fun NavRow(
         summary = summary,
         enabled = enabled,
         startAction = icon?.let { vector -> { LeadingIcon(vector, title) } },
+        endActions = endActions ?: {},
         onClick = onClick,
     )
 }

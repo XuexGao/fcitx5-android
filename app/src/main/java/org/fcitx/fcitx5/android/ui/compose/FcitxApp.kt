@@ -24,11 +24,10 @@ import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -54,8 +53,12 @@ import org.fcitx.fcitx5.android.ui.compose.screens.CandidatesScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.ClipboardScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.DeveloperScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.PluginScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.PunctuationEditorScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.QuickPhraseEditScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.QuickPhraseListScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.RimeScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.SymbolScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.TableInputMethodScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.ThemeScreen
 import org.fcitx.fcitx5.android.ui.compose.theme.FcitxTheme
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBar
@@ -102,14 +105,19 @@ fun FcitxApp(
         val pagerState = rememberPagerState(pageCount = { PAGE_COUNT })
         val scope = rememberCoroutineScope()
         val floating = LocalEnableFloatingBottomBar.current
-        var composeDetail by remember { mutableStateOf<SettingsRoute?>(null) }
+        // Ported screens form their own back stack inside Compose; routes without a Compose screen
+        // are still handed to the host activity, which renders the legacy graph as an overlay.
+        val composeStack = remember { mutableStateListOf<SettingsRoute>() }
 
         val openRoute: (SettingsRoute) -> Unit = { route ->
-            if (isComposeRoute(route)) composeDetail = route else onOpenLegacyRoute(route)
+            if (isComposeRoute(route)) composeStack.add(route) else onOpenLegacyRoute(route)
+        }
+        val closeTop: () -> Unit = {
+            if (composeStack.isNotEmpty()) composeStack.removeAt(composeStack.lastIndex)
         }
 
-        BackHandler(enabled = composeDetail != null) { composeDetail = null }
-        BackHandler(enabled = composeDetail == null && pagerState.currentPage != 0) {
+        BackHandler(enabled = composeStack.isNotEmpty()) { closeTop() }
+        BackHandler(enabled = composeStack.isEmpty() && pagerState.currentPage != 0) {
             scope.launch { pagerState.animateScrollToPage(0) }
         }
 
@@ -149,30 +157,26 @@ fun FcitxApp(
             }
 
             AnimatedVisibility(
-                visible = composeDetail != null,
+                visible = composeStack.isNotEmpty(),
                 enter = slideInHorizontally { it },
                 exit = slideOutHorizontally { it },
             ) {
-                val route = composeDetail
+                val route = composeStack.lastOrNull()
                 if (route != null) {
-                    ComposeDetailHost(
-                        route = route,
-                        viewModel = viewModel,
-                        onBack = { composeDetail = null },
-                        onOpenLegacyRoute = onOpenLegacyRoute,
-                    )
+                    // A fresh composition per stack entry keeps `remember`ed state from leaking
+                    // between two screens that happen to share a route type.
+                    key(composeStack.size) {
+                        ComposeDetailHost(
+                            route = route,
+                            viewModel = viewModel,
+                            onBack = closeTop,
+                            onOpenRoute = openRoute,
+                        )
+                    }
                 }
             }
         }
     }
-}
-
-/**
- * Routes opened from inside a Compose detail screen: ported screens are handled by the Compose
- * host, the rest still go to the legacy graph.
- */
-private fun composeRouteToLegacy(route: SettingsRoute, onOpenLegacyRoute: (SettingsRoute) -> Unit) {
-    if (!isComposeRoute(route)) onOpenLegacyRoute(route)
 }
 
 /** Renders the Compose detail screen for [route]. */
@@ -181,7 +185,7 @@ private fun ComposeDetailHost(
     route: SettingsRoute,
     viewModel: MainViewModel,
     onBack: () -> Unit,
-    onOpenLegacyRoute: (SettingsRoute) -> Unit,
+    onOpenRoute: (SettingsRoute) -> Unit,
 ) {
     val padding = 24.dp
     when (route) {
@@ -203,7 +207,7 @@ private fun ComposeDetailHost(
             bottomInnerPadding = padding,
             onBack = onBack,
             viewModel = viewModel,
-            onOpenRoute = { route -> composeRouteToLegacy(route, onOpenLegacyRoute) },
+            onOpenRoute = onOpenRoute,
         )
 
         is SettingsRoute.InputMethodConfig -> InputMethodConfigScreen(
@@ -212,7 +216,7 @@ private fun ComposeDetailHost(
             bottomInnerPadding = padding,
             onBack = onBack,
             viewModel = viewModel,
-            onOpenRoute = { r -> composeRouteToLegacy(r, onOpenLegacyRoute) },
+            onOpenRoute = onOpenRoute,
         )
 
         is SettingsRoute.AddonConfig -> AddonConfigScreen(
@@ -221,7 +225,7 @@ private fun ComposeDetailHost(
             bottomInnerPadding = padding,
             onBack = onBack,
             viewModel = viewModel,
-            onOpenRoute = { r -> composeRouteToLegacy(r, onOpenLegacyRoute) },
+            onOpenRoute = onOpenRoute,
         )
 
         is SettingsRoute.Theme -> ThemeScreen(bottomInnerPadding = padding, onBack = onBack)
@@ -230,20 +234,47 @@ private fun ComposeDetailHost(
             bottomInnerPadding = padding,
             onBack = onBack,
             viewModel = viewModel,
-            onOpenRoute = { r -> composeRouteToLegacy(r, onOpenLegacyRoute) },
+            onOpenRoute = onOpenRoute,
+        )
+
+        is SettingsRoute.Punctuation -> PunctuationEditorScreen(
+            title = route.title,
+            lang = route.lang,
+            bottomInnerPadding = padding,
+            onBack = onBack,
+            viewModel = viewModel,
+        )
+
+        is SettingsRoute.TableInputMethods -> TableInputMethodScreen(
+            bottomInnerPadding = padding,
+            onBack = onBack,
+        )
+
+        is SettingsRoute.QuickPhraseList -> QuickPhraseListScreen(
+            bottomInnerPadding = padding,
+            onBack = onBack,
+            viewModel = viewModel,
+            onOpenRoute = onOpenRoute,
+        )
+
+        is SettingsRoute.QuickPhraseEdit -> QuickPhraseEditScreen(
+            quickPhrase = route.param.quickPhrase,
+            bottomInnerPadding = padding,
+            onBack = onBack,
+            viewModel = viewModel,
         )
 
         is SettingsRoute.AddonList -> AddonScreen(
             bottomInnerPadding = padding,
             onBack = onBack,
             viewModel = viewModel,
-            onOpenRoute = { r -> composeRouteToLegacy(r, onOpenLegacyRoute) },
+            onOpenRoute = onOpenRoute,
         )
 
         is SettingsRoute.About -> AboutScreen(
             bottomInnerPadding = padding,
             onBack = onBack,
-            onOpenLicenses = { onOpenLegacyRoute(SettingsRoute.License) },
+            onOpenLicenses = { onOpenRoute(SettingsRoute.License) },
         )
 
         else -> onBack()
