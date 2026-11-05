@@ -96,11 +96,37 @@ class ScreenshotTest {
         // Detail screens that are already Compose
         composeRule.onNodeWithTag(tabTag(2)).performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText(
-            context.getString(R.string.ksu_rime_title)
-        ).performClick()
+        composeRule.onNodeWithText(context.getString(R.string.ksu_rime_title)).performClick()
+        composeRule.waitForIdle()
+        Thread.sleep(600)
+        capture("rime-scheme")
+        composeRule.onNodeWithText(context.getString(R.string.ksu_rime_title)).performClick()
+        composeRule.waitForIdle()
+
+        // 界面 → 键盘主题
+        composeRule.onNodeWithTag(tabTag(1)).performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.theme)).performClick()
+        composeRule.waitForIdle()
+        Thread.sleep(600)
+        capture("theme-list")
+        composeRule.runOnUiThread { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+        composeRule.waitForIdle()
+
+        // 功能 → 全局选项（Fcitx 动态配置）
+        composeRule.onNodeWithTag(tabTag(2)).performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(context.getString(R.string.global_options)).performClick()
+        composeRule.waitForIdle()
+        Thread.sleep(1500)
+        capture("global-config")
+        composeRule.runOnUiThread { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+        composeRule.waitForIdle()
+
+        // 功能 → 候选窗口
+        composeRule.onNodeWithText(context.getString(R.string.candidates_window)).performClick()
         composeRule.waitForIdle()
         Thread.sleep(500)
-        capture("rime-scheme")
+        capture("candidates")
     }
 }
