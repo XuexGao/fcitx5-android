@@ -31,6 +31,8 @@ fun isComposeRoute(route: SettingsRoute): Boolean = when (route) {
     is SettingsRoute.QuickPhraseEdit,
     is SettingsRoute.Punctuation,
     is SettingsRoute.TableInputMethods,
+    is SettingsRoute.PinyinDict,
+    is SettingsRoute.PinyinCustomPhrase,
     -> true
 
     else -> false

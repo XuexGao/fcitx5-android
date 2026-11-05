@@ -226,10 +226,6 @@ sealed class SettingsRoute : Parcelable {
             fragment<ListFragment, ListConfig>(
                 typeMap = mapOf(typeOf<ListConfig.Params>() to ListConfig.Params.NavType)
             )
-            fragment<PinyinDictionaryFragment, PinyinDict> {
-                label = ctx.getString(R.string.pinyin_dict)
-            }
-            fragment<PinyinCustomPhraseFragment, PinyinCustomPhrase>()
             fragment<GenericMultiSelectFragment, MultiSelect>()
             fragment<AddonDirProfileManagerFragment, AddonDirProfileManager>()
         }

@@ -52,6 +52,8 @@ import org.fcitx.fcitx5.android.ui.compose.screens.AdvancedScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.CandidatesScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.ClipboardScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.DeveloperScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.PinyinCustomPhraseScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.PinyinDictionaryScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.PluginScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.PunctuationEditorScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.QuickPhraseEditScreen
@@ -235,6 +237,19 @@ private fun ComposeDetailHost(
             onBack = onBack,
             viewModel = viewModel,
             onOpenRoute = onOpenRoute,
+        )
+
+        is SettingsRoute.PinyinDict -> PinyinDictionaryScreen(
+            bottomInnerPadding = padding,
+            onBack = onBack,
+            viewModel = viewModel,
+        )
+
+        is SettingsRoute.PinyinCustomPhrase -> PinyinCustomPhraseScreen(
+            title = stringResource(R.string.ksu_pinyin_custom_phrase),
+            bottomInnerPadding = padding,
+            onBack = onBack,
+            viewModel = viewModel,
         )
 
         is SettingsRoute.Punctuation -> PunctuationEditorScreen(
