@@ -36,7 +36,7 @@ import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.data.theme.Theme
 import org.fcitx.fcitx5.android.data.theme.ThemeManager
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
-import org.fcitx.fcitx5.android.ui.compose.component.ProviderRows
+import org.fcitx.fcitx5.android.ui.compose.screens.ProviderRows
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
