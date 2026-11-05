@@ -24,6 +24,7 @@ fun isComposeRoute(route: SettingsRoute): Boolean = when (route) {
     is SettingsRoute.InputMethodConfig,
     is SettingsRoute.AddonConfig,
     is SettingsRoute.Theme,
+    is SettingsRoute.Plugin,
     -> true
 
     else -> false

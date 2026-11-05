@@ -51,6 +51,7 @@ import org.fcitx.fcitx5.android.ui.compose.screens.AdvancedScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.CandidatesScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.ClipboardScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.DeveloperScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.PluginScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.RimeScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.SymbolScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.ThemeScreen
@@ -222,6 +223,7 @@ private fun ComposeDetailHost(
         )
 
         is SettingsRoute.Theme -> ThemeScreen(bottomInnerPadding = padding, onBack = onBack)
+        is SettingsRoute.Plugin -> PluginScreen(bottomInnerPadding = padding, onBack = onBack)
 
         is SettingsRoute.About -> AboutScreen(
             bottomInnerPadding = padding,
