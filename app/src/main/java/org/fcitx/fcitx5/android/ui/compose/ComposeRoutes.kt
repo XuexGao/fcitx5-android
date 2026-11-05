@@ -25,6 +25,7 @@ fun isComposeRoute(route: SettingsRoute): Boolean = when (route) {
     is SettingsRoute.AddonConfig,
     is SettingsRoute.Theme,
     is SettingsRoute.Plugin,
+    is SettingsRoute.AddonList,
     -> true
 
     else -> false

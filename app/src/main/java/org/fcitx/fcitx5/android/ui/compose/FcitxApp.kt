@@ -44,6 +44,7 @@ import org.fcitx.fcitx5.android.ui.compose.pages.FeaturesPage
 import org.fcitx.fcitx5.android.ui.compose.pages.HomePage
 import org.fcitx.fcitx5.android.ui.compose.pages.SettingsPage
 import org.fcitx.fcitx5.android.ui.compose.screens.AboutScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.AddonScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.AddonConfigScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.GlobalConfigScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.InputMethodConfigScreen
@@ -224,6 +225,12 @@ private fun ComposeDetailHost(
 
         is SettingsRoute.Theme -> ThemeScreen(bottomInnerPadding = padding, onBack = onBack)
         is SettingsRoute.Plugin -> PluginScreen(bottomInnerPadding = padding, onBack = onBack)
+        is SettingsRoute.AddonList -> AddonScreen(
+            bottomInnerPadding = padding,
+            onBack = onBack,
+            viewModel = viewModel,
+            onOpenRoute = { r -> composeRouteToLegacy(r, onOpenLegacyRoute) },
+        )
 
         is SettingsRoute.About -> AboutScreen(
             bottomInnerPadding = padding,
