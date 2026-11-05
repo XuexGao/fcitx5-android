@@ -6,6 +6,7 @@ package org.fcitx.fcitx5.android.ui.compose.screens
 
 import android.net.Uri
 import androidx.compose.foundation.layout.padding
+import arrow.core.getOrElse
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Tune
@@ -83,8 +84,11 @@ fun FcitxConfigScreen(
 
     val loaded = root
     val descriptor = remember(loaded) {
-        loaded?.findByName("desc")?.let {
-            ConfigDescriptor.parseTopLevel(it).getOrElse { null }
+        loaded?.findByName("desc")?.let { node ->
+            ConfigDescriptor.parseTopLevel(node).getOrElse { error ->
+                Timber.w(error, "Unable to parse config descriptor")
+                null
+            }
         }
     }
 
@@ -139,7 +143,7 @@ private fun LazyListScope.cfgRows(
     }
     // "Custom" descriptors are just grouping: render their members as their own titled group.
     customs.forEach { custom ->
-        val sub = cfg.findByName(custom.name) ?: RawConfig(custom.name)
+        val sub = cfg.getOrCreate(custom.name)
         cfgRows(
             cfg = sub,
             descriptors = custom.customTypeDef?.values.orEmpty(),
