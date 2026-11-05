@@ -12,6 +12,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.preference.PreferenceManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -96,7 +97,7 @@ class ScreenshotTest {
         // Detail screens that are already Compose
         composeRule.onNodeWithTag(tabTag(2)).performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText(context.getString(R.string.ksu_rime_title)).performClick()
+        composeRule.onNodeWithText(context.getString(R.string.ksu_rime_title)).performScrollTo().performClick()
         composeRule.waitForIdle()
         Thread.sleep(600)
         capture("rime-scheme")
@@ -106,7 +107,7 @@ class ScreenshotTest {
         // 界面 → 键盘主题
         composeRule.onNodeWithTag(tabTag(1)).performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText(context.getString(R.string.theme)).performClick()
+        composeRule.onNodeWithText(context.getString(R.string.theme)).performScrollTo().performClick()
         composeRule.waitForIdle()
         Thread.sleep(600)
         capture("theme-list")
@@ -116,7 +117,7 @@ class ScreenshotTest {
         // 功能 → 全局选项（Fcitx 动态配置）
         composeRule.onNodeWithTag(tabTag(2)).performClick()
         composeRule.waitForIdle()
-        composeRule.onNodeWithText(context.getString(R.string.global_options)).performClick()
+        composeRule.onNodeWithText(context.getString(R.string.global_options)).performScrollTo().performClick()
         composeRule.waitForIdle()
         Thread.sleep(1500)
         capture("global-config")
@@ -124,7 +125,7 @@ class ScreenshotTest {
         composeRule.waitForIdle()
 
         // 功能 → 候选窗口
-        composeRule.onNodeWithText(context.getString(R.string.candidates_window)).performClick()
+        composeRule.onNodeWithText(context.getString(R.string.candidates_window)).performScrollTo().performClick()
         composeRule.waitForIdle()
         Thread.sleep(500)
         capture("candidates")
