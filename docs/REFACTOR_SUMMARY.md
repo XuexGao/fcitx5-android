@@ -228,6 +228,11 @@
 - 模拟器截图流水线（`ScreenshotTest` + `run-as tar` 拉图 + artifact），仓库内留存 5 张样张于
   `docs/screenshots/`
 
+已完成 Compose 化的二级页（截至本轮）：
+
+候选窗口、表情与符号、剪贴板、高级、开发者、关于、Rime 方案、全局选项、输入法配置、
+附加组件配置、键盘主题、插件列表、附加组件列表。
+
 待续（下一步直接从这里接着做）：
 
 1. **批次 B**：`PreferenceScreenFactory`（442 行）的 Compose 版。
