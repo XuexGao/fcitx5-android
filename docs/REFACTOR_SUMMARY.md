@@ -288,3 +288,48 @@
 `ClipboardEditActivity` / `LogActivity` / `SetupActivity` 通过 **ViewBinding** 使用它们
 （`binding.root`），普通文本搜索看不到这一层引用；`res/xml/preferences_local.xml` 仍被剪贴板同步设置页使用，
 其中的 `DialogSeekBarPreference` 因此保留。故本轮没有删除任何布局文件。
+
+---
+
+## 12. 模板功能补齐（批次 D：Material 风格切换）
+
+按用户要求把模板 [KernelSU-Style-UI-Kit](https://github.com/example/KernelSU-Style-UI-Kit) 里点名的功能补进设置应用，
+并让「设置界面风格」在 Miuix 与 Material 3 之间真正切换。提交见 `stage-28` … `stage-33`。
+
+### 风格切换的骨架
+
+| 组成 | 位置 | 说明 |
+| --- | --- | --- |
+| `UiMode` / `LocalUiMode` | `ui/compose/UiMode.kt` | 与模板同名同义，`miuix` 为默认值 |
+| 主题分派 | `ui/compose/theme/FcitxTheme.kt` | 按 `AppearancePrefs.uiMode` 选择 `FcitxMiuixTheme`（miuix `ThemeController`）或 `FcitxMaterialTheme`（materialKolor + `MaterialExpressiveTheme`）；两者共用同一套颜色偏好，切换风格不丢配色 |
+| 颜色偏好 | `AppearancePrefs` | 新增 `uiMode`、`miuixMonet`、`navigationRailExpanded`；`paletteStyle`/`colorSpec` 的取值与 materialKolor 枚举名对齐（旧的 `Spec2025` 仍可解析） |
+| 组件分派 | `ui/compose/component/**` | `PageScaffold`、`SettingsGroup`、`NavRow`、`SwitchRow`、`SliderRow`、`CheckboxRow`、`DropdownRow`、`PickerDialog`、`ConfirmDialog`、`EditFieldsDialog`、`StatusCard` 都按 `LocalUiMode` 选实现；Material 侧用模板带过来的 `SegmentedList`/`TonalCard`/`ExpressiveScaffold`/`ExpressiveSwitch`/`SettingsItem`/`TopBarBackButton` |
+| 底栏与导航轨 | `ui/compose/component/bottombar/**` | `MainDestination`（四页）、`MainPagerState`（模板的"点击立即选中、滑动再校正"）、`BottomBar`/`SideRail` 分派、Material `FlexibleBottomAppBar`、miuix/ Material 两种 `NavigationRail`（宽屏） |
+| 新增路由 | `SettingsRoute.ColorPalette` | 设置 → 主题设置 |
+
+### 补齐的功能
+
+1. **主页「就绪」卡片**（`StatusCard`，两版）：输入法已启用且已设为默认时显示绿色「一切就绪」，否则红色「还有设置未完成」，
+   卡片上带版本号，整卡点击跳系统输入法设置。miuix 版沿用模板的固定绿/红配色，Material 版用 `secondaryContainer`/`errorContainer`。
+2. **主题设置（ColorPalette，两版）**：颜色模式（含 3 种 Monet 与 AMOLED）、miuix Monet 开关（会像模板那样联动颜色模式）、
+   主色（模板的 15 个预设）、调色板风格、颜色规格、模糊/浮动底栏/玻璃开关，以及实时预览。设置页原来的内联配色行移到这里（分组标题保留）。
+3. **对话框**：`PickerDialog`/`ConfirmDialog`/`EditFieldsDialog` 三种分派式对话框替换了 12 个页面里手写的 AlertDialog；
+   原先随模板一起拿进来的 `component/dialog/**`（无人调用）已删除，不留死代码。
+
+### 与模板的有意差异
+
+- **minSdk**：模板是 31，本工程是 24。因此液态玻璃底栏（需要 API 31 的 RenderEffect / 33 的 RuntimeShader）在本工程必须运行时判定并降级。
+- **液态玻璃底栏暂时回退**：把模板的 `FloatingBottomBar`（含 `liquid/**`、`miuix/animation/**`）接进外壳后，
+  模拟器上的 `MainShellNavigationTest` 在两种 API 上都会「Compose 一直不空闲」而超时（默认 miuix 模式就复现），
+  因此这一版先回到 stage-24 已验证过的底栏（圆角半透明 + 选中项文字），那套液态玻璃组件已从仓库移除，
+  待有设备可逐步调试时再重做。
+- **对话框 markdown**：模板的确认弹窗能渲染 markdown（更新日志用），本工程没有这个场景，未引入 commonmark，按纯文本显示。
+- **未搬的模板功能**：预测性返回/滑动关闭/分页手势拦截、页面缩放、发日志、更新检查、权限页——本工程没有对应偏好或行为，硬搬会是"发明"而不是移植。
+- **`ThemeScreen`/`IconThemeScreen`** 的自定义行（色板缩略图、图标主题网格）仍用 miuix 的颜色/排版；它们的 Material 外观是下一步。
+
+### 验证
+
+- `MaterialUiModeTest`（新增，已加入模拟器流水线的硬门槛）：在 Activity 启动前写入 `ui_mode=material`，走完四个页面并断言主页状态卡片存在，
+  这样 Material 侧的 `PageScaffold`/分组/行/底栏都会在 API 30 与 34 上真正跑一遍。
+- 三条流水线在 `stage-33` 的最新提交上全绿（Compile Check / Commit CI，模拟器 34 上 23 项测试通过；
+  API 30 曾因 GitHub Runner 下载 emulator 失败而红，已重跑）。
