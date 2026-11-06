@@ -4,7 +4,6 @@
  */
 package org.fcitx.fcitx5.android.ui.compose.pages
 
-import android.content.Context
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons

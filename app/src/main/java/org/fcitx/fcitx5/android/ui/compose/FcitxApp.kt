@@ -31,7 +31,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -54,6 +53,7 @@ import org.fcitx.fcitx5.android.ui.compose.screens.AddonScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.AdvancedScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.CandidatesScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.ClipboardScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.ColorPaletteScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.DeveloperScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.GlobalConfigScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.IconThemeScreen
@@ -80,7 +80,6 @@ import org.fcitx.fcitx5.android.ui.compose.util.rememberBlurBackdrop
 import org.fcitx.fcitx5.android.ui.main.MainViewModel
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
 import top.yukonga.miuix.kmp.blur.layerBackdrop
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** Test tag for a bottom-bar tab, used by the instrumented UI tests. */
 fun tabTag(index: Int): String = "bottom_tab_$index"
@@ -309,6 +308,11 @@ private fun ComposeDetailHost(
         )
 
         is SettingsRoute.License -> LicenseScreen(bottomInnerPadding = padding, onBack = onBack)
+
+        is SettingsRoute.ColorPalette -> ColorPaletteScreen(
+            bottomInnerPadding = padding,
+            onBack = onBack,
+        )
 
         is SettingsRoute.IconTheme -> IconThemeScreen(
             bottomInnerPadding = padding,
