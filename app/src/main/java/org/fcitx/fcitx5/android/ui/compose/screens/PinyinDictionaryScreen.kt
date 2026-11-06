@@ -34,6 +34,7 @@ import org.fcitx.fcitx5.android.data.pinyin.PinyinDictManager
 import org.fcitx.fcitx5.android.data.pinyin.dict.BuiltinDictionary
 import org.fcitx.fcitx5.android.data.pinyin.dict.LibIMEDictionary
 import org.fcitx.fcitx5.android.data.pinyin.dict.PinyinDictionary
+import org.fcitx.fcitx5.android.ui.compose.component.CheckboxRow
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
@@ -44,7 +45,6 @@ import org.fcitx.fcitx5.android.utils.toast
 import timber.log.Timber
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 
 /** Immutable row snapshot so enabling/disabling a dictionary redraws its checkbox. */
@@ -143,7 +143,7 @@ fun PinyinDictionaryScreen(
         item {
             SettingsGroup(modifier = Modifier.padding(top = 12.dp)) {
                 rows.forEachIndexed { index, row ->
-                    CheckboxPreference(
+                    CheckboxRow(
                         title = row.name,
                         checked = row.enabled,
                         enabled = !row.builtin,

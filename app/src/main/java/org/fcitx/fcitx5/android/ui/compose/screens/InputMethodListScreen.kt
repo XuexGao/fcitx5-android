@@ -37,7 +37,6 @@ import org.fcitx.fcitx5.android.ui.main.MainViewModel
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 
 /**
@@ -109,7 +108,7 @@ fun InputMethodListScreen(
                 modifier = Modifier.padding(top = 12.dp),
             ) {
                 enabled.forEachIndexed { index, entry ->
-                    ArrowPreference(
+                    NavRow(
                         title = entry.displayName,
                         summary = entry.uniqueName,
                         endActions = {

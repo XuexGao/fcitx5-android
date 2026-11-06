@@ -999,6 +999,10 @@
     <string name="ksu_app_reset">恢复默认设置</string>
     <string name="ksu_app_reset_done">已恢复默认设置</string>
     <string name="ksu_app_about">关于</string>
+    <string name="ksu_app_ui_mode">设置界面风格</string>
+    <string name="ksu_app_ui_mode_summary">Miuix 经典风格，或 Material 3 风格</string>
+    <string name="ksu_app_theme_settings">主题设置</string>
+    <string name="ksu_app_theme_settings_summary">颜色模式、主色、调色板风格与颜色规格</string>
     <string name="ksu_app_other">其他</string>
     <string name="ksu_app_clipboard_sync">剪贴板同步</string>
     <string name="ksu_app_notification">通知与权限</string>

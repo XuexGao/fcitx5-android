@@ -39,11 +39,10 @@ import org.fcitx.fcitx5.android.core.Key
 import org.fcitx.fcitx5.android.core.RawConfig
 import org.fcitx.fcitx5.android.utils.config.ConfigDescriptor
 import org.fcitx.fcitx5.android.utils.config.ConfigType
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 
@@ -137,7 +136,7 @@ fun ListConfigDialog(
                     LazyColumn(modifier = Modifier.heightIn(max = 420.dp)) {
                         if (values.isEmpty()) {
                             item {
-                                ArrowPreference(
+                                NavRow(
                                     title = stringResource(R.string.none),
                                     enabled = false,
                                     onClick = {},
@@ -145,7 +144,7 @@ fun ListConfigDialog(
                             }
                         }
                         itemsIndexed(values) { index, value ->
-                            ArrowPreference(
+                            NavRow(
                                 title = labelOf(value),
                                 endActions = {
                                     IconButton(
@@ -204,15 +203,9 @@ fun ListConfigDialog(
                             )
                         }
                         item {
-                            ArrowPreference(
+                            NavRow(
                                 title = stringResource(R.string.add),
-                                startAction = {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Add,
-                                        contentDescription = null,
-                                        tint = colorScheme.onSurfaceVariantSummary,
-                                    )
-                                },
+                                icon = Icons.Rounded.Add,
                                 onClick = {
                                     if (fixedChoices != null) chooserFor = values.size
                                     else dialogFor = values.size

@@ -24,13 +24,13 @@ import kotlinx.coroutines.launch
 import org.fcitx.fcitx5.android.FcitxApplication
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.core.RawConfig
+import org.fcitx.fcitx5.android.ui.compose.component.CheckboxRow
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
 import org.fcitx.fcitx5.android.ui.main.MainViewModel
 import org.fcitx.fcitx5.android.utils.toast
 import timber.log.Timber
-import top.yukonga.miuix.kmp.preference.CheckboxPreference
 
 /** One selectable entry of an add-on's multi-select option. */
 private data class MultiItem(val selected: Boolean, val id: String, val label: String)
@@ -119,7 +119,7 @@ fun MultiSelectScreen(
                 modifier = Modifier.padding(top = 12.dp),
             ) {
                 items.forEachIndexed { index, item ->
-                    CheckboxPreference(
+                    CheckboxRow(
                         title = item.label,
                         checked = item.selected,
                         onCheckedChange = { checked ->

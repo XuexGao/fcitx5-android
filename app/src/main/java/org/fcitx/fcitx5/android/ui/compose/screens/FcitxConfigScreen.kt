@@ -31,6 +31,9 @@ import org.fcitx.fcitx5.android.core.RawConfig
 import org.fcitx.fcitx5.android.daemon.FcitxConnection
 import org.fcitx.fcitx5.android.daemon.FcitxDaemon
 import org.fcitx.fcitx5.android.data.prefs.AppPrefs
+import org.fcitx.fcitx5.android.ui.compose.component.DropdownRow
+import org.fcitx.fcitx5.android.ui.compose.component.SwitchRowRaw
+import org.fcitx.fcitx5.android.ui.compose.component.SliderRowRaw
 import org.fcitx.fcitx5.android.ui.compose.component.ListConfigDialog
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
@@ -43,9 +46,6 @@ import org.fcitx.fcitx5.android.utils.config.ConfigType
 import org.fcitx.fcitx5.android.utils.toast
 import timber.log.Timber
 import top.yukonga.miuix.kmp.basic.SmallTitle
-import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
-import top.yukonga.miuix.kmp.preference.SliderPreference
-import top.yukonga.miuix.kmp.preference.SwitchPreference
 
 /**
  * Compose replacement for `PreferenceScreenFactory`.
@@ -209,7 +209,7 @@ private fun CfgRow(
             val entries = descriptor.entries
             val labels = descriptor.entriesI18n ?: entries
             val current = cfg.findByName(descriptor.name)?.value ?: descriptor.defaultValue ?: ""
-            OverlayDropdownPreference(
+            DropdownRow(
                 title = label,
                 summary = summary,
                 items = labels,
@@ -461,39 +461,6 @@ private fun openRimeDataDir(context: android.content.Context) {
 }
 
 // ---- small raw-config rows ---------------------------------------------------------------
-
-@Composable
-private fun SwitchRowRaw(
-    title: String,
-    summary: String?,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    SwitchPreference(
-        title = title,
-        summary = summary,
-        checked = checked,
-        onCheckedChange = onCheckedChange,
-    )
-}
-
-@Composable
-private fun SliderRowRaw(
-    title: String,
-    summary: String?,
-    value: Int,
-    range: ClosedFloatingPointRange<Float>,
-    onValueChange: (Int) -> Unit,
-) {
-    SliderPreference(
-        title = title,
-        summary = summary,
-        value = value.toFloat(),
-        valueRange = range,
-        valueText = value.toString(),
-        onValueChange = { onValueChange(it.toInt()) },
-    )
-}
 
 /** Text / number / key editor: a row that opens a dialog. */
 @Composable

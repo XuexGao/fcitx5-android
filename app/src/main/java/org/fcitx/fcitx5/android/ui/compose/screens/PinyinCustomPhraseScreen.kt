@@ -29,6 +29,7 @@ import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.core.reloadPinyinCustomPhrase
 import org.fcitx.fcitx5.android.data.pinyin.CustomPhraseManager
 import org.fcitx.fcitx5.android.data.pinyin.customphrase.PinyinCustomPhrase
+import org.fcitx.fcitx5.android.ui.compose.component.CheckboxRow
 import org.fcitx.fcitx5.android.ui.compose.component.DialogField
 import org.fcitx.fcitx5.android.ui.compose.component.EditFieldsDialog
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
@@ -38,7 +39,6 @@ import org.fcitx.fcitx5.android.ui.main.MainViewModel
 import timber.log.Timber
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 import kotlin.math.absoluteValue
 
@@ -124,7 +124,7 @@ fun PinyinCustomPhraseScreen(
         item {
             SettingsGroup(modifier = Modifier.padding(top = 12.dp)) {
                 entries.forEachIndexed { index, entry ->
-                    CheckboxPreference(
+                    CheckboxRow(
                         title = previewOf(entry),
                         checked = entry.enabled,
                         endActions = {

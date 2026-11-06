@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import org.fcitx.fcitx5.android.FcitxApplication
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.core.RawConfig
+import org.fcitx.fcitx5.android.ui.compose.component.CheckboxRow
 import org.fcitx.fcitx5.android.ui.compose.component.DialogField
 import org.fcitx.fcitx5.android.ui.compose.component.EditFieldsDialog
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
@@ -36,7 +37,6 @@ import org.fcitx.fcitx5.android.utils.toast
 import timber.log.Timber
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 
 private data class ProfileEntry(val name: String, val active: Boolean)
@@ -131,7 +131,7 @@ fun AddonDirProfileScreen(
         item {
             SettingsGroup(modifier = Modifier.padding(top = 12.dp)) {
                 profiles.forEach { entry ->
-                    CheckboxPreference(
+                    CheckboxRow(
                         title = if (entry.active) {
                             stringResource(R.string.addon_dir_profile_current_format, entry.name)
                         } else {

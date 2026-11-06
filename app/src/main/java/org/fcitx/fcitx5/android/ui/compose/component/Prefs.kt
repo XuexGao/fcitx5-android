@@ -4,30 +4,48 @@
  */
 package org.fcitx.fcitx5.android.ui.compose.component
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon as MaterialIcon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Text as MaterialText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import org.fcitx.fcitx5.android.data.prefs.ManagedPreferenceEnum
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.fcitx.fcitx5.android.data.prefs.ManagedPreference
+import org.fcitx.fcitx5.android.data.prefs.ManagedPreferenceEnum
+import org.fcitx.fcitx5.android.ui.compose.LocalUiMode
+import org.fcitx.fcitx5.android.ui.compose.UiMode
+import org.fcitx.fcitx5.android.ui.compose.component.material.SegmentedDropdownItem
+import org.fcitx.fcitx5.android.ui.compose.component.material.SegmentedListItem
+import org.fcitx.fcitx5.android.ui.compose.component.material.SegmentedSwitchItem
 import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 import top.yukonga.miuix.kmp.preference.SliderPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
-import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * Two-way binding between a [ManagedPreference] and Compose state.
@@ -59,16 +77,36 @@ fun <T : Any> rememberPref(pref: ManagedPreference<T>): PrefState<T> {
     return remember(pref) { PrefState(state, pref) }
 }
 
-/** A card holding a group of rows, optionally preceded by a small section title. */
+/**
+ * A card holding a group of rows, optionally preceded by a small section title.
+ *
+ * Both component styles live behind this one call: [LocalUiMode] decides whether the group is a
+ * miuix card or the template's Material segmented list (title in the primary colour, each row in
+ * its own rounded container).
+ */
 @Composable
 fun SettingsGroup(
     title: String? = null,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        if (title != null) SmallTitle(text = title)
-        Card(modifier = Modifier.fillMaxWidth()) { content() }
+    when (LocalUiMode.current) {
+        UiMode.Miuix -> Column(modifier = modifier.fillMaxWidth()) {
+            if (title != null) SmallTitle(text = title)
+            Card(modifier = Modifier.fillMaxWidth()) { content() }
+        }
+
+        UiMode.Material -> Column(modifier = modifier.fillMaxWidth()) {
+            if (title != null) {
+                MaterialText(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 8.dp),
+                )
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) { content() }
+        }
     }
 }
 
@@ -82,23 +120,48 @@ fun NavRow(
     endActions: (@Composable RowScope.() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
 ) {
-    ArrowPreference(
-        title = title,
-        summary = summary,
-        enabled = enabled,
-        startAction = icon?.let { vector -> { LeadingIcon(vector, title) } },
-        endActions = endActions ?: {},
-        onClick = onClick,
-    )
+    when (LocalUiMode.current) {
+        UiMode.Miuix -> ArrowPreference(
+            title = title,
+            summary = summary,
+            enabled = enabled,
+            startAction = icon?.let { vector -> { LeadingIcon(vector, title) } },
+            endActions = endActions ?: {},
+            onClick = onClick,
+        )
+
+        UiMode.Material -> SegmentedListItem(
+            onClick = onClick,
+            enabled = enabled,
+            headlineContent = { MaterialText(title) },
+            supportingContent = summary?.let { { MaterialText(it) } },
+            leadingContent = icon?.let { vector ->
+                { MaterialIcon(vector, contentDescription = title) }
+            },
+            trailingContent = when {
+                endActions != null -> endActions
+                onClick != null -> {
+                    {
+                        MaterialIcon(
+                            imageVector = Icons.Rounded.ChevronRight,
+                            contentDescription = null,
+                        )
+                    }
+                }
+
+                else -> null
+            },
+        )
+    }
 }
 
 @Composable
 fun LeadingIcon(icon: ImageVector, contentDescription: String? = null) {
-    Icon(
+    MiuixIcon(
         imageVector = icon,
         contentDescription = contentDescription,
         modifier = Modifier.padding(end = 6.dp),
-        tint = colorScheme.onBackground,
+        tint = MiuixTheme.colorScheme.onBackground,
     )
 }
 
@@ -113,17 +176,48 @@ fun SwitchRow(
     onChanged: (() -> Unit)? = null,
 ) {
     val state = rememberPref(pref)
-    SwitchPreference(
+    SwitchRowRaw(
         title = title,
         summary = summary,
+        icon = icon,
         checked = state.value,
         enabled = enabled,
-        startAction = icon?.let { vector -> { LeadingIcon(vector, title) } },
         onCheckedChange = {
             state.value = it
             onChanged?.invoke()
         },
     )
+}
+
+/** Switch row for a plain boolean that is not backed by a preference. */
+@Composable
+fun SwitchRowRaw(
+    title: String,
+    summary: String? = null,
+    icon: ImageVector? = null,
+    checked: Boolean,
+    enabled: Boolean = true,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    when (LocalUiMode.current) {
+        UiMode.Miuix -> SwitchPreference(
+            title = title,
+            summary = summary,
+            checked = checked,
+            enabled = enabled,
+            startAction = icon?.let { vector -> { LeadingIcon(vector, title) } },
+            onCheckedChange = onCheckedChange,
+        )
+
+        UiMode.Material -> SegmentedSwitchItem(
+            icon = icon,
+            title = title,
+            summary = summary,
+            checked = checked,
+            enabled = enabled,
+            onCheckedChange = onCheckedChange,
+        )
+    }
 }
 
 /** Slider row bound to an int preference. */
@@ -140,18 +234,165 @@ fun SliderRow(
     onValueSettled: (() -> Unit)? = null,
 ) {
     val state = rememberPref(pref)
-    SliderPreference(
+    SliderRowRaw(
         title = title,
         summary = summary,
-        value = state.value.toFloat(),
-        valueRange = range,
+        icon = icon,
+        value = state.value,
+        range = range,
         steps = steps,
+        valueText = valueText,
         enabled = enabled,
-        valueText = valueText(state.value),
-        startAction = icon?.let { vector -> { LeadingIcon(vector, title) } },
-        onValueChange = { state.value = it.toInt() },
+        onValueChange = { state.value = it },
         onValueChangeFinished = { onValueSettled?.invoke() },
     )
+}
+
+/** Slider row for a plain value that is not backed by a preference. */
+@Composable
+fun SliderRowRaw(
+    title: String,
+    value: Int,
+    range: ClosedFloatingPointRange<Float>,
+    summary: String? = null,
+    steps: Int = 0,
+    valueText: (Int) -> String = { it.toString() },
+    icon: ImageVector? = null,
+    enabled: Boolean = true,
+    onValueChange: (Int) -> Unit,
+    onValueChangeFinished: (() -> Unit)? = null,
+) {
+    when (LocalUiMode.current) {
+        UiMode.Miuix -> SliderPreference(
+            title = title,
+            summary = summary,
+            value = value.toFloat(),
+            valueRange = range,
+            steps = steps,
+            enabled = enabled,
+            valueText = valueText(value),
+            startAction = icon?.let { vector -> { LeadingIcon(vector, title) } },
+            onValueChange = { onValueChange(it.toInt()) },
+            onValueChangeFinished = { onValueChangeFinished?.invoke() },
+        )
+
+        UiMode.Material -> Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (icon != null) {
+                    MaterialIcon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier.padding(end = 6.dp),
+                    )
+                }
+                MaterialText(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f),
+                )
+                MaterialText(
+                    text = valueText(value),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.End,
+                )
+            }
+            Slider(
+                value = value.toFloat(),
+                onValueChange = { onValueChange(it.toInt()) },
+                valueRange = range,
+                steps = steps,
+                enabled = enabled,
+                onValueChangeFinished = onValueChangeFinished,
+            )
+            if (summary != null) {
+                MaterialText(
+                    text = summary,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline,
+                )
+            }
+        }
+    }
+}
+
+/** Checkbox row, optionally with trailing action buttons. */
+@Composable
+fun CheckboxRow(
+    title: String,
+    checked: Boolean,
+    summary: String? = null,
+    enabled: Boolean = true,
+    endActions: (@Composable RowScope.() -> Unit)? = null,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    when (LocalUiMode.current) {
+        UiMode.Miuix -> CheckboxPreference(
+            title = title,
+            summary = summary,
+            checked = checked,
+            enabled = enabled,
+            endActions = endActions ?: {},
+            onCheckedChange = onCheckedChange,
+        )
+
+        UiMode.Material -> SegmentedListItem(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            enabled = enabled,
+            headlineContent = { MaterialText(title) },
+            supportingContent = summary?.let { { MaterialText(it) } },
+            leadingContent = {
+                Checkbox(
+                    checked = checked,
+                    enabled = enabled,
+                    onCheckedChange = null,
+                    modifier = Modifier.size(24.dp),
+                )
+            },
+            trailingContent = endActions,
+        )
+    }
+}
+
+/** Dropdown row with an explicit list of labels. */
+@Composable
+fun DropdownRow(
+    title: String,
+    items: List<String>,
+    selectedIndex: Int,
+    summary: String? = null,
+    icon: ImageVector? = null,
+    enabled: Boolean = true,
+    onSelectedIndexChange: (Int) -> Unit,
+) {
+    if (items.isEmpty()) return
+    val safeIndex = selectedIndex.coerceIn(0, items.lastIndex)
+    when (LocalUiMode.current) {
+        UiMode.Miuix -> OverlayDropdownPreference(
+            title = title,
+            summary = summary,
+            items = items,
+            selectedIndex = safeIndex,
+            enabled = enabled,
+            startAction = icon?.let { vector -> { LeadingIcon(vector, title) } },
+            onSelectedIndexChange = onSelectedIndexChange,
+        )
+
+        UiMode.Material -> SegmentedDropdownItem(
+            icon = icon,
+            title = title,
+            summary = summary,
+            items = items,
+            enabled = enabled,
+            selectedIndex = safeIndex,
+            onItemSelected = onSelectedIndexChange,
+        )
+    }
 }
 
 /** Dropdown row bound to a string preference, with an explicit list of allowed values. */
@@ -166,13 +407,13 @@ fun ChoiceRow(
     enabled: Boolean = true,
 ) {
     val state = rememberPref(pref)
-    OverlayDropdownPreference(
+    DropdownRow(
         title = title,
         summary = summary,
+        icon = icon,
         items = labels,
         selectedIndex = values.indexOf(state.value).coerceAtLeast(0),
         enabled = enabled,
-        startAction = icon?.let { vector -> { LeadingIcon(vector, title) } },
         onSelectedIndexChange = { index -> state.value = values[index] },
     )
 }
@@ -188,13 +429,13 @@ fun IndexChoiceRow(
     enabled: Boolean = true,
 ) {
     val state = rememberPref(pref)
-    OverlayDropdownPreference(
+    DropdownRow(
         title = title,
         summary = summary,
+        icon = icon,
         items = values,
         selectedIndex = state.value.coerceIn(0, (values.size - 1).coerceAtLeast(0)),
         enabled = enabled,
-        startAction = icon?.let { vector -> { LeadingIcon(vector, title) } },
         onSelectedIndexChange = { index -> state.value = index },
     )
 }
@@ -214,13 +455,13 @@ fun <T> EnumChoiceRow(
 ) where T : Enum<T>, T : ManagedPreferenceEnum {
     val state = rememberPref(pref)
     val labels = entries.map { stringResource(it.stringRes) }
-    OverlayDropdownPreference(
+    DropdownRow(
         title = title,
         summary = summary,
+        icon = icon,
         items = labels,
         selectedIndex = entries.indexOf(state.value).coerceAtLeast(0),
         enabled = enabled,
-        startAction = icon?.let { vector -> { LeadingIcon(vector, title) } },
         onSelectedIndexChange = { index -> state.value = entries[index] },
     )
 }
@@ -240,13 +481,13 @@ fun StringLikeRow(
     enabled: Boolean = true,
 ) {
     val state = rememberPref(pref)
-    OverlayDropdownPreference(
+    DropdownRow(
         title = title,
         summary = summary,
+        icon = icon,
         items = labels,
         selectedIndex = values.indexOf(state.value).coerceAtLeast(0),
         enabled = enabled,
-        startAction = icon?.let { vector -> { LeadingIcon(vector, title) } },
         onSelectedIndexChange = { index -> state.value = values[index] },
     )
 }

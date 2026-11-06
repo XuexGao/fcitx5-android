@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.core.AddonInfo
 import org.fcitx.fcitx5.android.core.FcitxAPI
+import org.fcitx.fcitx5.android.ui.compose.component.CheckboxRow
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
@@ -32,7 +33,6 @@ import org.fcitx.fcitx5.android.ui.main.MainViewModel
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 
 /**
@@ -88,7 +88,7 @@ fun AddonScreen(
         item {
             SettingsGroup(modifier = Modifier.padding(top = 12.dp)) {
                 addons.forEachIndexed { index, addon ->
-                    CheckboxPreference(
+                    CheckboxRow(
                         title = addon.displayName,
                         summary = addon.comment.ifBlank { addon.uniqueName },
                         checked = addon.enabled,

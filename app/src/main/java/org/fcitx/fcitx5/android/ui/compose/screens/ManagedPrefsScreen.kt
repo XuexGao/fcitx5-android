@@ -21,13 +21,14 @@ import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.data.prefs.ManagedPreference
 import org.fcitx.fcitx5.android.data.prefs.ManagedPreferenceProvider
 import org.fcitx.fcitx5.android.data.prefs.ManagedPreferenceUi
+import org.fcitx.fcitx5.android.ui.compose.component.DropdownRow
+import org.fcitx.fcitx5.android.ui.compose.component.NavRow
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
 import org.fcitx.fcitx5.android.ui.compose.component.SliderRow
 import org.fcitx.fcitx5.android.ui.compose.component.SwitchRow
 import org.fcitx.fcitx5.android.ui.compose.component.rememberPref
 import org.fcitx.fcitx5.android.ui.compose.component.StringLikeRow
-import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 
 /**
  * Renders a [ManagedPreferenceProvider] as a miuix settings page.
@@ -207,12 +208,11 @@ private fun VoiceInputRow(
         }
         values to labels
     }
-    OverlayDropdownPreference(
+    DropdownRow(
         title = title,
         items = entries.second,
         selectedIndex = entries.first.indexOf(state.value).coerceAtLeast(0),
         enabled = enabled,
-        modifier = Modifier.fillMaxWidth(),
         onSelectedIndexChange = { index -> state.value = entries.first[index] },
     )
 }
@@ -229,7 +229,7 @@ private fun StringSetRow(
     val state = rememberPref(pref)
     var showDialog by remember { mutableStateOf(false) }
     val rendered = state.value.joinToString(", ").ifEmpty { "—" }
-    top.yukonga.miuix.kmp.preference.ArrowPreference(
+    NavRow(
         title = title,
         summary = summary ?: rendered,
         enabled = enabled,

@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.data.prefs.AppearancePrefs
 import org.fcitx.fcitx5.android.ui.compose.component.ChoiceRow
+import org.fcitx.fcitx5.android.ui.compose.component.DropdownRow
 import org.fcitx.fcitx5.android.ui.compose.component.IndexChoiceRow
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
@@ -161,6 +162,19 @@ private fun LazyListScope.shellSection() {
             title = stringResource(R.string.ksu_app_other),
             modifier = Modifier.padding(top = 12.dp),
         ) {
+            DropdownRow(
+                title = stringResource(R.string.ksu_app_ui_mode),
+                summary = stringResource(R.string.ksu_app_ui_mode_summary),
+                icon = Icons.Rounded.Dashboard,
+                items = listOf("Miuix", "Material"),
+                selectedIndex = if (prefs.uiMode.getValue() == AppearancePrefs.UI_MODE_MATERIAL) 1 else 0,
+                onSelectedIndexChange = { index ->
+                    prefs.uiMode.setValue(
+                        if (index == 1) AppearancePrefs.UI_MODE_MATERIAL
+                        else AppearancePrefs.UI_MODE_MIUIX
+                    )
+                },
+            )
             SwitchRow(
                 pref = prefs.enableBlur,
                 title = stringResource(R.string.ksu_app_enable_blur),

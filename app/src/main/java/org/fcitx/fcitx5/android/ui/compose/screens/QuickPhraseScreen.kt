@@ -37,6 +37,7 @@ import org.fcitx.fcitx5.android.data.quickphrase.QuickPhrase
 import org.fcitx.fcitx5.android.data.quickphrase.QuickPhraseData
 import org.fcitx.fcitx5.android.data.quickphrase.QuickPhraseEntry
 import org.fcitx.fcitx5.android.data.quickphrase.QuickPhraseManager
+import org.fcitx.fcitx5.android.ui.compose.component.CheckboxRow
 import org.fcitx.fcitx5.android.ui.compose.component.DialogField
 import org.fcitx.fcitx5.android.ui.compose.component.EditFieldsDialog
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
@@ -50,7 +51,6 @@ import org.fcitx.fcitx5.android.utils.toast
 import timber.log.Timber
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 
 /** Immutable view of a [QuickPhrase] row, so mutating the entry still triggers recomposition. */
@@ -161,7 +161,7 @@ fun QuickPhraseListScreen(
         item {
             SettingsGroup(modifier = Modifier.padding(top = 12.dp)) {
                 rows.forEachIndexed { index, row ->
-                    CheckboxPreference(
+                    CheckboxRow(
                         title = row.name,
                         checked = row.enabled,
                         endActions = {
