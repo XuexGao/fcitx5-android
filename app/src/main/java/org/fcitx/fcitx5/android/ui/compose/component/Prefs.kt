@@ -139,7 +139,8 @@ fun NavRow(
                 { MaterialIcon(vector, contentDescription = title) }
             },
             trailingContent = when {
-                endActions != null -> endActions
+                // SegmentedListItem wants a plain composable; the actions are RowScope receivers.
+                endActions != null -> endActions?.let { actions -> { Row { actions() } } }
                 onClick != null -> {
                     {
                         MaterialIcon(
@@ -354,7 +355,7 @@ fun CheckboxRow(
                     modifier = Modifier.size(24.dp),
                 )
             },
-            trailingContent = endActions,
+            trailingContent = endActions?.let { actions -> { Row { actions() } } },
         )
     }
 }
