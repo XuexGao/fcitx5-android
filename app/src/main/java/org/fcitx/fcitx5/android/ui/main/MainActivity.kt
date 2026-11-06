@@ -35,6 +35,7 @@ import org.fcitx.fcitx5.android.BuildConfig
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.data.prefs.AppPrefs
 import org.fcitx.fcitx5.android.data.prefs.AppearancePrefs
+import org.fcitx.fcitx5.android.ui.compose.ComposeRouteHost
 import org.fcitx.fcitx5.android.ui.compose.FcitxApp
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
 import org.fcitx.fcitx5.android.ui.setup.SetupActivity
@@ -59,6 +60,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
     private lateinit var shareReceiveManager: ShareReceiveManager
 
+    private val routeHost = ComposeRouteHost()
+
     private lateinit var composeView: ComposeView
     private lateinit var detailLayer: ViewGroup
     private lateinit var detailToolbar: Toolbar
@@ -78,8 +81,10 @@ class MainActivity : AppCompatActivity() {
             FcitxApp(
                 prefs = AppearancePrefs.getInstance(),
                 viewModel = viewModel,
-                onOpenLegacyRoute = { route -> openRoute(route) },
+                onOpenLegacyRoute = { route -> openLegacyRoute(route) },
                 onOpenActivity = { clazz -> startActivity(Intent(this, clazz)) },
+                onOpenIntent = { intent -> startActivity(intent) },
+                routeHost = routeHost,
             )
         }
 
@@ -185,8 +190,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /** Opens a settings route in the detail layer. */
+    /**
+     * Opens a settings route, wherever it comes from.
+     *
+     * Ported screens are pushed by the Compose host, which owns their back stack; only routes that
+     * still live in the legacy navigation graph end up in [openLegacyRoute].
+     */
     fun openRoute(route: SettingsRoute) {
+        routeHost.open(route)
+    }
+
+    /** Opens a route in the legacy navigation graph shown in the overlay. */
+    private fun openLegacyRoute(route: SettingsRoute) {
         showDetail()
         navController.popBackStack(SettingsRoute.Index, false)
         navController.navigateWithAnim(route)

@@ -38,6 +38,7 @@ fun isComposeRoute(route: SettingsRoute): Boolean = when (route) {
     is SettingsRoute.License,
     is SettingsRoute.VirtualKeyboard,
     is SettingsRoute.KeyboardGroup,
+    is SettingsRoute.IconTheme,
     -> true
 
     else -> false

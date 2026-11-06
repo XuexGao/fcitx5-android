@@ -46,7 +46,6 @@ import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
 import org.fcitx.fcitx5.android.ui.compose.component.SliderRow
 import org.fcitx.fcitx5.android.ui.compose.component.SwitchRow
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
-import org.fcitx.fcitx5.android.ui.main.settings.icon.IconThemeListActivity
 import org.fcitx.fcitx5.android.ui.main.settings.theme.KeyboardPreviewUi
 
 /**
@@ -172,7 +171,7 @@ private fun LazyListScope.themeSection(
             NavRow(
                 title = stringResource(R.string.ksu_ime_icon_theme),
                 icon = Icons.Rounded.Wallpaper,
-                onClick = { onOpenActivity(IconThemeListActivity::class.java) },
+                onClick = { onOpenRoute(SettingsRoute.IconTheme) },
             )
             SwitchRow(
                 pref = ThemeManager.prefs.followSystemDayNightTheme,

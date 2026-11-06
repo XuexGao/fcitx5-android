@@ -24,7 +24,9 @@ import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,6 +50,7 @@ import org.fcitx.fcitx5.android.ui.compose.screens.AddonScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.AddonConfigScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.GlobalConfigScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.InputMethodConfigScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.IconThemeScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.InputMethodListScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.KeyboardGroupScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.KeyboardSettingsScreen
@@ -107,6 +110,8 @@ fun FcitxApp(
     viewModel: MainViewModel,
     onOpenLegacyRoute: (SettingsRoute) -> Unit,
     onOpenActivity: (Class<*>) -> Unit,
+    onOpenIntent: (android.content.Intent) -> Unit,
+    routeHost: ComposeRouteHost,
 ) {
     FcitxTheme(prefs = prefs) {
         val pagerState = rememberPagerState(pageCount = { PAGE_COUNT })
@@ -121,6 +126,16 @@ fun FcitxApp(
         }
         val closeTop: () -> Unit = {
             if (composeStack.isNotEmpty()) composeStack.removeAt(composeStack.lastIndex)
+        }
+
+        // Routes requested from outside Compose (deep links, keyboard toolbar buttons, …).
+        LaunchedEffect(routeHost) {
+            snapshotFlow { routeHost.pending.value }.collect { route ->
+                if (route != null) {
+                    if (isComposeRoute(route)) composeStack.add(route) else onOpenLegacyRoute(route)
+                    routeHost.pending.value = null
+                }
+            }
         }
 
         BackHandler(enabled = composeStack.isNotEmpty()) { closeTop() }
@@ -179,6 +194,7 @@ fun FcitxApp(
                             onBack = closeTop,
                             onOpenRoute = openRoute,
                             onOpenActivity = onOpenActivity,
+                            onOpenIntent = onOpenIntent,
                         )
                     }
                 }
@@ -195,6 +211,7 @@ private fun ComposeDetailHost(
     onBack: () -> Unit,
     onOpenRoute: (SettingsRoute) -> Unit,
     onOpenActivity: (Class<*>) -> Unit,
+    onOpenIntent: (android.content.Intent) -> Unit,
 ) {
     val padding = 24.dp
     when (route) {
@@ -267,6 +284,12 @@ private fun ComposeDetailHost(
         )
 
         is SettingsRoute.License -> LicenseScreen(bottomInnerPadding = padding, onBack = onBack)
+
+        is SettingsRoute.IconTheme -> IconThemeScreen(
+            bottomInnerPadding = padding,
+            onBack = onBack,
+            onOpenIntent = onOpenIntent,
+        )
 
         is SettingsRoute.VirtualKeyboard -> KeyboardSettingsScreen(
             bottomInnerPadding = padding,
