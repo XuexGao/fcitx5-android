@@ -343,3 +343,13 @@ configurations {
         exclude(group = "com.louiscad.splitties", module = "splitties-systemservices")
     }
 }
+
+kotlin {
+    compilerOptions {
+        // The Material 3 components ported from KernelSU-Style-UI-Kit use APIs that are still
+        // experimental in the material3 build the template pins (LoadingIndicator,
+        // ExperimentalMaterial3ExpressiveApi surfaces); the template opts into them the same way.
+        optIn.add("androidx.compose.material3.ExperimentalMaterial3Api")
+        optIn.add("androidx.compose.material3.ExperimentalMaterial3ExpressiveApi")
+    }
+}
