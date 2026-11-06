@@ -14,7 +14,9 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.preference.PreferenceManager
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -77,15 +79,21 @@ class ScreenshotTest {
     }
 
     /**
-     * Clicks a row, scrolling the enclosing list to it first: rows can sit under the floating bottom
-     * bar or below the fold, where touch injection would fail.
+     * Clicks a row, scrolling the enclosing list to it first.
+     *
+     * Rows can end up under the floating bottom bar, where touch injection is rejected outright;
+     * in that case the row's own click action is invoked, which is what the user's tap would do.
      */
     private fun clickRow(text: String) {
         runCatching {
             composeRule.onNode(hasScrollAction()).performScrollToNode(hasText(text))
         }
         composeRule.waitForIdle()
-        composeRule.onNodeWithText(text).performClick()
+        val row = composeRule.onNodeWithText(text)
+        runCatching { row.performClick() }.onFailure {
+            row.performSemanticsAction(SemanticsActions.OnClick)
+            composeRule.waitForIdle()
+        }
     }
 
     /** Pops the current detail screen through the activity's back dispatcher. */
