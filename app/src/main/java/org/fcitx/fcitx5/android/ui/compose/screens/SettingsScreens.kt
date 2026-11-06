@@ -20,6 +20,7 @@ import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Upload
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -138,6 +139,7 @@ fun AdvancedScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var exportTimestamp = remember { System.currentTimeMillis() }
+    var showImportConfirm by remember { mutableStateOf(false) }
 
     val exportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/zip")
@@ -188,6 +190,18 @@ fun AdvancedScreen(
         }
     }
 
+    if (showImportConfirm) {
+        ConfirmDialog(
+            title = context.getString(R.string.import_user_data),
+            message = context.getString(R.string.confirm_import_user_data),
+            onDismiss = { showImportConfirm = false },
+            onConfirm = {
+                showImportConfirm = false
+                importLauncher.launch("application/zip")
+            },
+        )
+    }
+
     ProviderScreen(
         title = stringResource(R.string.advanced),
         provider = AppPrefs.getInstance().advanced,
@@ -224,12 +238,7 @@ fun AdvancedScreen(
                         title = stringResource(R.string.import_user_data),
                         icon = Icons.Rounded.Upload,
                         onClick = {
-                            ConfirmDialog(
-                                title = context.getString(R.string.import_user_data),
-                                message = context.getString(R.string.confirm_import_user_data),
-                                onDismiss = { },
-                                onConfirm = { importLauncher.launch("application/zip") },
-                            )
+                            showImportConfirm = true
                         },
                     )
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {

@@ -54,6 +54,9 @@ fun AddonScreen(
     val scope = rememberCoroutineScope()
     val addons = remember { mutableStateListOf<AddonInfo>() }
     var loaded by remember { mutableStateOf(false) }
+    // Pending "disable this add-on" confirmation: the dialog itself has to be emitted from the
+    // composable body, not from a click lambda.
+    var pendingDisable by remember { mutableStateOf<PendingDisable?>(null) }
 
     LaunchedEffect(Unit) {
         runCatching {
@@ -117,20 +120,13 @@ fun AddonScreen(
                                 addons[index] = addon.copy(enabled = true)
                                 persist()
                             } else {
-                                confirmDisable(
-                                    context = context,
-                                    addon = addon,
-                                    all = addons.toList(),
-                                    viewModel = viewModel,
-                                    onConfirm = { alsoDisable ->
-                                        alsoDisable.forEach { name ->
-                                            val i = addons.indexOfFirst { it.uniqueName == name }
-                                            if (i >= 0) addons[i] = addons[i].copy(enabled = false)
-                                        }
-                                        addons[index] = addon.copy(enabled = false)
-                                        persist()
-                                    },
-                                )
+                                val ask = disableWarning(context, addon, addons.toList(), viewModel)
+                                if (ask == null) {
+                                    addons[index] = addon.copy(enabled = false)
+                                    persist()
+                                } else {
+                                    pendingDisable = PendingDisable(index, addon, ask)
+                                }
                             }
                         },
                     )
@@ -138,19 +134,46 @@ fun AddonScreen(
             }
         }
     }
+
+    pendingDisable?.let { pending ->
+        ConfirmDialog(
+            title = context.getString(R.string.disable_addon_warn_title),
+            message = pending.warning.message,
+            onDismiss = { pendingDisable = null },
+            onConfirm = {
+                pending.warning.alsoDisable.forEach { name ->
+                    val i = addons.indexOfFirst { it.uniqueName == name }
+                    if (i >= 0) addons[i] = addons[i].copy(enabled = false)
+                }
+                if (pending.index in addons.indices) {
+                    addons[pending.index] = pending.addon.copy(enabled = false)
+                }
+                pendingDisable = null
+                persist()
+            },
+        )
+    }
 }
 
+/** A disable action that needs the user's confirmation first. */
+private data class DisableWarning(val message: String, val alsoDisable: Set<String>)
+
+private data class PendingDisable(
+    val index: Int,
+    val addon: AddonInfo,
+    val warning: DisableWarning,
+)
+
 /**
- * Asks before disabling an add-on that others depend on; the callback receives every add-on that
- * has to be disabled together with it.
+ * Works out what disabling [addon] would break. Returns null when nothing depends on it, in which
+ * case the caller can disable it straight away.
  */
-private fun confirmDisable(
+private fun disableWarning(
     context: android.content.Context,
     addon: AddonInfo,
     all: List<AddonInfo>,
     viewModel: MainViewModel,
-    onConfirm: (Set<String>) -> Unit,
-) {
+): DisableWarning? {
     val dependents = runCatching {
         viewModel.fcitx.runImmediately { getAddonReverseDependencies(addon.uniqueName) }
     }.getOrDefault(emptyList())
@@ -161,13 +184,9 @@ private fun confirmDisable(
 
     val required = collect(FcitxAPI.AddonDep.Required)
     val optional = collect(FcitxAPI.AddonDep.Optional)
+    if (required.isEmpty() && optional.isEmpty()) return null
     val nameOf = { uniqueName: String ->
         all.find { it.uniqueName == uniqueName }?.displayName ?: uniqueName
-    }
-
-    if (required.isEmpty() && optional.isEmpty()) {
-        onConfirm(emptySet())
-        return
     }
 
     val message = buildString {
@@ -193,10 +212,5 @@ private fun confirmDisable(
         appendLine(context.getString(R.string.disable_addon_warn_confirm))
     }
 
-    ConfirmDialog(
-        title = context.getString(R.string.disable_addon_warn_title),
-        message = message,
-        onDismiss = { },
-        onConfirm = { onConfirm((required + optional).toSet()) },
-    )
+    return DisableWarning(message, (required + optional).toSet())
 }

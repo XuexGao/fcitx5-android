@@ -69,6 +69,7 @@ fun AddonDirProfileScreen(
     var loaded by remember { mutableStateOf(false) }
     var createDialog by remember { mutableStateOf(false) }
     var renameTarget by remember { mutableStateOf<ProfileEntry?>(null) }
+    var deleteTarget by remember { mutableStateOf<ProfileEntry?>(null) }
 
     suspend fun loadState(): ManagerState {
         val raw = viewModel.fcitx.runOnReady { getAddonSubConfig(addon, path) }
@@ -161,15 +162,7 @@ fun AddonDirProfileScreen(
                                         context.toast(R.string.addon_dir_profile_delete_last_forbidden)
                                         return@IconButton
                                     }
-                                    ConfirmDialog(
-                                        title = context.getString(R.string.delete),
-                                        message = context.getString(
-                                            R.string.addon_dir_profile_delete_confirm,
-                                            entry.name,
-                                        ),
-                                        onDismiss = { },
-                                        onConfirm = { launchAction("delete", entry.name) },
-                                    )
+                                    deleteTarget = entry
                                 },
                             ) {
                                 Icon(
@@ -202,6 +195,22 @@ fun AddonDirProfileScreen(
             onConfirm = { values ->
                 createDialog = false
                 launchAction("create", values[0].trim())
+            },
+        )
+    }
+
+    val deleting = deleteTarget
+    if (deleting != null) {
+        ConfirmDialog(
+            title = context.getString(R.string.delete),
+            message = context.getString(
+                R.string.addon_dir_profile_delete_confirm,
+                deleting.name,
+            ),
+            onDismiss = { deleteTarget = null },
+            onConfirm = {
+                deleteTarget = null
+                launchAction("delete", deleting.name)
             },
         )
     }

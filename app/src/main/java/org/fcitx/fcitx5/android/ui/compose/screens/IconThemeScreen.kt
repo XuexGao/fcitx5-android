@@ -93,6 +93,8 @@ fun IconThemeScreen(
     var revision by remember { mutableIntStateOf(0) }
     var menu by remember { mutableStateOf(false) }
     var createMenu by remember { mutableStateOf(false) }
+    var sharePicker by remember { mutableStateOf(false) }
+    var duplicatePicker by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf<String?>(null) }
     val chunkCollector = remember { QrChunkCollector() }
 
@@ -361,15 +363,41 @@ fun IconThemeScreen(
                         if (customThemes.isEmpty()) {
                             context.toast(R.string.icon_theme_no_custom_theme)
                         } else {
-                            PickerDialog(
-                                title = context.getString(R.string.icon_theme_share_title),
-                                items = customThemes.map { it.name },
-                                onDismiss = { },
-                                onSelected = { index -> shareTheme(customThemes[index]) },
-                            )
+                            sharePicker = true
                         }
                     }
                 }
+            },
+        )
+    }
+
+    if (sharePicker) {
+        val customThemes = themes.drop(1)
+        PickerDialog(
+            title = context.getString(R.string.icon_theme_share_title),
+            items = customThemes.map { it.name },
+            onDismiss = { sharePicker = false },
+            onSelected = { index ->
+                sharePicker = false
+                shareTheme(customThemes[index])
+            },
+        )
+    }
+
+    if (duplicatePicker) {
+        val customThemes = themes.drop(1)
+        PickerDialog(
+            title = context.getString(R.string.icon_theme_duplicate),
+            items = customThemes.map { it.name },
+            onDismiss = { duplicatePicker = false },
+            onSelected = { index ->
+                duplicatePicker = false
+                val source = customThemes[index]
+                val duplicated = source.copy(name = copyName(source.name, themes))
+                IconThemeManager.saveTheme(duplicated)
+                revision++
+                context.toast(R.string.icon_theme_duplicated)
+                onOpenIntent(editorIntent(duplicated.name))
             },
         )
     }
@@ -391,19 +419,7 @@ fun IconThemeScreen(
                         if (customThemes.isEmpty()) {
                             context.toast(R.string.icon_theme_no_custom_theme)
                         } else {
-                            PickerDialog(
-                                title = context.getString(R.string.icon_theme_duplicate),
-                                items = customThemes.map { it.name },
-                                onDismiss = { },
-                                onSelected = { index ->
-                                    val source = customThemes[index]
-                                    val duplicated = source.copy(name = copyName(source.name, themes))
-                                    IconThemeManager.saveTheme(duplicated)
-                                    revision++
-                                    context.toast(R.string.icon_theme_duplicated)
-                                    onOpenIntent(editorIntent(duplicated.name))
-                                },
-                            )
+                            duplicatePicker = true
                         }
                     }
                 }

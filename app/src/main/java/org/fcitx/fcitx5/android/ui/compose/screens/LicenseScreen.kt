@@ -47,6 +47,7 @@ fun LicenseScreen(bottomInnerPadding: Dp, onBack: () -> Unit) {
     val context = LocalContext.current
     val libraries = remember { mutableStateListOf<Library>() }
     var loaded by remember { mutableStateOf(false) }
+    var licenseChoice by remember { mutableStateOf<Pair<String, List<License>>?>(null) }
 
     LaunchedEffect(Unit) {
         runCatching {
@@ -73,6 +74,20 @@ fun LicenseScreen(bottomInnerPadding: Dp, onBack: () -> Unit) {
         if (url.isNullOrBlank()) return
         runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
             .onFailure { context.toast(it) }
+    }
+
+    val choice = licenseChoice
+    if (choice != null) {
+        PickerDialog(
+            title = choice.first,
+            items = choice.second.map { it.spdxId ?: it.name },
+            onDismiss = { licenseChoice = null },
+            onSelected = { index ->
+                val licenses = choice.second
+                licenseChoice = null
+                open(licenses[index].url)
+            },
+        )
     }
 
     PageScaffold(
@@ -104,12 +119,7 @@ fun LicenseScreen(bottomInnerPadding: Dp, onBack: () -> Unit) {
                             when (licenses.size) {
                                 0 -> Unit
                                 1 -> open(licenses[0].url)
-                                else -> PickerDialog(
-                                    title = library.uniqueId,
-                                    items = licenses.map { it.spdxId ?: it.name },
-                                    onDismiss = { },
-                                    onSelected = { index -> open(licenses[index].url) },
-                                )
+                                else -> licenseChoice = library.uniqueId to licenses
                             }
                         },
                     )
