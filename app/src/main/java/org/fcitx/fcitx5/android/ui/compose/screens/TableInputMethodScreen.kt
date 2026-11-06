@@ -116,15 +116,20 @@ fun TableInputMethodScreen(
         }
     }
 
-    fun prepareConf(uri: Uri) {
-        FcitxApplication.getInstance().coroutineScope.launch {
-            val fileName = context.contentResolver.queryFileName(uri) ?: return@launch
-            if (!fileName.removeSuffix(".in").endsWith(".conf")) {
+    /**
+     * Checks the picked `.conf` synchronously (only the import itself needs a background thread), so
+     * the dictionary picker is not opened for a file that would be rejected anyway.
+     */
+    fun acceptConf(uri: Uri): Boolean {
+        val fileName = context.contentResolver.queryFileName(uri) ?: return false
+        if (!fileName.removeSuffix(".in").endsWith(".conf")) {
+            FcitxApplication.getInstance().coroutineScope.launch {
                 context.importErrorDialog(R.string.exception_table_conf_filename, fileName)
-                return@launch
             }
-            pendingConf.value = uri
+            return false
         }
+        pendingConf.value = uri
+        return true
     }
 
     fun importConfAndDict(dictUri: Uri) {
@@ -191,10 +196,7 @@ fun TableInputMethodScreen(
         if (uri != null) importConfAndDict(uri)
     }
     val confLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) {
-            prepareConf(uri)
-            dictLauncher.launch("*/*")
-        }
+        if (uri != null && acceptConf(uri)) dictLauncher.launch("*/*")
     }
 
     PageScaffold(
