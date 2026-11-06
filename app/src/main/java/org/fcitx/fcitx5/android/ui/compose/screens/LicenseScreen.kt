@@ -10,12 +10,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Article
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -27,6 +27,7 @@ import com.mikepenz.aboutlibraries.entity.License
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.fcitx.fcitx5.android.R
+import org.fcitx.fcitx5.android.ui.compose.component.PickerDialog
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
@@ -103,13 +104,12 @@ fun LicenseScreen(bottomInnerPadding: Dp, onBack: () -> Unit) {
                             when (licenses.size) {
                                 0 -> Unit
                                 1 -> open(licenses[0].url)
-                                else -> androidx.appcompat.app.AlertDialog.Builder(context)
-                                    .setTitle(library.uniqueId)
-                                    .setItems(
-                                        licenses.map { it.spdxId ?: it.name }.toTypedArray()
-                                    ) { _, index -> open(licenses[index].url) }
-                                    .setPositiveButton(android.R.string.cancel, null)
-                                    .show()
+                                else -> PickerDialog(
+                                    title = library.uniqueId,
+                                    items = licenses.map { it.spdxId ?: it.name },
+                                    onDismiss = { },
+                                    onSelected = { index -> open(licenses[index].url) },
+                                )
                             }
                         },
                     )

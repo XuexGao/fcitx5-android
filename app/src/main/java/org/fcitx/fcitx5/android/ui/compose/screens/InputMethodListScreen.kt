@@ -14,13 +14,13 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -30,6 +30,7 @@ import kotlinx.coroutines.launch
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.core.InputMethodEntry
 import org.fcitx.fcitx5.android.core.SubtypeManager
+import org.fcitx.fcitx5.android.ui.compose.component.PickerDialog
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
@@ -194,14 +195,15 @@ fun InputMethodListScreen(
         val addable = available.filterNot { candidate ->
             enabled.any { it.uniqueName == candidate.uniqueName }
         }
-        androidx.appcompat.app.AlertDialog.Builder(context)
-            .setTitle(R.string.input_methods)
-            .setItems(addable.map { it.displayName }.toTypedArray()) { _, which ->
+        PickerDialog(
+            title = context.getString(R.string.input_methods),
+            items = addable.map { it.displayName },
+            onDismiss = { showAddDialog = false },
+            onSelected = { which ->
                 enabled.add(addable[which])
                 persist()
                 showAddDialog = false
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> showAddDialog = false }
-            .show()
+            },
+        )
     }
 }

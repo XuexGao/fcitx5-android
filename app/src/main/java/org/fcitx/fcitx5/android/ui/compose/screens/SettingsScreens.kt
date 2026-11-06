@@ -11,18 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BugReport
-import androidx.compose.material.icons.rounded.ContentPaste
-import androidx.compose.material.icons.rounded.EmojiEmotions
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.LibraryBooks
-import androidx.compose.material.icons.rounded.ListAlt
 import androidx.compose.material.icons.rounded.Memory
-import androidx.compose.material.icons.rounded.PrivacyTip
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.Save
-import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Upload
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -43,7 +38,7 @@ import org.fcitx.fcitx5.android.data.UserDataManager
 import org.fcitx.fcitx5.android.data.prefs.AppPrefs
 import org.fcitx.fcitx5.android.data.prefs.AppearancePrefs
 import org.fcitx.fcitx5.android.data.prefs.ManagedPreferenceProvider
-import org.fcitx.fcitx5.android.data.theme.ThemeManager
+import org.fcitx.fcitx5.android.ui.compose.component.ConfirmDialog
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
@@ -229,15 +224,12 @@ fun AdvancedScreen(
                         title = stringResource(R.string.import_user_data),
                         icon = Icons.Rounded.Upload,
                         onClick = {
-                            androidx.appcompat.app.AlertDialog.Builder(context)
-                                .setIconAttribute(android.R.attr.alertDialogIcon)
-                                .setTitle(R.string.import_user_data)
-                                .setMessage(R.string.confirm_import_user_data)
-                                .setPositiveButton(android.R.string.ok) { _, _ ->
-                                    importLauncher.launch("application/zip")
-                                }
-                                .setNegativeButton(android.R.string.cancel, null)
-                                .show()
+                            ConfirmDialog(
+                                title = context.getString(R.string.import_user_data),
+                                message = context.getString(R.string.confirm_import_user_data),
+                                onDismiss = { },
+                                onConfirm = { importLauncher.launch("application/zip") },
+                            )
                         },
                     )
                     if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {

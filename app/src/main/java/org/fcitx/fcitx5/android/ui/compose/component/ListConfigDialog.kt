@@ -22,11 +22,11 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -223,15 +223,16 @@ fun ListConfigDialog(
         // Everything except the slot being edited is already taken.
         val taken = values.filterIndexed { index, _ -> index != chooserIndex }.toSet()
         val choices = fixedChoices.filterNot { it in taken }
-        androidx.appcompat.app.AlertDialog.Builder(context)
-            .setTitle(title)
-            .setItems(choices.map(::labelOf).toTypedArray()) { _, which ->
+        PickerDialog(
+            title = title,
+            items = choices.map(::labelOf),
+            onDismiss = { chooserFor = null },
+            onSelected = { which ->
                 val value = choices[which]
                 chooserFor = null
                 put(chooserIndex, value)
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> chooserFor = null }
-            .show()
+            },
+        )
     }
 
     val index = dialogFor

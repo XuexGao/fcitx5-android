@@ -9,13 +9,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.core.AddonInfo
 import org.fcitx.fcitx5.android.core.FcitxAPI
+import org.fcitx.fcitx5.android.ui.compose.component.ConfirmDialog
 import org.fcitx.fcitx5.android.ui.compose.component.CheckboxRow
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
@@ -192,14 +193,10 @@ private fun confirmDisable(
         appendLine(context.getString(R.string.disable_addon_warn_confirm))
     }
 
-    androidx.appcompat.app.AlertDialog.Builder(context)
-        .setTitle(context.getString(R.string.disable_addon_warn_title))
-        .setIconAttribute(android.R.attr.alertDialogIcon)
-        .setMessage(message)
-        .setCancelable(false)
-        .setNegativeButton(android.R.string.cancel, null)
-        .setPositiveButton(android.R.string.ok) { _, _ ->
-            onConfirm((required + optional).toSet())
-        }
-        .show()
+    ConfirmDialog(
+        title = context.getString(R.string.disable_addon_warn_title),
+        message = message,
+        onDismiss = { },
+        onConfirm = { onConfirm((required + optional).toSet()) },
+    )
 }

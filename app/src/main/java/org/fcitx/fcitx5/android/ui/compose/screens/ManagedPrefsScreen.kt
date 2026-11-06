@@ -4,14 +4,13 @@
  */
 package org.fcitx.fcitx5.android.ui.compose.screens
 
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -21,6 +20,8 @@ import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.data.prefs.ManagedPreference
 import org.fcitx.fcitx5.android.data.prefs.ManagedPreferenceProvider
 import org.fcitx.fcitx5.android.data.prefs.ManagedPreferenceUi
+import org.fcitx.fcitx5.android.ui.compose.component.EditFieldsDialog
+import org.fcitx.fcitx5.android.ui.compose.component.DialogField
 import org.fcitx.fcitx5.android.ui.compose.component.DropdownRow
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
@@ -236,36 +237,25 @@ private fun StringSetRow(
         onClick = { showDialog = true },
     )
     if (showDialog) {
-        val input = remember { mutableStateOf(state.value.joinToString("\n")) }
-        androidx.appcompat.app.AlertDialog.Builder(context)
-            .setTitle(title)
-            .setView(
-                android.widget.EditText(context).apply {
-                    setText(input.value)
-                    isSingleLine = false
-                    minLines = 3
-                    setPadding(48, 24, 48, 24)
-                }.also { field ->
-                    field.addTextChangedListener(
-                        object : android.text.TextWatcher {
-                            override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
-                            override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
-                            override fun afterTextChanged(s: android.text.Editable?) {
-                                input.value = s?.toString().orEmpty()
-                            }
-                        }
-                    )
-                }
-            )
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                state.value = input.value
+        EditFieldsDialog(
+            title = title,
+            fields = listOf(
+                DialogField(
+                    label = title,
+                    initial = state.value.joinToString("\n"),
+                    allowEmpty = true,
+                    singleLine = false,
+                )
+            ),
+            onDismiss = { showDialog = false },
+            onConfirm = { values ->
+                state.value = values[0]
                     .split(',', '\n')
                     .map { it.trim() }
                     .filter { it.isNotEmpty() }
                     .toSet()
                 showDialog = false
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> showDialog = false }
-            .show()
+            },
+        )
     }
 }

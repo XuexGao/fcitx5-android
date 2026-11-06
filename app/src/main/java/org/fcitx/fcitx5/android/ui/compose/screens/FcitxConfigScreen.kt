@@ -11,12 +11,12 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -31,6 +31,8 @@ import org.fcitx.fcitx5.android.core.RawConfig
 import org.fcitx.fcitx5.android.daemon.FcitxConnection
 import org.fcitx.fcitx5.android.daemon.FcitxDaemon
 import org.fcitx.fcitx5.android.data.prefs.AppPrefs
+import org.fcitx.fcitx5.android.ui.compose.component.EditFieldsDialog
+import org.fcitx.fcitx5.android.ui.compose.component.DialogField
 import org.fcitx.fcitx5.android.ui.compose.component.DropdownRow
 import org.fcitx.fcitx5.android.ui.compose.component.SwitchRowRaw
 import org.fcitx.fcitx5.android.ui.compose.component.SliderRowRaw
@@ -472,7 +474,6 @@ private fun TextRowRaw(
     displayValue: String? = null,
     onValueChange: (String) -> Unit,
 ) {
-    val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
     NavRow(
         title = title,
@@ -481,30 +482,21 @@ private fun TextRowRaw(
         onClick = { showDialog = true },
     )
     if (showDialog) {
-        val input = remember { mutableStateOf(value) }
-        androidx.appcompat.app.AlertDialog.Builder(context)
-            .setTitle(title)
-            .setView(
-                android.widget.EditText(context).apply {
-                    setText(input.value)
-                    if (numeric) inputType = android.text.InputType.TYPE_CLASS_NUMBER or
-                        android.text.InputType.TYPE_NUMBER_FLAG_SIGNED
-                    setPadding(48, 24, 48, 24)
-                }.also { field ->
-                    field.addTextChangedListener(object : android.text.TextWatcher {
-                        override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
-                        override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) = Unit
-                        override fun afterTextChanged(s: android.text.Editable?) {
-                            input.value = s?.toString().orEmpty()
-                        }
-                    })
-                }
-            )
-            .setPositiveButton(android.R.string.ok) { _, _ ->
-                onValueChange(input.value)
+        EditFieldsDialog(
+            title = title,
+            fields = listOf(
+                DialogField(
+                    label = title,
+                    initial = value,
+                    allowEmpty = true,
+                    numeric = numeric,
+                )
+            ),
+            onDismiss = { showDialog = false },
+            onConfirm = { values ->
+                onValueChange(values[0])
                 showDialog = false
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> showDialog = false }
-            .show()
+            },
+        )
     }
 }

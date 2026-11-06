@@ -30,12 +30,12 @@ import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
@@ -57,6 +57,7 @@ import org.fcitx.fcitx5.android.data.theme.IconTheme
 import org.fcitx.fcitx5.android.data.theme.IconThemeManager
 import org.fcitx.fcitx5.android.data.theme.ThemeManager
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
+import org.fcitx.fcitx5.android.ui.compose.component.PickerDialog
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
 import org.fcitx.fcitx5.android.ui.main.settings.behavior.share.JsonFileQrShareManager
 import org.fcitx.fcitx5.android.ui.main.settings.behavior.share.LayoutQrBitmapUtil
@@ -66,7 +67,6 @@ import org.fcitx.fcitx5.android.ui.main.settings.behavior.share.QrScanOptions
 import org.fcitx.fcitx5.android.ui.main.settings.icon.IconThemeEditorActivity
 import org.fcitx.fcitx5.android.ui.main.settings.icon.IconThemeQrTransferCodec
 import org.fcitx.fcitx5.android.utils.toast
-import timber.log.Timber
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Text
@@ -333,9 +333,11 @@ fun IconThemeScreen(
             add(context.getString(R.string.icon_theme_import_zip))
             add(context.getString(R.string.icon_theme_share_title))
         }
-        androidx.appcompat.app.AlertDialog.Builder(context)
-            .setTitle(R.string.icon_theme)
-            .setItems(entries.toTypedArray()) { _, which ->
+        PickerDialog(
+            title = context.getString(R.string.icon_theme),
+            items = entries,
+            onDismiss = { menu = false },
+            onSelected = { which ->
                 menu = false
                 when (which) {
                     0 -> jsonImporter.launch("application/json")
@@ -359,30 +361,28 @@ fun IconThemeScreen(
                         if (customThemes.isEmpty()) {
                             context.toast(R.string.icon_theme_no_custom_theme)
                         } else {
-                            androidx.appcompat.app.AlertDialog.Builder(context)
-                                .setTitle(R.string.icon_theme_share_title)
-                                .setItems(customThemes.map { it.name }.toTypedArray()) { _, index ->
-                                    shareTheme(customThemes[index])
-                                }
-                                .setNegativeButton(android.R.string.cancel, null)
-                                .show()
+                            PickerDialog(
+                                title = context.getString(R.string.icon_theme_share_title),
+                                items = customThemes.map { it.name },
+                                onDismiss = { },
+                                onSelected = { index -> shareTheme(customThemes[index]) },
+                            )
                         }
                     }
                 }
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> menu = false }
-            .show()
+            },
+        )
     }
 
     if (createMenu) {
-        androidx.appcompat.app.AlertDialog.Builder(context)
-            .setTitle(R.string.icon_theme_new)
-            .setItems(
-                arrayOf(
-                    context.getString(R.string.new_icon_theme),
-                    context.getString(R.string.icon_theme_duplicate),
-                )
-            ) { _, which ->
+        PickerDialog(
+            title = context.getString(R.string.icon_theme_new),
+            items = listOf(
+                context.getString(R.string.new_icon_theme),
+                context.getString(R.string.icon_theme_duplicate),
+            ),
+            onDismiss = { createMenu = false },
+            onSelected = { which ->
                 createMenu = false
                 when (which) {
                     0 -> onOpenIntent(editorIntent(null))
@@ -391,24 +391,24 @@ fun IconThemeScreen(
                         if (customThemes.isEmpty()) {
                             context.toast(R.string.icon_theme_no_custom_theme)
                         } else {
-                            androidx.appcompat.app.AlertDialog.Builder(context)
-                                .setTitle(R.string.icon_theme_duplicate)
-                                .setItems(customThemes.map { it.name }.toTypedArray()) { _, index ->
+                            PickerDialog(
+                                title = context.getString(R.string.icon_theme_duplicate),
+                                items = customThemes.map { it.name },
+                                onDismiss = { },
+                                onSelected = { index ->
                                     val source = customThemes[index]
                                     val duplicated = source.copy(name = copyName(source.name, themes))
                                     IconThemeManager.saveTheme(duplicated)
                                     revision++
                                     context.toast(R.string.icon_theme_duplicated)
                                     onOpenIntent(editorIntent(duplicated.name))
-                                }
-                                .setNegativeButton(android.R.string.cancel, null)
-                                .show()
+                                },
+                            )
                         }
                     }
                 }
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> createMenu = false }
-            .show()
+            },
+        )
     }
 }
 

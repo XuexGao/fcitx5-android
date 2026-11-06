@@ -11,12 +11,12 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 import org.fcitx.fcitx5.android.FcitxApplication
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.core.RawConfig
+import org.fcitx.fcitx5.android.ui.compose.component.ConfirmDialog
 import org.fcitx.fcitx5.android.ui.compose.component.CheckboxRow
 import org.fcitx.fcitx5.android.ui.compose.component.DialogField
 import org.fcitx.fcitx5.android.ui.compose.component.EditFieldsDialog
@@ -160,19 +161,15 @@ fun AddonDirProfileScreen(
                                         context.toast(R.string.addon_dir_profile_delete_last_forbidden)
                                         return@IconButton
                                     }
-                                    androidx.appcompat.app.AlertDialog.Builder(context)
-                                        .setTitle(R.string.delete)
-                                        .setMessage(
-                                            context.getString(
-                                                R.string.addon_dir_profile_delete_confirm,
-                                                entry.name,
-                                            )
-                                        )
-                                        .setNegativeButton(android.R.string.cancel, null)
-                                        .setPositiveButton(android.R.string.ok) { _, _ ->
-                                            launchAction("delete", entry.name)
-                                        }
-                                        .show()
+                                    ConfirmDialog(
+                                        title = context.getString(R.string.delete),
+                                        message = context.getString(
+                                            R.string.addon_dir_profile_delete_confirm,
+                                            entry.name,
+                                        ),
+                                        onDismiss = { },
+                                        onConfirm = { launchAction("delete", entry.name) },
+                                    )
                                 },
                             ) {
                                 Icon(

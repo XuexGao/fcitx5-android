@@ -13,11 +13,11 @@ import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material.icons.rounded.Straighten
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -27,6 +27,7 @@ import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.data.prefs.AppPrefs
 import org.fcitx.fcitx5.android.input.config.ConfigProviders
 import org.fcitx.fcitx5.android.input.config.UserConfigFiles
+import org.fcitx.fcitx5.android.ui.compose.component.PickerDialog
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
@@ -270,20 +271,18 @@ private fun EditorsTools(onOpenActivity: (Class<*>) -> Unit) {
         val sorted = profiles.distinct().sortedWith(
             compareBy({ it != UserConfigFiles.DEFAULT_TEXT_KEYBOARD_LAYOUT_PROFILE }, { it })
         )
-        androidx.appcompat.app.AlertDialog.Builder(context)
-            .setTitle(R.string.text_keyboard_layout_file_select_title)
-            .setSingleChoiceItems(
-                sorted.map { displayProfile(it) }.toTypedArray(),
-                sorted.indexOf(current).coerceAtLeast(0),
-            ) { dialog, which ->
-                val selected = sorted.getOrNull(which) ?: return@setSingleChoiceItems
+        PickerDialog(
+            title = context.getString(R.string.text_keyboard_layout_file_select_title),
+            items = sorted.map { displayProfile(it) },
+            selectedIndex = sorted.indexOf(current).coerceAtLeast(0),
+            onDismiss = { layoutPicker = false },
+            onSelected = { which ->
+                val selected = sorted.getOrNull(which) ?: return@PickerDialog
                 layoutProfile.value = selected
                 ConfigProviders.provider = ConfigProviders.provider
-                dialog.dismiss()
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> layoutPicker = false }
-            .setOnDismissListener { layoutPicker = false }
-            .show()
+                layoutPicker = false
+            },
+        )
     }
 
     if (numericPicker) {
@@ -291,44 +290,44 @@ private fun EditorsTools(onOpenActivity: (Class<*>) -> Unit) {
         val layers = collectLayoutLayers(context)
         val items = listOf(builtin) + layers
         val current = numericOverride.value.trim()
-        androidx.appcompat.app.AlertDialog.Builder(context)
-            .setTitle(R.string.numeric_layout_override_title)
-            .setSingleChoiceItems(
-                items.toTypedArray(),
-                if (current.isEmpty()) 0 else max(0, items.indexOf(current)),
-            ) { dialog, which ->
+        PickerDialog(
+            title = context.getString(R.string.numeric_layout_override_title),
+            items = items,
+            selectedIndex = if (current.isEmpty()) 0 else max(0, items.indexOf(current)),
+            onDismiss = { numericPicker = false },
+            onSelected = { which ->
                 numericOverride.value = if (which == 0) "" else items[which]
-                dialog.dismiss()
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> numericPicker = false }
-            .setOnDismissListener { numericPicker = false }
-            .show()
+                numericPicker = false
+            },
+        )
     }
 
     if (bridgeDialog && bridgeSession != null) {
-        androidx.appcompat.app.AlertDialog.Builder(context)
-            .setTitle(R.string.web_editor_bridge_title)
-            .setMessage(
-                context.getString(
-                    R.string.web_editor_bridge_running_message,
-                    bridgeSession.editorUrl,
-                    bridgeSession.apiBaseUrl,
-                )
-            )
-            .setPositiveButton(R.string.web_editor_bridge_open) { _, _ ->
-                runCatching {
-                    context.startActivity(
-                        Intent(Intent.ACTION_VIEW, Uri.parse(bridgeSession.editorUrl))
-                    )
+        // Three actions (open / stop / cancel) do not fit the two-button confirm dialog, so the two
+        // real actions are offered as a picker.
+        PickerDialog(
+            title = context.getString(R.string.web_editor_bridge_title),
+            items = listOf(
+                context.getString(R.string.web_editor_bridge_open),
+                context.getString(R.string.web_editor_bridge_stop),
+            ),
+            onDismiss = { bridgeDialog = false },
+            onSelected = { which ->
+                bridgeDialog = false
+                when (which) {
+                    0 -> runCatching {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, Uri.parse(bridgeSession.editorUrl))
+                        )
+                    }
+
+                    else -> {
+                        ImeWebEditorBridgeServer.stop()
+                        bridgeRevision++
+                    }
                 }
-            }
-            .setNeutralButton(R.string.web_editor_bridge_stop) { _, _ ->
-                ImeWebEditorBridgeServer.stop()
-                bridgeRevision++
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .setOnDismissListener { bridgeDialog = false }
-            .show()
+            },
+        )
     }
 }
 

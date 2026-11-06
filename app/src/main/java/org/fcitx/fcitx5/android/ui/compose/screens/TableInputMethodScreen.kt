@@ -15,13 +15,13 @@ import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -36,6 +36,8 @@ import org.fcitx.fcitx5.android.daemon.FcitxDaemon
 import org.fcitx.fcitx5.android.data.table.TableBasedInputMethod
 import org.fcitx.fcitx5.android.data.table.TableManager
 import org.fcitx.fcitx5.android.data.table.dict.Dictionary
+import org.fcitx.fcitx5.android.ui.compose.component.ConfirmDialog
+import org.fcitx.fcitx5.android.ui.compose.component.PickerDialog
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
@@ -264,14 +266,14 @@ fun TableInputMethodScreen(
     }
 
     if (importMenu) {
-        androidx.appcompat.app.AlertDialog.Builder(context)
-            .setTitle(R.string.import_table)
-            .setItems(
-                arrayOf(
-                    context.getString(R.string.table_from_zip),
-                    context.getString(R.string.table_select_files),
-                )
-            ) { _, which ->
+        PickerDialog(
+            title = context.getString(R.string.import_table),
+            items = listOf(
+                context.getString(R.string.table_from_zip),
+                context.getString(R.string.table_select_files),
+            ),
+            onDismiss = { importMenu = false },
+            onSelected = { which ->
                 importMenu = false
                 when (which) {
                     0 -> zipLauncher.launch("application/zip")
@@ -280,45 +282,39 @@ fun TableInputMethodScreen(
                         confLauncher.launch("*/*")
                     }
                 }
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> importMenu = false }
-            .show()
+            },
+        )
     }
 
     val missing = missingFor.value
     if (missing != null) {
-        androidx.appcompat.app.AlertDialog.Builder(context)
-            .setIconAttribute(android.R.attr.alertDialogIcon)
-            .setTitle(R.string.table_file_does_not_exist_title)
-            .setMessage(
-                context.getString(
-                    R.string.table_file_does_not_exist_message,
-                    missing.item.tableFileName,
-                )
-            )
-            .setPositiveButton(android.R.string.ok) { _, _ -> missingFor.value = null }
-            .setNeutralButton(R.string.table_file_placeholder) { _, _ ->
+        ConfirmDialog(
+            title = context.getString(R.string.table_file_does_not_exist_title),
+            message = context.getString(
+                R.string.table_file_does_not_exist_message,
+                missing.item.tableFileName,
+            ),
+            confirmLabel = context.getString(R.string.table_file_placeholder),
+            onDismiss = { missingFor.value = null },
+            onConfirm = {
                 missingFor.value = null
                 replaceFor.value = missing
                 replaceLauncher.launch("*/*")
-            }
-            .show()
+            },
+        )
     }
 
     val replacing = replaceFor.value
     if (replacing != null && replacing.hasTable) {
-        androidx.appcompat.app.AlertDialog.Builder(context)
-            .setTitle(R.string.update_table)
-            .setMessage(
-                context.getString(
-                    R.string.table_dict_replace_message,
-                    replacing.item.tableFileName,
-                )
-            )
-            .setNeutralButton(R.string.table_file_placeholder) { _, _ ->
-                replaceLauncher.launch("*/*")
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> replaceFor.value = null }
-            .show()
+        ConfirmDialog(
+            title = context.getString(R.string.update_table),
+            message = context.getString(
+                R.string.table_dict_replace_message,
+                replacing.item.tableFileName,
+            ),
+            confirmLabel = context.getString(R.string.table_file_placeholder),
+            onDismiss = { replaceFor.value = null },
+            onConfirm = { replaceLauncher.launch("*/*") },
+        )
     }
 }

@@ -15,12 +15,12 @@ import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.FormatQuote
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -37,6 +37,7 @@ import org.fcitx.fcitx5.android.data.quickphrase.QuickPhrase
 import org.fcitx.fcitx5.android.data.quickphrase.QuickPhraseData
 import org.fcitx.fcitx5.android.data.quickphrase.QuickPhraseEntry
 import org.fcitx.fcitx5.android.data.quickphrase.QuickPhraseManager
+import org.fcitx.fcitx5.android.ui.compose.component.PickerDialog
 import org.fcitx.fcitx5.android.ui.compose.component.CheckboxRow
 import org.fcitx.fcitx5.android.ui.compose.component.DialogField
 import org.fcitx.fcitx5.android.ui.compose.component.EditFieldsDialog
@@ -220,19 +221,18 @@ fun QuickPhraseListScreen(
     }
 
     if (addMenu) {
-        androidx.appcompat.app.AlertDialog.Builder(context)
-            .setTitle(R.string.quickphrase_editor)
-            .setItems(
-                arrayOf(
-                    context.getString(R.string.import_from_file),
-                    context.getString(R.string.create_new),
-                )
-            ) { _, which ->
+        PickerDialog(
+            title = context.getString(R.string.quickphrase_editor),
+            items = listOf(
+                context.getString(R.string.import_from_file),
+                context.getString(R.string.create_new),
+            ),
+            onDismiss = { addMenu = false },
+            onSelected = { which ->
                 addMenu = false
                 if (which == 0) importer.launch("*/*") else createDialog = true
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> addMenu = false }
-            .show()
+            },
+        )
     }
 
     if (createDialog) {
@@ -251,14 +251,14 @@ fun QuickPhraseListScreen(
 
     val menuRow = menuFor
     if (menuRow != null) {
-        androidx.appcompat.app.AlertDialog.Builder(context)
-            .setTitle(menuRow.name)
-            .setItems(
-                arrayOf(
-                    context.getString(R.string.edit),
-                    context.getString(R.string.reset),
-                )
-            ) { _, which ->
+        PickerDialog(
+            title = menuRow.name,
+            items = listOf(
+                context.getString(R.string.edit),
+                context.getString(R.string.reset),
+            ),
+            onDismiss = { menuFor = null },
+            onSelected = { which ->
                 menuFor = null
                 when (which) {
                     0 -> onOpenRoute(SettingsRoute.QuickPhraseEdit(menuRow.item))
@@ -269,9 +269,8 @@ fun QuickPhraseListScreen(
                         pushReload()
                     }
                 }
-            }
-            .setNegativeButton(android.R.string.cancel) { _, _ -> menuFor = null }
-            .show()
+            },
+        )
     }
 }
 
