@@ -6,7 +6,6 @@ package org.fcitx.fcitx5.android.ui
 
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -17,6 +16,7 @@ import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.data.prefs.AppearancePrefs
 import org.fcitx.fcitx5.android.ui.compose.tabTag
 import org.fcitx.fcitx5.android.ui.main.MainActivity
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestRule
@@ -66,7 +66,9 @@ class MaterialUiModeTest {
         // the state of the emulator, so accept either.
         val ready = context.getString(R.string.ksu_home_ready_title)
         val missing = context.getString(R.string.ksu_home_not_ready_title)
-        composeRule.onAllNodes(hasText(ready) or hasText(missing)).onFirst().assertExists()
+        val statusTitles = composeRule.onAllNodes(hasText(ready)).fetchSemanticsNodes().size +
+            composeRule.onAllNodes(hasText(missing)).fetchSemanticsNodes().size
+        assertTrue("the home status card is missing", statusTitles > 0)
         listOf(
             1 to R.string.ksu_ime_section_key,
             2 to R.string.ksu_features_input,
