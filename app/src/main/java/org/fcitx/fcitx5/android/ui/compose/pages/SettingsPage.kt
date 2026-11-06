@@ -44,6 +44,7 @@ import org.fcitx.fcitx5.android.ui.compose.component.NavRow
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
 import org.fcitx.fcitx5.android.ui.compose.component.SwitchRow
+import org.fcitx.fcitx5.android.ui.compose.theme.colorSpecNames
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
 import org.fcitx.fcitx5.android.utils.InputMethodUtil
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
@@ -108,8 +109,7 @@ private fun LazyListScope.appThemeSection() {
             ChoiceRow(
                 pref = prefs.colorSpec,
                 title = stringResource(R.string.ksu_app_color_spec),
-                values = listOf("Default", "Spec2025"),
-                labels = listOf("Default (2021)", "Spec 2025"),
+                values = colorSpecNames,
                 icon = Icons.Rounded.Translate,
             )
         }

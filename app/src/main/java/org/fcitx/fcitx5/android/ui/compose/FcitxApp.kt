@@ -8,64 +8,62 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Extension
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Palette
-import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.launch
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.data.prefs.AppearancePrefs
+import org.fcitx.fcitx5.android.ui.compose.component.bottombar.BottomBar
+import org.fcitx.fcitx5.android.ui.compose.component.bottombar.LocalMainPagerState
+import org.fcitx.fcitx5.android.ui.compose.component.bottombar.MainDestination
+import org.fcitx.fcitx5.android.ui.compose.component.bottombar.SideRail
+import org.fcitx.fcitx5.android.ui.compose.component.bottombar.rememberMainPagerState
+import org.fcitx.fcitx5.android.ui.compose.component.bottombar.useNavigationRail
 import org.fcitx.fcitx5.android.ui.compose.pages.AppearancePage
 import org.fcitx.fcitx5.android.ui.compose.pages.FeaturesPage
 import org.fcitx.fcitx5.android.ui.compose.pages.HomePage
 import org.fcitx.fcitx5.android.ui.compose.pages.SettingsPage
 import org.fcitx.fcitx5.android.ui.compose.screens.AboutScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.AddonConfigScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.AddonDirProfileScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.AddonScreen
-import org.fcitx.fcitx5.android.ui.compose.screens.AddonConfigScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.AdvancedScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.CandidatesScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.ClipboardScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.DeveloperScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.GlobalConfigScreen
-import org.fcitx.fcitx5.android.ui.compose.screens.InputMethodConfigScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.IconThemeScreen
+import org.fcitx.fcitx5.android.ui.compose.screens.InputMethodConfigScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.InputMethodListScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.KeyboardGroupScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.KeyboardSettingsScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.LicenseScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.MultiSelectScreen
-import org.fcitx.fcitx5.android.ui.compose.screens.AdvancedScreen
-import org.fcitx.fcitx5.android.ui.compose.screens.CandidatesScreen
-import org.fcitx.fcitx5.android.ui.compose.screens.ClipboardScreen
-import org.fcitx.fcitx5.android.ui.compose.screens.DeveloperScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.PinyinCustomPhraseScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.PinyinDictionaryScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.PluginScreen
@@ -77,38 +75,25 @@ import org.fcitx.fcitx5.android.ui.compose.screens.SymbolScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.TableInputMethodScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.ThemeScreen
 import org.fcitx.fcitx5.android.ui.compose.theme.FcitxTheme
+import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableBlur
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBar
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBarBlur
+import org.fcitx.fcitx5.android.ui.compose.util.rememberBlurBackdrop
 import org.fcitx.fcitx5.android.ui.main.MainViewModel
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
-import top.yukonga.miuix.kmp.basic.LocalNavigationBarDisplayMode
-import top.yukonga.miuix.kmp.basic.NavigationBar
-import top.yukonga.miuix.kmp.basic.NavigationBarDisplayMode
-import top.yukonga.miuix.kmp.basic.NavigationBarItem
-import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
-
-private const val PAGE_COUNT = 4
+import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** Test tag for a bottom-bar tab, used by the instrumented UI tests. */
 fun tabTag(index: Int): String = "bottom_tab_$index"
 
-/** One bottom-bar entry. */
-private data class Tab(val icon: ImageVector, val labelRes: Int)
-
-private val TABS = listOf(
-    Tab(Icons.Rounded.Home, R.string.ksu_tab_home),
-    Tab(Icons.Rounded.Palette, R.string.ksu_tab_appearance),
-    Tab(Icons.Rounded.Extension, R.string.ksu_tab_features),
-    Tab(Icons.Rounded.Settings, R.string.ksu_tab_settings),
-)
-
 /**
  * Root of the settings app.
  *
- * Layout mirrors KernelSU-Style-UI-Kit: a four-page pager with a floating, optionally frosted
- * bottom bar. Detail screens are pushed onto [composeStack]; routes requested from outside Compose
- * arrive through [ComposeRouteHost].
+ * Layout mirrors KernelSU-Style-UI-Kit: a pager with a floating, optionally frosted bottom bar
+ * (or a navigation rail on wide windows) and a Compose back stack for the detail screens. The
+ * component style itself — miuix or Material 3 — comes from [UiMode] via [FcitxTheme].
  */
 @Composable
 fun FcitxApp(
@@ -119,12 +104,28 @@ fun FcitxApp(
     routeHost: ComposeRouteHost,
 ) {
     FcitxTheme(prefs = prefs) {
-        val pagerState = rememberPagerState(pageCount = { PAGE_COUNT })
         val scope = rememberCoroutineScope()
-        val floating = LocalEnableFloatingBottomBar.current
+        val uiMode = LocalUiMode.current
+        val enableBlur = LocalEnableBlur.current
+        val enableFloatingBottomBar = LocalEnableFloatingBottomBar.current
+        val enableFloatingBottomBarBlur = LocalEnableFloatingBottomBarBlur.current
+        val useRail = useNavigationRail(enableFloatingBottomBar)
+
+        val pagerState = rememberPagerState(pageCount = { MainDestination.entries.size })
+        val mainPagerState = rememberMainPagerState(pagerState, scope, animatePageChanges = !useRail)
+        val blurBackdrop = rememberBlurBackdrop(enableBlur)
+        val surfaceColor = when (uiMode) {
+            UiMode.Material -> MaterialTheme.colorScheme.surface
+            UiMode.Miuix -> top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surface
+        }
+        // Sampled by the liquid-glass bottom bar, so it sees the page content behind it.
+        val glassBackdrop = rememberLayerBackdrop {
+            drawRect(surfaceColor)
+            drawContent()
+        }
+
         // Every settings screen is Compose, so opening a route is just a push.
         val composeStack = remember { mutableStateListOf<SettingsRoute>() }
-
         val openRoute: (SettingsRoute) -> Unit = { route -> composeStack.add(route) }
         val closeTop: () -> Unit = {
             if (composeStack.isNotEmpty()) composeStack.removeAt(composeStack.lastIndex)
@@ -140,63 +141,112 @@ fun FcitxApp(
             }
         }
 
+        // The bar highlights the tapped page at once; a swipe updates the pager's own page.
+        LaunchedEffect(mainPagerState.pagerState.currentPage) { mainPagerState.syncPage() }
+
         BackHandler(enabled = composeStack.isNotEmpty()) { closeTop() }
-        BackHandler(enabled = composeStack.isEmpty() && pagerState.currentPage != 0) {
-            scope.launch { pagerState.animateScrollToPage(0) }
+        BackHandler(
+            enabled = composeStack.isEmpty() && mainPagerState.selectedPage != 0
+        ) {
+            mainPagerState.animateToPage(0)
         }
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            Scaffold(
-                contentWindowInsets = WindowInsets.systemBars
-                    .add(WindowInsets.displayCutout)
-                    .only(WindowInsetsSides.Horizontal),
-            ) { innerPadding ->
-                // Reserve the bar's height plus a comfortable gap so the last card is never hidden.
-                val bottomInnerPadding = innerPadding.calculateBottomPadding() +
-                    if (floating) 96.dp else 72.dp
-                HorizontalPager(
-                    state = pagerState,
-                    modifier = Modifier.fillMaxSize(),
-                    beyondViewportPageCount = 1,
-                ) { page ->
-                    when (page) {
-                        0 -> HomePage(bottomInnerPadding, openRoute, onOpenActivity)
-                        1 -> AppearancePage(bottomInnerPadding, openRoute, onOpenActivity)
-                        2 -> FeaturesPage(bottomInnerPadding, openRoute, onOpenActivity)
-                        else -> SettingsPage(bottomInnerPadding, openRoute)
+        CompositionLocalProvider(LocalMainPagerState provides mainPagerState) {
+            val pageContent: @Composable (Dp) -> Unit = { bottomInnerPadding ->
+                Box(
+                    modifier = if (blurBackdrop != null) Modifier.layerBackdrop(blurBackdrop)
+                    else Modifier,
+                ) {
+                    HorizontalPager(
+                        state = mainPagerState.pagerState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .then(
+                                if (enableFloatingBottomBar && enableFloatingBottomBarBlur) {
+                                    Modifier.layerBackdrop(glassBackdrop)
+                                } else {
+                                    Modifier
+                                }
+                            ),
+                        beyondViewportPageCount = 1,
+                    ) { page ->
+                        when (page) {
+                            0 -> HomePage(bottomInnerPadding, openRoute, onOpenActivity)
+                            1 -> AppearancePage(bottomInnerPadding, openRoute, onOpenActivity)
+                            2 -> FeaturesPage(bottomInnerPadding, openRoute, onOpenActivity)
+                            else -> SettingsPage(bottomInnerPadding, openRoute)
+                        }
                     }
                 }
             }
 
-            // Drawn after the content so the floating bar sits above the pages, with the content
-            // scrolling underneath it.
-            Box(modifier = Modifier.align(Alignment.BottomCenter)) {
-                BottomBar(
-                    selected = pagerState.currentPage,
-                    onSelect = { index ->
-                        scope.launch { pagerState.animateScrollToPage(index) }
-                    },
-                )
-            }
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (useRail) {
+                    val railContent = @Composable {
+                        Row(modifier = Modifier.fillMaxSize()) {
+                            SideRail()
+                            Box(modifier = Modifier.weight(1f)) {
+                                pageContent(WindowInsets.systemBars
+                                    .add(WindowInsets.displayCutout)
+                                    .only(WindowInsetsSides.Bottom)
+                                    .asPaddingValues()
+                                    .calculateBottomPadding()
+                                )
+                            }
+                        }
+                    }
+                    when (uiMode) {
+                        UiMode.Material -> androidx.compose.material3.Scaffold { railContent() }
+                        UiMode.Miuix -> top.yukonga.miuix.kmp.basic.Scaffold { railContent() }
+                    }
+                } else {
+                    val bar: @Composable () -> Unit = {
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            BottomBar(
+                                blurBackdrop = blurBackdrop,
+                                backdrop = glassBackdrop,
+                                modifier = Modifier.align(Alignment.BottomCenter),
+                            )
+                        }
+                    }
+                    val shellContent: @Composable (Dp) -> Unit = { innerBottom ->
+                        pageContent(innerBottom)
+                    }
+                    when (uiMode) {
+                        UiMode.Material -> androidx.compose.material3.Scaffold(bottomBar = bar) { inner ->
+                            shellContent(inner.calculateBottomPadding())
+                        }
+                        UiMode.Miuix -> top.yukonga.miuix.kmp.basic.Scaffold(
+                            bottomBar = bar,
+                            popupHost = { },
+                            contentWindowInsets = WindowInsets.systemBars
+                                .add(WindowInsets.displayCutout)
+                                .only(WindowInsetsSides.Horizontal),
+                        ) { inner ->
+                            shellContent(inner.calculateBottomPadding())
+                        }
+                    }
+                }
 
-            AnimatedVisibility(
-                visible = composeStack.isNotEmpty(),
-                enter = slideInHorizontally { it },
-                exit = slideOutHorizontally { it },
-            ) {
-                val route = composeStack.lastOrNull()
-                if (route != null) {
-                    // A fresh composition per stack entry keeps `remember`ed state from leaking
-                    // between two screens that happen to share a route type.
-                    key(composeStack.size) {
-                        ComposeDetailHost(
-                            route = route,
-                            viewModel = viewModel,
-                            onBack = closeTop,
-                            onOpenRoute = openRoute,
-                            onOpenActivity = onOpenActivity,
-                            onOpenIntent = onOpenIntent,
-                        )
+                AnimatedVisibility(
+                    visible = composeStack.isNotEmpty(),
+                    enter = slideInHorizontally { it },
+                    exit = slideOutHorizontally { it },
+                ) {
+                    val route = composeStack.lastOrNull()
+                    if (route != null) {
+                        // A fresh composition per stack entry keeps `remember`ed state from leaking
+                        // between two screens that happen to share a route type.
+                        key(composeStack.size) {
+                            ComposeDetailHost(
+                                route = route,
+                                viewModel = viewModel,
+                                onBack = closeTop,
+                                onOpenRoute = openRoute,
+                                onOpenActivity = onOpenActivity,
+                                onOpenIntent = onOpenIntent,
+                            )
+                        }
                     }
                 }
             }
@@ -359,69 +409,5 @@ private fun ComposeDetailHost(
         )
 
         else -> onBack()
-    }
-}
-
-/**
- * The four-tab bar.
- *
- * The floating variant is the "liquid glass" look from the template: an inset, rounded, translucent
- * surface that content scrolls under, with the selected tab's label next to its icon. miuix's own
- * `FloatingNavigationBar` is icon-only (its item renders just an Image and uses the label as the
- * content description), so the floating variant is built from the regular [NavigationBar] with
- * [NavigationBarDisplayMode.IconWithSelectedLabel] on a rounded surface.
- */
-@Composable
-private fun BottomBar(
-    selected: Int,
-    onSelect: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val floating = LocalEnableFloatingBottomBar.current
-    val glass = LocalEnableFloatingBottomBarBlur.current
-    val shape = RoundedCornerShape(26.dp)
-    val surface = if (glass) colorScheme.surface.copy(alpha = 0.78f) else colorScheme.surface
-
-    if (floating) {
-        Box(
-            modifier = modifier
-                .padding(horizontal = 14.dp, vertical = 8.dp)
-                .clip(shape)
-                .background(surface)
-                .then(
-                    if (glass) Modifier.border(1.dp, colorScheme.outline.copy(alpha = 0.35f), shape)
-                    else Modifier
-                ),
-        ) {
-            // The bar reads this local when its own display mode is left at the default.
-            CompositionLocalProvider(
-                LocalNavigationBarDisplayMode provides NavigationBarDisplayMode.IconWithSelectedLabel
-            ) {
-                NavigationBar(color = Color.Transparent) {
-                    TabItems(selected, onSelect)
-                }
-            }
-        }
-    } else {
-        NavigationBar(color = surface, modifier = modifier) {
-            TabItems(selected, onSelect)
-        }
-    }
-}
-
-/** The four tabs, shared by the floating and the docked bar. */
-@Composable
-private fun androidx.compose.foundation.layout.RowScope.TabItems(
-    selected: Int,
-    onSelect: (Int) -> Unit,
-) {
-    TABS.forEachIndexed { index, tab ->
-        NavigationBarItem(
-            selected = selected == index,
-            onClick = { onSelect(index) },
-            icon = tab.icon,
-            label = stringResource(tab.labelRes),
-            modifier = Modifier.testTag(tabTag(index)),
-        )
     }
 }

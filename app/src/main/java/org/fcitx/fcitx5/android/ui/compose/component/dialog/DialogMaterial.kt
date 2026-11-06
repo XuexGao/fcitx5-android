@@ -1,0 +1,85 @@
+package org.fcitx.fcitx5.android.ui.compose.component.dialog
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+
+@Composable
+fun LoadingDialogMaterial(showDialog: MutableState<Boolean>) {
+    if (showDialog.value) {
+        Dialog(
+            onDismissRequest = {},
+            properties = DialogProperties(dismissOnClickOutside = false, dismissOnBackPress = false)
+        ) {
+            Surface(
+                modifier = Modifier.size(100.dp), shape = RoundedCornerShape(8.dp)
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                ) {
+                    LoadingIndicator()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ConfirmDialogMaterial(
+    visuals: ConfirmDialogVisuals,
+    confirm: () -> Unit,
+    dismiss: () -> Unit,
+    showDialog: MutableState<Boolean>
+) {
+    if (showDialog.value) {
+        AlertDialog(
+            onDismissRequest = {
+                dismiss()
+                showDialog.value = false
+            },
+            title = { Text(visuals.title) },
+            shape = MaterialTheme.shapes.extraLarge,
+            text = {
+                visuals.content?.let { content ->
+                    // Markdown/HTML content is rendered as plain text: nothing in this app passes
+                    // the template's changelog markdown, so the commonmark dependency is not ported.
+                    Text(text = content)
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirm()
+                        showDialog.value = false
+                    }
+                ) {
+                    Text(visuals.confirm ?: stringResource(id = android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        dismiss()
+                        showDialog.value = false
+                    }
+                ) {
+                    Text(visuals.dismiss ?: stringResource(id = android.R.string.cancel))
+                }
+            }
+        )
+    }
+}

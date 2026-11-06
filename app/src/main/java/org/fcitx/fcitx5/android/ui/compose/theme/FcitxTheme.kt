@@ -4,23 +4,15 @@
  */
 package org.fcitx.fcitx5.android.ui.compose.theme
 
-import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.view.WindowInsetsControllerCompat
 import org.fcitx.fcitx5.android.data.prefs.AppearancePrefs
 import org.fcitx.fcitx5.android.data.prefs.AppearancePrefs.ColorMode
-import top.yukonga.miuix.kmp.theme.ColorSchemeMode
-import top.yukonga.miuix.kmp.theme.MiuixTheme
-import top.yukonga.miuix.kmp.theme.ThemeColorSpec
-import top.yukonga.miuix.kmp.theme.ThemeController
-import top.yukonga.miuix.kmp.theme.ThemePaletteStyle
+import org.fcitx.fcitx5.android.ui.compose.LocalUiMode
+import org.fcitx.fcitx5.android.ui.compose.UiMode
 
 /** Current colour mode as an Int, exposed so descendants can tell forced-dark from system. */
 val LocalColorMode = staticCompositionLocalOf { ColorMode.System.value }
@@ -41,63 +33,30 @@ fun isInDarkTheme(): Boolean = when (LocalColorMode.current) {
 }
 
 /**
- * Applies the miuix theme built from [AppearancePrefs].
+ * Applies the appearance settings to the whole settings app.
  *
- * The controller is the same one KernelSU-Style-UI-Kit uses, so the palette generation (including
- * the Monet/dynamic variants and the palette styles) behaves identically. Changing any appearance
- * preference recomposes the whole tree, which is what makes the settings app re-skin instantly.
+ * Two component styles are supported, selected by [AppearancePrefs.uiMode] and published through
+ * [LocalUiMode]: the miuix look (the template's original) and a Material 3 look. Both build their
+ * palette from the same preferences, so switching style keeps the user's colours.
  */
 @Composable
 fun FcitxTheme(
     prefs: AppearancePrefs,
     content: @Composable () -> Unit,
 ) {
-    val context = LocalContext.current
-    val colorMode = prefs.colorModeValue
-    val systemDark = isSystemInDarkTheme()
-    val darkTheme = colorMode.isDark || (colorMode.isSystem && systemDark)
-
-    val miuixPaletteStyle = runCatching {
-        ThemePaletteStyle.valueOf(prefs.paletteStyle.getValue())
-    }.getOrDefault(ThemePaletteStyle.TonalSpot)
-
-    val miuixColorSpec = if (prefs.colorSpec.getValue() == "Spec2025") {
-        ThemeColorSpec.Spec2025
-    } else {
-        ThemeColorSpec.Spec2021
-    }
-
-    val keyColor = prefs.keyColor.getValue().takeIf { it != 0 }?.let { Color(it) }
-
-    val controller = ThemeController(
-        colorSchemeMode = when (colorMode) {
-            ColorMode.System -> ColorSchemeMode.System
-            ColorMode.Light -> ColorSchemeMode.Light
-            ColorMode.Dark -> ColorSchemeMode.Dark
-            ColorMode.MonetSystem -> ColorSchemeMode.MonetSystem
-            ColorMode.MonetLight -> ColorSchemeMode.MonetLight
-            ColorMode.MonetDark, ColorMode.Amoled -> ColorSchemeMode.MonetDark
-        },
-        keyColor = keyColor,
-        isDark = darkTheme,
-        paletteStyle = miuixPaletteStyle,
-        colorSpec = miuixColorSpec,
-    )
-
-    MiuixTheme(controller = controller) {
-        LaunchedEffect(darkTheme) {
-            val window = (context as? Activity)?.window ?: return@LaunchedEffect
-            WindowInsetsControllerCompat(window, window.decorView).apply {
-                isAppearanceLightStatusBars = !darkTheme
-                isAppearanceLightNavigationBars = !darkTheme
-            }
-        }
+    val uiMode = UiMode.fromValue(prefs.uiMode.getValue())
+    val styledContent: @Composable () -> Unit = {
         CompositionLocalProvider(
-            LocalColorMode provides colorMode.value,
+            LocalUiMode provides uiMode,
+            LocalColorMode provides prefs.colorModeValue.value,
             LocalEnableBlur provides prefs.enableBlur.getValue(),
             LocalEnableFloatingBottomBar provides prefs.floatingBottomBar.getValue(),
             LocalEnableFloatingBottomBarBlur provides prefs.floatingBottomBarBlur.getValue(),
             content = content,
         )
+    }
+    when (uiMode) {
+        UiMode.Miuix -> FcitxMiuixTheme(prefs = prefs, content = styledContent)
+        UiMode.Material -> FcitxMaterialTheme(prefs = prefs, content = styledContent)
     }
 }

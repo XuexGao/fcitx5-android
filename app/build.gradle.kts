@@ -306,6 +306,10 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.compose.material.icons.extended)
+    // Material 3 (+ materialKolor for the palette generation) backs the "Material" UI style the
+    // template offers next to miuix; see UiMode and FcitxTheme.
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.material.kolor)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
