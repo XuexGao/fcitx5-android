@@ -33,6 +33,7 @@ import org.fcitx.fcitx5.android.data.theme.ThemeManager
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
+import org.fcitx.fcitx5.android.ui.compose.component.StatusCard
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
 import org.fcitx.fcitx5.android.ui.main.settings.behavior.ButtonsCustomizerActivity
 import org.fcitx.fcitx5.android.utils.InputMethodUtil
@@ -51,9 +52,34 @@ fun HomePage(
         title = stringResource(R.string.ksu_tab_home),
         bottomInnerPadding = bottomInnerPadding,
     ) {
+        homeStatusCard()
         homeStatusSection(onOpenRoute)
         homeQuickActionsSection(onOpenRoute, onOpenActivity)
         homeAboutSection(onOpenRoute)
+    }
+}
+
+/**
+ * The "ready" card from the template: green when the input method is enabled and selected, red
+ * otherwise, with the app version underneath. Tapping it opens the system input method settings,
+ * which is where either missing step is fixed.
+ */
+private fun LazyListScope.homeStatusCard() {
+    item {
+        val context = LocalContext.current
+        val imeEnabled = remember(context) {
+            runCatching { InputMethodUtil.isEnabled() }.getOrDefault(false)
+        }
+        val imeSelected = remember(context) {
+            runCatching { InputMethodUtil.isSelected() }.getOrDefault(false)
+        }
+        StatusCard(
+            ready = imeEnabled && imeSelected,
+            readyTitle = stringResource(R.string.ksu_home_ready_title),
+            missingTitle = stringResource(R.string.ksu_home_not_ready_title),
+            subtitle = BuildConfig.VERSION_NAME,
+            onClick = { InputMethodUtil.startSettingsActivity(context) },
+        )
     }
 }
 

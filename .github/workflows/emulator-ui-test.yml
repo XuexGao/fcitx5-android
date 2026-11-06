@@ -9,6 +9,7 @@ name: Emulator UI Test
 #   * 万象拼音 is the default scheme and the generated Rime config says so
 #   * function bar customisation round-trips and can be restored to defaults
 #   * the input method service and its file providers are declared
+#   * the Material 3 style renders and navigates (MaterialUiModeTest)
 #
 # The APKs are built once (they need the NDK) and then installed on each emulator, so the native
 # build is not repeated per API level.
@@ -125,14 +126,14 @@ jobs:
             adb wait-for-device
             adb install -r -t ui-test-apks/app-debug.apk
             adb install -r -t ui-test-apks/app-debug-androidTest.apk
-            adb shell am instrument -w -r -e class org.fcitx.fcitx5.android.ui.PackageIdentityTest,org.fcitx.fcitx5.android.ui.MainShellNavigationTest,org.fcitx.fcitx5.android.ui.AppearanceSettingsTest,org.fcitx.fcitx5.android.ui.RimeDefaultsTest,org.fcitx.fcitx5.android.ui.FunctionBarConfigTest org.fcitx5.xuexgao.debug.test/androidx.test.runner.AndroidJUnitRunner | tee instrument-output.txt
+            adb shell am instrument -w -r -e class org.fcitx.fcitx5.android.ui.PackageIdentityTest,org.fcitx.fcitx5.android.ui.MainShellNavigationTest,org.fcitx.fcitx5.android.ui.AppearanceSettingsTest,org.fcitx.fcitx5.android.ui.RimeDefaultsTest,org.fcitx.fcitx5.android.ui.FunctionBarConfigTest,org.fcitx.fcitx5.android.ui.MaterialUiModeTest org.fcitx5.xuexgao.debug.test/androidx.test.runner.AndroidJUnitRunner | tee instrument-output.txt
             grep -E "OK \(|Tests run|FAILURES" instrument-output.txt
             grep -q "INSTRUMENTATION_CODE: -1" instrument-output.txt
             ! grep -qE "FAILURES!!!|shortMsg=|INSTRUMENTATION_FAILED" instrument-output.txt
             adb shell am instrument -w -r -e class org.fcitx.fcitx5.android.ui.ScreenshotTest org.fcitx5.xuexgao.debug.test/androidx.test.runner.AndroidJUnitRunner | tee screenshot-output.txt
             # Best effort: the screenshot walk clicks rows that may sit under the floating bar, where
-            # touch injection is rejected. The 22-test suite above is the hard gate; this only feeds
-            # the visual comparison artifact.
+            # touch injection is rejected. The suite above is the hard gate; this only feeds the
+            # visual comparison artifact.
             grep -q "OK (1 test)" screenshot-output.txt || echo "::warning::screenshot walk incomplete"
             rm -rf screenshots screenshots.tar
             mkdir -p screenshots
