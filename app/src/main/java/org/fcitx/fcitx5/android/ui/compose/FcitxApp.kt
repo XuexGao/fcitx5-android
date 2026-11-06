@@ -8,15 +8,19 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Extension
@@ -24,6 +28,7 @@ import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.snapshotFlow
@@ -32,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
@@ -75,9 +81,9 @@ import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBar
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBarBlur
 import org.fcitx.fcitx5.android.ui.main.MainViewModel
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
-import top.yukonga.miuix.kmp.basic.FloatingNavigationBar
-import top.yukonga.miuix.kmp.basic.FloatingNavigationBarItem
+import top.yukonga.miuix.kmp.basic.LocalNavigationBarDisplayMode
 import top.yukonga.miuix.kmp.basic.NavigationBar
+import top.yukonga.miuix.kmp.basic.NavigationBarDisplayMode
 import top.yukonga.miuix.kmp.basic.NavigationBarItem
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
@@ -162,9 +168,8 @@ fun FcitxApp(
                 }
             }
 
-            // Drawn after the content so the floating bar sits above the pages (the reference has
-            // content scrolling underneath it). miuix's FloatingNavigationBar ignores a modifier
-            // passed to it, so the alignment has to live on a wrapper.
+            // Drawn after the content so the floating bar sits above the pages, with the content
+            // scrolling underneath it.
             Box(modifier = Modifier.align(Alignment.BottomCenter)) {
                 BottomBar(
                     selected = pagerState.currentPage,
@@ -357,6 +362,15 @@ private fun ComposeDetailHost(
     }
 }
 
+/**
+ * The four-tab bar.
+ *
+ * The floating variant is the "liquid glass" look from the template: an inset, rounded, translucent
+ * surface that content scrolls under, with the selected tab's label next to its icon. miuix's own
+ * `FloatingNavigationBar` is icon-only (its item renders just an Image and uses the label as the
+ * content description), so the floating variant is built from the regular [NavigationBar] with
+ * [NavigationBarDisplayMode.IconWithSelectedLabel] on a rounded surface.
+ */
 @Composable
 private fun BottomBar(
     selected: Int,
@@ -364,31 +378,50 @@ private fun BottomBar(
     modifier: Modifier = Modifier,
 ) {
     val floating = LocalEnableFloatingBottomBar.current
-    val barBlur = LocalEnableFloatingBottomBarBlur.current
-    val color = if (barBlur) Color.Transparent else colorScheme.surface
+    val glass = LocalEnableFloatingBottomBarBlur.current
+    val shape = RoundedCornerShape(26.dp)
+    val surface = if (glass) colorScheme.surface.copy(alpha = 0.78f) else colorScheme.surface
+
     if (floating) {
-        FloatingNavigationBar(color = color, modifier = modifier) {
-            TABS.forEachIndexed { index, tab ->
-                FloatingNavigationBarItem(
-                    selected = selected == index,
-                    onClick = { onSelect(index) },
-                    icon = tab.icon,
-                    label = stringResource(tab.labelRes),
-                    modifier = Modifier.testTag(tabTag(index)),
-                )
+        Box(
+            modifier = modifier
+                .padding(horizontal = 14.dp, vertical = 8.dp)
+                .clip(shape)
+                .background(surface)
+                .then(
+                    if (glass) Modifier.border(1.dp, colorScheme.outline.copy(alpha = 0.35f), shape)
+                    else Modifier
+                ),
+        ) {
+            // The bar reads this local when its own display mode is left at the default.
+            CompositionLocalProvider(
+                LocalNavigationBarDisplayMode provides NavigationBarDisplayMode.IconWithSelectedLabel
+            ) {
+                NavigationBar(color = Color.Transparent) {
+                    TabItems(selected, onSelect)
+                }
             }
         }
     } else {
-        NavigationBar(color = color, modifier = modifier) {
-            TABS.forEachIndexed { index, tab ->
-                NavigationBarItem(
-                    selected = selected == index,
-                    onClick = { onSelect(index) },
-                    icon = tab.icon,
-                    label = stringResource(tab.labelRes),
-                    modifier = Modifier.testTag(tabTag(index)),
-                )
-            }
+        NavigationBar(color = surface, modifier = modifier) {
+            TabItems(selected, onSelect)
         }
+    }
+}
+
+/** The four tabs, shared by the floating and the docked bar. */
+@Composable
+private fun androidx.compose.foundation.layout.RowScope.TabItems(
+    selected: Int,
+    onSelect: (Int) -> Unit,
+) {
+    TABS.forEachIndexed { index, tab ->
+        NavigationBarItem(
+            selected = selected == index,
+            onClick = { onSelect(index) },
+            icon = tab.icon,
+            label = stringResource(tab.labelRes),
+            modifier = Modifier.testTag(tabTag(index)),
+        )
     }
 }
