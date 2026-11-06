@@ -347,7 +347,9 @@ class AppPrefs(private val sharedPreferences: SharedPreferences) {
         val splitKeyboardUseLandscapeLayout = switch(
             R.string.split_keyboard_use_landscape_layout,
             "split_keyboard_use_landscape_layout",
-            false
+            false,
+            // Only meaningful while the split keyboard is on; the old screen disabled the row by hand.
+            enableUiOn = { splitKeyboardEnabled.getValue() }
         )
 
         val horizontalCandidateStyle = enumList(

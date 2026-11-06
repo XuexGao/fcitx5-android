@@ -259,18 +259,30 @@
   （`PreferenceScreenFactory`、`FcitxPreferenceFragment`、`ManagedPreferenceFragment`、
   `BaseDynamicListUi` 动态列表栈、`ui/main/modified/`、主题列表适配器、`createUi` 工厂等）。
   `SettingsRoute` 现在只是数据载体，`isComposeRoute` 已删除（所有路由都是 Compose）。
-- **截图流水线**：`ScreenshotTest` 扩到 14 张（四个主页 + 11 个二级页），失败仍只告警、不拦门禁。
+- **底栏液态玻璃样式**：选中项显示文字标签。miuix 的 `FloatingNavigationBar` 做不到（
+  `FloatingNavigationBarItem` 只画图标，label 仅作为 content description；它的字节码里也没有任何模糊逻辑，
+  所以替换它不会丢掉磨砂效果）。悬浮态改为「圆角 + 半透明表面 + 细描边」的容器里放常规 `NavigationBar`，
+  并用 `LocalNavigationBarDisplayMode = IconWithSelectedLabel` 只给选中项显示标签；停靠态不变。
+- **截图流水线**：`ScreenshotTest` 的步行路线扩到 14 步（四个主页 + 11 个二级页）。
+  被底栏遮住的行点击会失败（触摸注入被拒绝，语义回退也未必找得到 OnClick），
+  这一步失败会中断后续采集 —— 由于该任务本就是 best-effort（不拦门禁），
+  CI 上通常能拿到前 6 张左右；把每个步骤各自 `runCatching` + 失败后回退到上一页是后续可做的改进。
 
 ---
 
 ## 11. 剩余工作
 
-批次 C-3 的清单已全部落地（见上一节）。还没做的只有两件与本轮范围无关的事：
+第 11 节清单（批次 C-3 + 收尾四项）已全部落地，提交见 `git log --oneline` 的 `stage-19` … `stage-25`。
 
-1. **视觉微调**：把 `FcitxApp.kt` 的 `BottomBar` 换成模板同款液态玻璃样式（miuix 官方示例
-   `example/shared/.../component/liquid/LiquidGlassNavigationBar.kt`，Apache-2.0），它会显示选中项的文字标签；
-   随后用 `ScreenshotTest` 的逐页截图比对间距/字重/圆角。
-2. **历史遗留的无引用类**：如 `UpdateMirrorListActivity`（不属于设置壳重构范围），未在本轮处理。
+仍可继续打磨的地方（都不影响功能）：
+
+1. **真正的背景模糊**：底栏目前是半透明表面 + 描边，没有采样页面内容做模糊。
+   要做的话需要在 `FcitxApp` 层持有一个 `LayerBackdrop` 并传给各页面的 `PageScaffold`，
+   让页面内容画进同一张 backdrop，再在底栏上 `textureBlur(backdrop, ...)`。
+   低版本（API < 31）仍走现有的「纯色 + 描边」降级即可。
+2. **截图步行路线容错**：每个 `clickRow` + `capture` 各自独立 `runCatching`，失败后按返回键回到上一页继续，
+   这样一张截图取不到不会丢掉后面的页面（当前行为见上一节）。
+3. **历史遗留的无引用类**：如 `UpdateMirrorListActivity`（不属于设置壳重构范围），未在本轮处理。
 
 关于「删除不再使用的布局」：`res/layout/activity_*.xml` 目前都还被引用着 ——
 `ClipboardEditActivity` / `LogActivity` / `SetupActivity` 通过 **ViewBinding** 使用它们

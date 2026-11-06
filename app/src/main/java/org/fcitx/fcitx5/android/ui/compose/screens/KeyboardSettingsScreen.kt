@@ -177,10 +177,11 @@ fun KeyboardGroupScreen(
 
 @Composable
 private fun LayoutTools(onOpenActivity: (Class<*>) -> Unit) {
-    val splitEnabled = AppPrefs.getInstance().keyboard.splitKeyboardEnabled.getValue()
+    // Bound to the preference so the row follows the split keyboard switch without leaving the page.
+    val splitEnabled = rememberPref(AppPrefs.getInstance().keyboard.splitKeyboardEnabled)
     NavRow(
         title = stringResource(R.string.split_keyboard_calibration_title),
-        enabled = splitEnabled,
+        enabled = splitEnabled.value,
         onClick = { onOpenActivity(SplitKeyboardCalibrationActivity::class.java) },
     )
 }
