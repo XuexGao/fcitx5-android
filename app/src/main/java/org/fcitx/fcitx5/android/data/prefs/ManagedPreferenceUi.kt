@@ -4,26 +4,19 @@
  */
 package org.fcitx.fcitx5.android.data.prefs
 
-import android.content.Context
 import androidx.annotation.StringRes
-import androidx.preference.EditTextPreference
-import androidx.preference.ListPreference
-import androidx.preference.Preference
-import org.fcitx.fcitx5.android.R
-import org.fcitx.fcitx5.android.input.voice.VoiceInputProviderManager
-import org.fcitx.fcitx5.android.ui.main.modified.MySwitchPreference
-import org.fcitx.fcitx5.android.ui.main.settings.DialogSeekBarPreference
-import org.fcitx.fcitx5.android.ui.main.settings.EditTextIntPreference
-import org.fcitx.fcitx5.android.ui.main.settings.TwinSeekBarPreference
-import org.fcitx.fcitx5.android.utils.InputMethodUtil
-import org.fcitx.fcitx5.android.utils.includes
 
-abstract class ManagedPreferenceUi<T : Preference>(
+/**
+ * Declarative description of one settings row.
+ *
+ * This used to also build the corresponding `androidx.preference` view; that path is gone with the
+ * View-era screens, so only the metadata the Compose renderer needs is left: the key, the title and
+ * summary resources, the value range and the enable-condition.
+ */
+abstract class ManagedPreferenceUi<T>(
     val key: String,
     private val enableUiOn: (() -> Boolean)? = null
 ) {
-
-    abstract fun createUi(context: Context): T
 
     fun isEnabled() = enableUiOn?.invoke() ?: true
 
@@ -35,16 +28,7 @@ abstract class ManagedPreferenceUi<T : Preference>(
         @StringRes
         val summary: Int? = null,
         enableUiOn: (() -> Boolean)? = null
-    ) : ManagedPreferenceUi<MySwitchPreference>(key, enableUiOn) {
-        override fun createUi(context: Context) = MySwitchPreference(context).apply {
-            key = this@Switch.key
-            isIconSpaceReserved = false
-            isSingleLineTitle = false
-            setDefaultValue(defaultValue)
-            if (this@Switch.summary != null)
-                setSummary(this@Switch.summary)
-            setTitle(this@Switch.title)
-        }
+    ) : ManagedPreferenceUi<Unit>(key, enableUiOn) {
     }
 
     class StringSet(
@@ -55,15 +39,7 @@ abstract class ManagedPreferenceUi<T : Preference>(
         @StringRes
         val summary: Int? = null,
         enableUiOn: (() -> Boolean)? = null
-    ) : ManagedPreferenceUi<Preference>(key, enableUiOn) {
-        override fun createUi(context: Context) = Preference(context).apply {
-            key = this@StringSet.key
-            isIconSpaceReserved = false
-            isSingleLineTitle = false
-            setTitle(this@StringSet.title)
-            if (this@StringSet.summary != null)
-                setSummary(this@StringSet.summary)
-        }
+    ) : ManagedPreferenceUi<Unit>(key, enableUiOn) {
     }
 
     class StringList<T : Any>(
@@ -76,18 +52,7 @@ abstract class ManagedPreferenceUi<T : Preference>(
         @StringRes
         val entryLabels: List<Int>,
         enableUiOn: (() -> Boolean)? = null
-    ) : ManagedPreferenceUi<ListPreference>(key, enableUiOn) {
-        override fun createUi(context: Context) = ListPreference(context).apply {
-            key = this@StringList.key
-            isIconSpaceReserved = false
-            isSingleLineTitle = false
-            entryValues = this@StringList.entryValues.map { codec.encode(it) }.toTypedArray()
-            summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
-            setDefaultValue(codec.encode(defaultValue))
-            setTitle(this@StringList.title)
-            entries = this@StringList.entryLabels.map { context.getString(it) }.toTypedArray()
-            setDialogTitle(this@StringList.title)
-        }
+    ) : ManagedPreferenceUi<Unit>(key, enableUiOn) {
     }
 
     class VoiceInputList(
@@ -96,36 +61,7 @@ abstract class ManagedPreferenceUi<T : Preference>(
         key: String,
         val defaultValue: String,
         enableUiOn: (() -> Boolean)? = null
-    ) : ManagedPreferenceUi<ListPreference>(key, enableUiOn) {
-        override fun createUi(context: Context) = ListPreference(context).apply {
-            key = this@VoiceInputList.key
-            isIconSpaceReserved = false
-            isSingleLineTitle = false
-            summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
-            setDefaultValue(defaultValue)
-            setTitle(this@VoiceInputList.title)
-            setDialogTitle(this@VoiceInputList.title)
-            val voiceInputMethods = InputMethodUtil.listVoiceInputMethods()
-            val pluginProviders = VoiceInputProviderManager.listProviders(context)
-            val systemValues = voiceInputMethods.map { it.first.id }
-            val systemLabels = voiceInputMethods.map { it.first.loadLabel(context.packageManager).toString() }
-            val pluginValues = pluginProviders.map { it.id }
-            val pluginLabels = pluginProviders.map { it.label.toString() }
-            entryValues = arrayOf("", *systemValues.toTypedArray(), *pluginValues.toTypedArray())
-            entries = arrayOf(
-                context.getString(R.string.system_default),
-                *systemLabels.toTypedArray(),
-                *pluginLabels.toTypedArray(),
-            )
-            // shows "(Not Available)" if selected id is not present
-            summaryProvider = Preference.SummaryProvider<ListPreference> { preference ->
-                if (preference.entryValues.includes(preference.value)) {
-                    preference.entry
-                } else {
-                    context.getString(R.string._not_available_)
-                }
-            }
-        }
+    ) : ManagedPreferenceUi<Unit>(key, enableUiOn) {
     }
 
     class EditTextInt(
@@ -137,19 +73,7 @@ abstract class ManagedPreferenceUi<T : Preference>(
         val max: Int,
         val unit: String = "",
         enableUiOn: (() -> Boolean)? = null
-    ) : ManagedPreferenceUi<EditTextPreference>(key, enableUiOn) {
-        override fun createUi(context: Context) = EditTextIntPreference(context).apply {
-            key = this@EditTextInt.key
-            isIconSpaceReserved = false
-            isSingleLineTitle = false
-            summaryProvider = EditTextIntPreference.SimpleSummaryProvider
-            setDefaultValue(this@EditTextInt.defaultValue)
-            setTitle(this@EditTextInt.title)
-            setDialogTitle(this@EditTextInt.title)
-            min = this@EditTextInt.min
-            max = this@EditTextInt.max
-            unit = this@EditTextInt.unit
-        }
+    ) : ManagedPreferenceUi<Unit>(key, enableUiOn) {
     }
 
     class SeekBarInt(
@@ -164,21 +88,7 @@ abstract class ManagedPreferenceUi<T : Preference>(
         @StringRes
         val defaultLabel: Int? = null,
         enableUiOn: (() -> Boolean)? = null
-    ) : ManagedPreferenceUi<DialogSeekBarPreference>(key, enableUiOn) {
-        override fun createUi(context: Context) = DialogSeekBarPreference(context).apply {
-            key = this@SeekBarInt.key
-            isIconSpaceReserved = false
-            isSingleLineTitle = false
-            summaryProvider = DialogSeekBarPreference.SimpleSummaryProvider
-            this@SeekBarInt.defaultLabel?.let { defaultLabel = context.getString(it) }
-            setDefaultValue(this@SeekBarInt.defaultValue)
-            setTitle(this@SeekBarInt.title)
-            setDialogTitle(this@SeekBarInt.title)
-            min = this@SeekBarInt.min
-            max = this@SeekBarInt.max
-            unit = this@SeekBarInt.unit
-            step = this@SeekBarInt.step
-        }
+    ) : ManagedPreferenceUi<Unit>(key, enableUiOn) {
     }
 
     class TwinSeekBarInt(
@@ -199,23 +109,6 @@ abstract class ManagedPreferenceUi<T : Preference>(
         @StringRes
         val defaultLabel: Int? = null,
         enableUiOn: (() -> Boolean)? = null
-    ) : ManagedPreferenceUi<TwinSeekBarPreference>(key, enableUiOn) {
-        override fun createUi(context: Context) = TwinSeekBarPreference(context).apply {
-            setTitle(this@TwinSeekBarInt.title)
-            setDialogTitle(this@TwinSeekBarInt.title)
-            label = context.getString(this@TwinSeekBarInt.label)
-            key = this@TwinSeekBarInt.key
-            secondaryLabel = context.getString(this@TwinSeekBarInt.secondaryLabel)
-            secondaryKey = this@TwinSeekBarInt.secondaryKey
-            this@TwinSeekBarInt.defaultLabel?.let { defaultLabel = context.getString(it) }
-            setDefaultValue(this@TwinSeekBarInt.defaultValue to this@TwinSeekBarInt.secondaryDefaultValue)
-            min = this@TwinSeekBarInt.min
-            max = this@TwinSeekBarInt.max
-            unit = this@TwinSeekBarInt.unit
-            step = this@TwinSeekBarInt.step
-            isIconSpaceReserved = false
-            isSingleLineTitle = false
-            summaryProvider = TwinSeekBarPreference.SimpleSummaryProvider
-        }
+    ) : ManagedPreferenceUi<Unit>(key, enableUiOn) {
     }
 }

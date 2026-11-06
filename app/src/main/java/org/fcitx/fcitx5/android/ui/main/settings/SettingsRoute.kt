@@ -7,30 +7,19 @@ package org.fcitx.fcitx5.android.ui.main.settings
 
 import android.net.Uri
 import android.os.Parcelable
-import androidx.navigation.NavController
-import androidx.navigation.NavType
-import androidx.navigation.createGraph
-import androidx.navigation.fragment.fragment
-import androidx.savedstate.SavedState
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import org.fcitx.fcitx5.android.R
-import org.fcitx.fcitx5.android.core.RawConfig
 import org.fcitx.fcitx5.android.data.quickphrase.QuickPhrase
-import org.fcitx.fcitx5.android.ui.main.settings.theme.ThemeFragment
-import org.fcitx.fcitx5.android.utils.AppUtil
-import org.fcitx.fcitx5.android.utils.config.ConfigDescriptor
-import org.fcitx.fcitx5.android.utils.parcelable
-import kotlin.reflect.typeOf
 
+/**
+ * Every settings screen the app can open, as data.
+ *
+ * Routes are carried through intents (the keyboard's toolbar buttons, deep links) and pushed onto
+ * the Compose back stack by the settings host. Nothing here knows about navigation any more: the
+ * View-era `createGraph` and its fragment destinations are gone.
+ */
 @Parcelize
 sealed class SettingsRoute : Parcelable {
-
-    /* ========== Index ========== */
-
-    @Serializable
-    data object Index : SettingsRoute()
 
     /* ========== Fcitx ========== */
 
@@ -109,27 +98,7 @@ sealed class SettingsRoute : Parcelable {
 
         @Serializable
         @Parcelize
-        data class Param(val quickPhrase: QuickPhrase) : Parcelable {
-            companion object {
-                val NavType = object : NavType<Param>(isNullableAllowed = false) {
-                    override fun put(bundle: SavedState, key: String, value: Param) {
-                        bundle.putParcelable(key, value)
-                    }
-
-                    override fun get(bundle: SavedState, key: String): Param? {
-                        return bundle.parcelable<Param>(key)
-                    }
-
-                    override fun serializeAsValue(value: Param): String {
-                        return Uri.encode(Json.encodeToString(value))
-                    }
-
-                    override fun parseValue(value: String): Param {
-                        return Json.decodeFromString(value)
-                    }
-                }
-            }
-        }
+        data class Param(val quickPhrase: QuickPhrase) : Parcelable
     }
 
     @Serializable
@@ -153,29 +122,4 @@ sealed class SettingsRoute : Parcelable {
         val addon: String,
         val path: String
     ) : SettingsRoute()
-
-    companion object {
-        fun createGraph(controller: NavController) = controller.createGraph(Index) {
-            val ctx = controller.context
-            val appLabel = AppUtil.appLabel(ctx)
-
-            /* ========== Index ========== */
-
-            fragment<IndexPlaceholderFragment, Index> {
-                label = appLabel
-            }
-
-            /* ========== Fcitx ========== */
-
-
-            /* ========== Android ========== */
-
-            fragment<ThemeFragment, Theme> {
-                label = ctx.getString(R.string.theme)
-            }
-
-            /* ========== External ========== */
-
-        }
-    }
 }

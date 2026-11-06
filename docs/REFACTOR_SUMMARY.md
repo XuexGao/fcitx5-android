@@ -240,58 +240,39 @@
 候选窗口、表情与符号、剪贴板、高级、开发者、关于、Rime 方案、全局选项、输入法配置、
 附加组件配置、键盘主题、插件列表、附加组件列表。
 
-待续（下一步直接从这里接着做）：
+### 第四阶段（批次 C-3 与收尾）已完成
 
-1. **批次 B**：`PreferenceScreenFactory`（442 行）的 Compose 版。
-   - 描述符类型映射：`ConfigInt`→滑杆、`ConfigString`→文本、`ConfigBool`→开关、`ConfigKey`→按键选择、
-     `ConfigEnum`→下拉、`ConfigList`→子页（ListConfig）、`ConfigEnumList`→多选、
-     `ConfigCustom`→按 customType 名分派到拼音词典/标点/快捷短语/码表/自定义短语/Rime 数据目录/附加组件配置
-   - 值读写沿用 `FcitxRawConfigStore`（写入 `RawConfig` 树），保存时机沿用"返回时统一保存"
-   - 覆盖路由：`GlobalConfig`、`InputMethodConfig`、`AddonConfig`、`ListConfig`、`Punctuation`、
-     `PinyinDict`、`QuickPhraseList/Edit`、`TableInputMethods`、`PinyinCustomPhrase`、`MultiSelect`
-2. **批次 C**：主题列表与编辑器、图标主题、输入法列表、插件、附加组件列表、`AddonDirProfileManager`
-3. **删除旧实现**：以上迁完后逐个 `git rm` 对应 Fragment，最后删除 `SettingsRoute.createGraph` 与
-   `MainActivity` 的导航宿主覆盖层，`isComposeRoute` 恒为 true
-4. **细节对齐**：底栏换成模板同款液态玻璃样式（当前 miuix 悬浮栏只有图标+选中胶囊，模板还会显示选中项文字），
-   并根据截图逐页微调间距/字重/圆角
-5. **CI**：`ScreenshotTest` 增加更多页面（每个迁移完的二级页都截一张），保持三条流水线全绿
+提交见 `git log --oneline` 的 `stage-19` … `stage-23`，逐条对应第 11 节清单：
+
+- **二级页补齐**：快捷短语列表/编辑、标点编辑器、码表输入法、拼音词典、拼音自定义短语、
+  通用多选、附加组件目录档案、许可证、键盘设置（虚拟键盘 + 五个分组）、图标主题列表。
+- **通用列表改为内联对话框**：`ConfigList` / `ConfigEnumList` 写回的是父页面持有的 `RawConfig` 树，
+  而入栈的子页面会让父页面离开组合、这棵树随之失效，因此它在配置页内以对话框存在。
+  `SettingsRoute.ListConfig` 及其 Parcelable 参数一并删除。
+- **真正的 Compose 返回栈**：`FcitxApp` 内部维护路由栈，二级页可以再入栈子页面并逐级返回；
+  入栈时按栈深 `key(...)` 重建组合，避免两个同类型页面共享 `remember` 状态。
+- **路由入口统一**：深链接、键盘功能栏按钮、其它 Activity 通过 `ComposeRouteHost` 把路由交给 Compose 宿主。
+  这同时修掉了一个真实缺陷：stage-18 删掉 Fragment 后，`launchMainToRoute(SettingsRoute.Clipboard)` 之类
+  的入口仍然走 `navController`，指向已不存在的目的地。
+- **旧实现全部删除**：所有设置 Fragment、`SettingsRoute.createGraph` / `Index`、
+  `MainActivity` 的导航宿主覆盖层，以及只被它们使用的 View 组件
+  （`PreferenceScreenFactory`、`FcitxPreferenceFragment`、`ManagedPreferenceFragment`、
+  `BaseDynamicListUi` 动态列表栈、`ui/main/modified/`、主题列表适配器、`createUi` 工厂等）。
+  `SettingsRoute` 现在只是数据载体，`isComposeRoute` 已删除（所有路由都是 Compose）。
+- **截图流水线**：`ScreenshotTest` 扩到 14 张（四个主页 + 11 个二级页），失败仍只告警、不拦门禁。
 
 ---
 
-## 11. 批次 C-3 与收尾实施清单（可直接照做）
+## 11. 剩余工作
 
-### 公共接线步骤（每迁移一个页面都做这三步）
+批次 C-3 的清单已全部落地（见上一节）。还没做的只有两件与本轮范围无关的事：
 
-1. 在 `ui/compose/screens/` 新建 `XxxScreen.kt`（参考同类已有实现）
-2. `ui/compose/ComposeRoutes.kt` 的 `isComposeRoute` 里把该路由加入 `true` 分支
-3. `ui/compose/FcitxApp.kt` 的 `ComposeDetailHost` 里加 `is SettingsRoute.Xxx -> XxxScreen(...)`；
-   需要往跳其他页时用 `composeRouteToLegacy(route, onOpenLegacyRoute)`
-4. 验证三条 CI 全绿后，删除对应 Fragment 文件与 `SettingsRoute.createGraph` 里的
-   `fragment<XxxFragment, Xxx>` 块（连同它的 import 一起删）
+1. **视觉微调**：把 `FcitxApp.kt` 的 `BottomBar` 换成模板同款液态玻璃样式（miuix 官方示例
+   `example/shared/.../component/liquid/LiquidGlassNavigationBar.kt`，Apache-2.0），它会显示选中项的文字标签；
+   随后用 `ScreenshotTest` 的逐页截图比对间距/字重/圆角。
+2. **历史遗留的无引用类**：如 `UpdateMirrorListActivity`（不属于设置壳重构范围），未在本轮处理。
 
-### 待迁移页面与要点
-
-| 页面 | 旧实现 | 数据来源与要点 |
-| --- | --- | --- |
-| 快捷短语列表 | `QuickPhraseListFragment` | `QuickPhraseManager`；列表 + 增删 + 编辑入口（编辑页路由 `QuickPhraseEdit`） |
-| 快捷短语编辑 | `QuickPhraseEditFragment` | `QuickPhraseEntry`；键/值编辑，保存走 `QuickPhraseManager`，写完后调用 `fcitx.runOnReady { reloadQuickPhrase() }`（`core/AddonSubconfig.kt`） |
-| 标点编辑器 | `PunctuationEditorFragment` | `PunctuationManager`、`PunctuationMapEntry`；列表 + 每项编辑，保存后 `savePunctuationConfig(lang, config)` |
-| 码表输入法 | `TableInputMethodFragment` | `TableManager`（`app/src/main/java/.../data/table/`）；列表 + 导入/删除 |
-| 拼音词典 | `PinyinDictionaryFragment` | `PinyinDictManager` + `data/pinyin/dict/*`；列表 + 导入（SAF）+ 删除，导入后 `reloadPinyinDict()` |
-| 拼音自定义短语 | `PinyinCustomPhraseFragment` | `CustomPhraseManager`（JNI 读写数组）；列表 + 编辑，保存后 `reloadPinyinCustomPhrase()` |
-| 通用列表（ListConfig） | `ListFragment` | 由 `ConfigDescriptor` 驱动，被 `FcitxConfigScreen` 的 `ConfigList` 分支调用；可先把 `ListConfig` 在 Compose 内实现（枚举多选/键列表），再把 `FcitxConfigScreen` 里那一处 `onOpenRoute(SettingsRoute.ListConfig(...))` 换成内联对话框 |
-| 通用多选 | `GenericMultiSelectFragment` | 由 `ConfigExternal.MultiSelect` 的 URI 参数驱动（addon/path/option/min） |
-| 附加组件目录档案 | `AddonDirProfileManagerFragment` | 由 `ConfigExternal.AddonDirProfileManager` 驱动 |
-| 许可证页 | `LicensesFragment` | 用 `aboutlibraries-core`（已在依赖里）取库列表渲染 |
-| 键盘设置分组 | `KeyboardSettingsFragment` / `KeyboardGroupFragment` | 绝大多数项已内联进「界面」「功能」两页；剩余的是布局文件选择、字体集编辑、弹出预设、宏编辑器等入口，建议以 NavRow 打开各自 Activity/Fragment |
-| 图标主题列表 | `IconThemeListActivity` | `IconThemeManager`；从「界面 → 图标主题」进入，可做成 Compose 屏幕 + 新 route，然后删掉该 Activity |
-
-### 最后收尾
-
-1. 删完所有 Fragment 后：删除 `SettingsRoute.createGraph`、`SettingsRoute.Index`、`IndexPlaceholderFragment`，
-   以及 `MainActivity` 里的 `detailLayer`/`navHostContainer`/`detailToolbar`/`NavHostFragment` 覆盖层
-2. `AppUtil.launchMainToRoute` 之类仍传 `SettingsRoute` 的入口改为传 Compose 路由（或保留 `SettingsRoute` 仅作数据载体）
-3. 删除 `ui/main/settings/` 下已无引用的 Fragment、`ui/main/modified/`（Preference 相关）、`res/layout/activity_*.xml` 中不再使用的布局
-4. 视觉微调：把 `FcitxApp.kt` 的 `BottomBar` 换成模板同款液态玻璃样式（miuix 官方示例
-   `example/shared/.../component/liquid/LiquidGlassNavigationBar.kt`，Apache-2.0），
-   它会显示选中项的文字标签；随后用 `ScreenshotTest` 逐页截图比对间距/字重
+关于「删除不再使用的布局」：`res/layout/activity_*.xml` 目前都还被引用着 ——
+`ClipboardEditActivity` / `LogActivity` / `SetupActivity` 通过 **ViewBinding** 使用它们
+（`binding.root`），普通文本搜索看不到这一层引用；`res/xml/preferences_local.xml` 仍被剪贴板同步设置页使用，
+其中的 `DialogSeekBarPreference` 因此保留。故本轮没有删除任何布局文件。

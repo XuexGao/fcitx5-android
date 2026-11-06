@@ -6,7 +6,6 @@ package org.fcitx.fcitx5.android.data.prefs
 
 import android.content.SharedPreferences
 import androidx.annotation.StringRes
-import androidx.preference.PreferenceScreen
 
 abstract class ManagedPreferenceCategory(
     @StringRes val title: Int,
@@ -161,12 +160,4 @@ abstract class ManagedPreferenceCategory(
         return primary to secondary
     }
 
-    override fun createUi(screen: PreferenceScreen) {
-        val ctx = screen.context
-        managedPreferencesUi.forEach {
-            screen.addPreference(it.createUi(ctx).apply {
-                isEnabled = it.isEnabled()
-            })
-        }
-    }
 }

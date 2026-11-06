@@ -101,14 +101,13 @@ private val TABS = listOf(
  * Root of the settings app.
  *
  * Layout mirrors KernelSU-Style-UI-Kit: a four-page pager with a floating, optionally frosted
- * bottom bar. Routes that already have a Compose screen are pushed inside Compose; the rest are
- * handed to [onOpenLegacyRoute], which the host activity renders in an overlay.
+ * bottom bar. Detail screens are pushed onto [composeStack]; routes requested from outside Compose
+ * arrive through [ComposeRouteHost].
  */
 @Composable
 fun FcitxApp(
     prefs: AppearancePrefs,
     viewModel: MainViewModel,
-    onOpenLegacyRoute: (SettingsRoute) -> Unit,
     onOpenActivity: (Class<*>) -> Unit,
     onOpenIntent: (android.content.Intent) -> Unit,
     routeHost: ComposeRouteHost,
@@ -117,13 +116,10 @@ fun FcitxApp(
         val pagerState = rememberPagerState(pageCount = { PAGE_COUNT })
         val scope = rememberCoroutineScope()
         val floating = LocalEnableFloatingBottomBar.current
-        // Ported screens form their own back stack inside Compose; routes without a Compose screen
-        // are still handed to the host activity, which renders the legacy graph as an overlay.
+        // Every settings screen is Compose, so opening a route is just a push.
         val composeStack = remember { mutableStateListOf<SettingsRoute>() }
 
-        val openRoute: (SettingsRoute) -> Unit = { route ->
-            if (isComposeRoute(route)) composeStack.add(route) else onOpenLegacyRoute(route)
-        }
+        val openRoute: (SettingsRoute) -> Unit = { route -> composeStack.add(route) }
         val closeTop: () -> Unit = {
             if (composeStack.isNotEmpty()) composeStack.removeAt(composeStack.lastIndex)
         }
@@ -132,7 +128,7 @@ fun FcitxApp(
         LaunchedEffect(routeHost) {
             snapshotFlow { routeHost.pending.value }.collect { route ->
                 if (route != null) {
-                    if (isComposeRoute(route)) composeStack.add(route) else onOpenLegacyRoute(route)
+                    composeStack.add(route)
                     routeHost.pending.value = null
                 }
             }

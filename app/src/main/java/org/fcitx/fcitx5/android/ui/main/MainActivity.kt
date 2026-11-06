@@ -9,27 +9,13 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.LinearLayout
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.compose.ui.platform.ComposeView
-import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updateLayoutParams
-import androidx.core.view.updatePadding
-import androidx.fragment.app.FragmentContainerView
-import androidx.fragment.app.commitNow
-import androidx.navigation.NavController
-import androidx.navigation.NavDestination.Companion.hasRoute
-import androidx.navigation.fragment.NavHostFragment
 import com.google.android.material.snackbar.Snackbar
 import org.fcitx.fcitx5.android.BuildConfig
 import org.fcitx.fcitx5.android.R
@@ -39,187 +25,72 @@ import org.fcitx.fcitx5.android.ui.compose.ComposeRouteHost
 import org.fcitx.fcitx5.android.ui.compose.FcitxApp
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
 import org.fcitx.fcitx5.android.ui.setup.SetupActivity
-import org.fcitx.fcitx5.android.utils.navigateWithAnim
 import org.fcitx.fcitx5.android.utils.parcelable
 import org.fcitx.fcitx5.android.utils.startActivity
-import splitties.dimensions.dp
-import splitties.views.topPadding
 
 /**
  * Hosts the Compose settings app.
  *
- * The four top-level pages are pure Compose. Detail screens that have not been ported to Compose
- * yet are pushed onto the existing navigation graph, which is shown in an overlay layer above the
- * Compose content together with its AppCompat toolbar, so unported screens keep working unchanged
- * while they are migrated one by one.
+ * The whole settings UI — the four pages and every detail screen — is Compose and lives in
+ * [FcitxApp]'s back stack. This activity only provides the window, forwards routes that arrive from
+ * outside (deep links, the keyboard's toolbar buttons, share intents) to [ComposeRouteHost] and
+ * handles the app-level concerns the settings UI has no business knowing about (notification
+ * permission, first-run wizard, share receiving).
  */
 class MainActivity : AppCompatActivity() {
 
     private val viewModel: MainViewModel by viewModels()
 
-    private lateinit var navController: NavController
     private lateinit var shareReceiveManager: ShareReceiveManager
 
+    /**
+     * Routes that arrive while the Compose host is already composed (or shortly before) are parked
+     * here and consumed by [FcitxApp].
+     */
     private val routeHost = ComposeRouteHost()
 
     private lateinit var composeView: ComposeView
-    private lateinit var detailLayer: ViewGroup
-    private lateinit var detailToolbar: Toolbar
-    private lateinit var navHostContainer: FragmentContainerView
-
-    private val detailVisible: Boolean
-        get() = detailLayer.visibility == View.VISIBLE
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(buildRootView())
-        setSupportActionBar(detailToolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         composeView.setContent {
             FcitxApp(
                 prefs = AppearancePrefs.getInstance(),
                 viewModel = viewModel,
-                onOpenLegacyRoute = { route -> openLegacyRoute(route) },
                 onOpenActivity = { clazz -> startActivity(Intent(this, clazz)) },
                 onOpenIntent = { intent -> startActivity(intent) },
                 routeHost = routeHost,
             )
         }
 
-        setupNavigation()
-        setupInsets()
-        processIntent(intent, savedInstanceState)
-        checkNotificationPermission()
-    }
-
-    private fun buildRootView(): View {
-        val root = FrameLayout(this)
-
-        composeView = ComposeView(this)
-        root.addView(composeView, matchParentParams())
-
-        detailToolbar = Toolbar(this).apply {
-            setBackgroundColor(ContextCompat.getColor(this@MainActivity, R.color.toolbar_background))
-            elevation = dp(4f)
-        }
-
-        navHostContainer = FragmentContainerView(this).apply { id = View.generateViewId() }
-
-        val column = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            addView(
-                detailToolbar,
-                LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-            )
-            addView(
-                navHostContainer,
-                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
-            )
-        }
-
-        detailLayer = FrameLayout(this).apply {
-            visibility = View.GONE
-            setBackgroundColor(ContextCompat.getColor(this@MainActivity, R.color.window_background))
-            addView(column, matchParentParams())
-        }
-        root.addView(detailLayer, matchParentParams())
-        return root
-    }
-
-    private fun matchParentParams() = FrameLayout.LayoutParams(
-        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
-    )
-
-    private fun setupNavigation() {
-        val navHost = NavHostFragment()
-        supportFragmentManager.commitNow {
-            setReorderingAllowed(true)
-            add(navHostContainer.id, navHost, "detail-nav-host")
-        }
-        navController = navHost.navController
-        navController.graph = SettingsRoute.createGraph(navController)
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            if (destination.hasRoute<SettingsRoute.Index>()) {
-                hideDetail()
-            } else {
-                showDetail()
-                destination.label?.let { viewModel.setToolbarTitle(it.toString()) }
-            }
-        }
         shareReceiveManager = ShareReceiveManager(this) { message, action ->
             Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_LONG).apply {
                 action?.let { callback -> setAction(R.string.edit) { callback() } }
             }.show()
         }
-        viewModel.toolbarTitle.observe(this) { supportActionBar?.title = it }
-        viewModel.toolbarShadow.observe(this) {
-            detailToolbar.elevation = dp(if (it) 4f else 0f)
-        }
-        detailToolbar.setNavigationOnClickListener {
-            if (onBackPressedDispatcher.hasEnabledCallbacks()) {
-                onBackPressedDispatcher.onBackPressed()
-                return@setNavigationOnClickListener
-            }
-            if (!navigateBack()) moveTaskToBack(false)
-        }
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (navigateBack()) return
-                isEnabled = false
-                onBackPressedDispatcher.onBackPressed()
-                isEnabled = true
-            }
-        })
+        processIntent(intent, savedInstanceState)
+        checkNotificationPermission()
     }
 
-    private fun setupInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(detailLayer) { _, windowInsets ->
-            val statusBars = windowInsets.getInsets(WindowInsetsCompat.Type.statusBars())
-            val navBars = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            detailLayer.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                leftMargin = navBars.left
-                rightMargin = navBars.right
-            }
-            detailToolbar.topPadding = statusBars.top
-            navHostContainer.updatePadding(bottom = navBars.bottom)
-            windowInsets
+    private fun buildRootView(): FrameLayout {
+        composeView = ComposeView(this)
+        return FrameLayout(this).apply {
+            addView(
+                composeView,
+                FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                ),
+            )
         }
     }
 
-    /**
-     * Opens a settings route, wherever it comes from.
-     *
-     * Ported screens are pushed by the Compose host, which owns their back stack; only routes that
-     * still live in the legacy navigation graph end up in [openLegacyRoute].
-     */
+    /** Opens a settings route, wherever it comes from. */
     fun openRoute(route: SettingsRoute) {
         routeHost.open(route)
-    }
-
-    /** Opens a route in the legacy navigation graph shown in the overlay. */
-    private fun openLegacyRoute(route: SettingsRoute) {
-        showDetail()
-        navController.popBackStack(SettingsRoute.Index, false)
-        navController.navigateWithAnim(route)
-    }
-
-    private fun showDetail() {
-        detailLayer.visibility = View.VISIBLE
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-    }
-
-    private fun hideDetail() {
-        detailLayer.visibility = View.GONE
-    }
-
-    /** Returns true when the back press was handled inside the app. */
-    private fun navigateBack(): Boolean {
-        if (detailVisible) return navController.navigateUp()
-        return false
     }
 
     private fun processIntent(intent: Intent?, savedInstanceState: Bundle? = null) {
@@ -253,14 +124,6 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         processIntent(intent, null)
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        if (onBackPressedDispatcher.hasEnabledCallbacks()) {
-            onBackPressedDispatcher.onBackPressed()
-            return true
-        }
-        return navigateBack() || super.onSupportNavigateUp() || moveTaskToBack(false)
     }
 
     private var needNotifications by AppPrefs.getInstance().internal.needNotifications

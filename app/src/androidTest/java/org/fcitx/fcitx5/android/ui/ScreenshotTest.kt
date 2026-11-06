@@ -88,6 +88,12 @@ class ScreenshotTest {
         composeRule.onNodeWithText(text).performClick()
     }
 
+    /** Pops the current detail screen through the activity's back dispatcher. */
+    private fun back() {
+        composeRule.runOnUiThread { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+        composeRule.waitForIdle()
+    }
+
     private fun tab(index: Int, name: String, assertText: Int) {
         composeRule.onNodeWithTag(tabTag(index)).performClick()
         composeRule.waitForIdle()
@@ -125,8 +131,14 @@ class ScreenshotTest {
         composeRule.waitForIdle()
         Thread.sleep(600)
         capture("theme-list")
-        composeRule.runOnUiThread { composeRule.activity.onBackPressedDispatcher.onBackPressed() }
+        back()
+
+        // 界面 → 图标主题
+        clickRow(context.getString(R.string.icon_theme))
         composeRule.waitForIdle()
+        Thread.sleep(600)
+        capture("icon-theme")
+        back()
 
         // 功能 → 全局选项（Fcitx 动态配置）
         composeRule.onNodeWithTag(tabTag(2)).performClick()
@@ -143,5 +155,42 @@ class ScreenshotTest {
         composeRule.waitForIdle()
         Thread.sleep(500)
         capture("candidates")
+        back()
+
+        // 功能 → 快捷短语（列表 + 编辑）
+        clickRow(context.getString(R.string.quickphrase_editor))
+        composeRule.waitForIdle()
+        Thread.sleep(600)
+        capture("quickphrase-list")
+        back()
+
+        // 功能 → 码表输入法
+        clickRow(context.getString(R.string.table_im))
+        composeRule.waitForIdle()
+        Thread.sleep(600)
+        capture("table-input-methods")
+        back()
+
+        // 功能 → 拼音自定义短语
+        clickRow(context.getString(R.string.ksu_pinyin_custom_phrase))
+        composeRule.waitForIdle()
+        Thread.sleep(600)
+        capture("pinyin-custom-phrase")
+        back()
+
+        // 设置 → 虚拟键盘（分组列表）
+        composeRule.onNodeWithTag(tabTag(3)).performClick()
+        composeRule.waitForIdle()
+        clickRow(context.getString(R.string.virtual_keyboard))
+        composeRule.waitForIdle()
+        Thread.sleep(600)
+        capture("virtual-keyboard")
+        back()
+
+        // 设置 → 许可证
+        clickRow(context.getString(R.string.license))
+        composeRule.waitForIdle()
+        Thread.sleep(600)
+        capture("licenses")
     }
 }

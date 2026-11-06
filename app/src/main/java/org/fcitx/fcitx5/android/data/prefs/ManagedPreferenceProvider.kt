@@ -5,7 +5,6 @@
 
 package org.fcitx.fcitx5.android.data.prefs
 
-import androidx.preference.PreferenceScreen
 import org.fcitx.fcitx5.android.utils.WeakHashSet
 
 abstract class ManagedPreferenceProvider {
@@ -24,9 +23,6 @@ abstract class ManagedPreferenceProvider {
     val managedPreferencesUi: List<ManagedPreferenceUi<*>>
         get() = _managedPreferencesUi
 
-    open fun createUi(screen: PreferenceScreen) {
-
-    }
 
     private val onChangeListeners = WeakHashSet<OnChangeListener>()
 
