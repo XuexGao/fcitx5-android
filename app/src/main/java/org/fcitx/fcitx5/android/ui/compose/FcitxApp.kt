@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -77,12 +76,10 @@ import org.fcitx.fcitx5.android.ui.compose.screens.ThemeScreen
 import org.fcitx.fcitx5.android.ui.compose.theme.FcitxTheme
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableBlur
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBar
-import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBarBlur
 import org.fcitx.fcitx5.android.ui.compose.util.rememberBlurBackdrop
 import org.fcitx.fcitx5.android.ui.main.MainViewModel
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
 import top.yukonga.miuix.kmp.blur.layerBackdrop
-import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** Test tag for a bottom-bar tab, used by the instrumented UI tests. */
@@ -108,22 +105,11 @@ fun FcitxApp(
         val uiMode = LocalUiMode.current
         val enableBlur = LocalEnableBlur.current
         val enableFloatingBottomBar = LocalEnableFloatingBottomBar.current
-        val enableFloatingBottomBarBlur = LocalEnableFloatingBottomBarBlur.current
         val useRail = useNavigationRail(enableFloatingBottomBar)
 
         val pagerState = rememberPagerState(pageCount = { MainDestination.entries.size })
         val mainPagerState = rememberMainPagerState(pagerState, scope, animatePageChanges = !useRail)
         val blurBackdrop = rememberBlurBackdrop(enableBlur)
-        val surfaceColor = when (uiMode) {
-            UiMode.Material -> MaterialTheme.colorScheme.surface
-            UiMode.Miuix -> top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surface
-        }
-        // Sampled by the liquid-glass bottom bar, so it sees the page content behind it.
-        val glassBackdrop = rememberLayerBackdrop {
-            drawRect(surfaceColor)
-            drawContent()
-        }
-
         // Every settings screen is Compose, so opening a route is just a push.
         val composeStack = remember { mutableStateListOf<SettingsRoute>() }
         val openRoute: (SettingsRoute) -> Unit = { route -> composeStack.add(route) }
@@ -159,15 +145,7 @@ fun FcitxApp(
                 ) {
                     HorizontalPager(
                         state = mainPagerState.pagerState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .then(
-                                if (enableFloatingBottomBar && enableFloatingBottomBarBlur) {
-                                    Modifier.layerBackdrop(glassBackdrop)
-                                } else {
-                                    Modifier
-                                }
-                            ),
+                        modifier = Modifier.fillMaxSize(),
                         beyondViewportPageCount = 1,
                     ) { page ->
                         when (page) {
@@ -202,11 +180,7 @@ fun FcitxApp(
                 } else {
                     val bar: @Composable () -> Unit = {
                         Box(modifier = Modifier.fillMaxWidth()) {
-                            BottomBar(
-                                blurBackdrop = blurBackdrop,
-                                backdrop = glassBackdrop,
-                                modifier = Modifier.align(Alignment.BottomCenter),
-                            )
+                            BottomBar(modifier = Modifier.align(Alignment.BottomCenter))
                         }
                     }
                     val shellContent: @Composable (Dp) -> Unit = { innerBottom ->

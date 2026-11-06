@@ -10,17 +10,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import org.fcitx.fcitx5.android.ui.compose.LocalUiMode
 import org.fcitx.fcitx5.android.ui.compose.UiMode
-import top.yukonga.miuix.kmp.blur.Backdrop
-import top.yukonga.miuix.kmp.blur.LayerBackdrop
 
 @Composable
-fun BottomBar(
-    blurBackdrop: LayerBackdrop?,
-    backdrop: Backdrop,
-    modifier: Modifier = Modifier,
-) {
+fun BottomBar(modifier: Modifier = Modifier) {
     when (LocalUiMode.current) {
-        UiMode.Miuix -> BottomBarMiuix(blurBackdrop, backdrop, modifier)
+        UiMode.Miuix -> BottomBarMiuix(modifier)
         UiMode.Material -> BottomBarMaterial()
     }
 }
