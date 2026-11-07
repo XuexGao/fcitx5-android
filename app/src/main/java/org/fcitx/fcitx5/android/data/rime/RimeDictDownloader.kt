@@ -127,13 +127,17 @@ object RimeDictDownloader {
         _state.value = RimeDictState.Resolving("版本")
         val api = "https://api.github.com/repos/${RimeDictPackages.REPO}/releases/latest"
         for (mirror in RimeDictPackages.MIRRORS) {
-            val tag = runCatching {
-                open("${mirror}$api").use { connection ->
-                    if (connection.responseCode != 200) return@use null
+            val connection = runCatching { open("$mirror$api") }.getOrNull() ?: continue
+            val tag: String? = runCatching {
+                if (connection.responseCode != 200) {
+                    null
+                } else {
                     val body = connection.inputStream.bufferedReader().use { it.readText() }
-                    Regex("\"tag_name\"\\s*:\\s*\"([^\"]+)\"").find(body)?.groupValues?.get(1)
+                    Regex("\"tag_name\"\\s*:\\s*\"([^\"]+)\"")
+                        .find(body)?.groupValues?.get(1)
                 }
             }.getOrNull()
+            runCatching { connection.disconnect() }
             if (!tag.isNullOrBlank()) return tag
         }
         Timber.w("Could not resolve the newest rime-wanxiang tag; using %s", RimeDictPackages.FALLBACK_TAG)

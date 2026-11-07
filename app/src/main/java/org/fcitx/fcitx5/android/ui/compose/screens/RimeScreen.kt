@@ -107,7 +107,7 @@ fun RimeScreen(
         bottomInnerPadding = bottomInnerPadding,
         onBack = onBack,
     ) {
-        dictionarySection(prefs, revision, scope) { revision++ }
+        dictionarySection(prefs, revision, scope, dictState) { revision++ }
         statusSection(prefs, revision)
         defaultSchemaSection(prefs, revision) { revision++ }
         doublePinyinSection(prefs, revision) { revision++ }
@@ -136,6 +136,7 @@ private fun LazyListScope.dictionarySection(
     prefs: RimePrefs,
     revision: Int,
     scope: kotlinx.coroutines.CoroutineScope,
+    dictState: RimeDictState,
     onChanged: () -> Unit,
 ) {
     item {

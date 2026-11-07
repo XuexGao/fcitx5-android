@@ -326,7 +326,7 @@ private fun ExternalRow(
     val context = LocalContext.current
     when (descriptor.knownType) {
         ConfigDescriptor.ConfigExternal.ETy.PinyinDict ->
-            NavRow(title = label, summary = summary, icon = Icons.Rounded.LibraryBooks, onClick = { onOpenRoute(SettingsRoute.PinyinDict("")) })
+            NavRow(title = label, summary = summary, icon = Icons.AutoMirrored.Rounded.LibraryBooks, onClick = { onOpenRoute(SettingsRoute.PinyinDict("")) })
 
         ConfigDescriptor.ConfigExternal.ETy.Punctuation ->
             NavRow(title = label, summary = summary, icon = Icons.Rounded.FormatQuote, onClick = {
