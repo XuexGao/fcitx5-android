@@ -32,12 +32,15 @@ import top.yukonga.miuix.kmp.theme.ThemePaletteStyle
  * the stored colour mode is coerced to its Monet / non-Monet counterpart so the two switches stay
  * consistent, exactly as the template's `ThemeController.getAppSettings` does.
  */
+/**
+ * The miuix colour controller built from [prefs].
+ *
+ * Both styles use it: the miuix style for its own surfaces, and the Material style to keep the
+ * handful of miuix widgets it still contains (icon tints, small titles) from falling back to
+ * miuix's all-zero default palette.
+ */
 @Composable
-fun FcitxMiuixTheme(
-    prefs: AppearancePrefs,
-    content: @Composable () -> Unit,
-) {
-    val context = LocalContext.current
+fun miuixController(prefs: AppearancePrefs): ThemeController {
     val systemDark = isSystemInDarkTheme()
     val monet = prefs.miuixMonet.getValue()
     val storedMode = prefs.colorModeValue
@@ -57,7 +60,7 @@ fun FcitxMiuixTheme(
         ThemeColorSpec.Spec2021
     }
 
-    val controller = ThemeController(
+    return ThemeController(
         colorSchemeMode = when (colorMode) {
             ColorMode.System -> ColorSchemeMode.System
             ColorMode.Light -> ColorSchemeMode.Light
@@ -71,6 +74,16 @@ fun FcitxMiuixTheme(
         paletteStyle = paletteStyle,
         colorSpec = colorSpec,
     )
+}
+
+@Composable
+fun FcitxMiuixTheme(
+    prefs: AppearancePrefs,
+    content: @Composable () -> Unit,
+) {
+    val context = LocalContext.current
+    val controller = miuixController(prefs)
+    val darkTheme = controller.isDark == true
 
     MiuixTheme(
         controller = controller,

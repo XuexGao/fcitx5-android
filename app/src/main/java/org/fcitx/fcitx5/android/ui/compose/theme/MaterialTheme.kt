@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowInsetsControllerCompat
 import com.materialkolor.rememberDynamicColorScheme
 import org.fcitx.fcitx5.android.data.prefs.AppearancePrefs
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * Material 3 flavour of the settings app: the palette is generated with materialKolor from the
@@ -84,6 +85,11 @@ fun FcitxMaterialTheme(
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
         motionScheme = MotionScheme.expressive(),
-        content = content,
+        content = {
+            // A few widgets in the Material screens are still miuix ones (icon tints, small titles).
+            // miuix's unprovided palette is all-transparent, which would render them invisible, so
+            // the matching miuix palette is provided as well.
+            MiuixTheme(controller = miuixController(prefs), content = content)
+        },
     )
 }
