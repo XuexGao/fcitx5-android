@@ -47,7 +47,6 @@ import org.fcitx.fcitx5.android.utils.config.ConfigDescriptor
 import org.fcitx.fcitx5.android.utils.config.ConfigType
 import org.fcitx.fcitx5.android.utils.toast
 import timber.log.Timber
-import top.yukonga.miuix.kmp.basic.SmallTitle
 
 /**
  * Compose replacement for `PreferenceScreenFactory`.
@@ -153,8 +152,11 @@ private fun LazyListScope.cfgRows(
     val plain = descriptors.filterNot { it is ConfigDescriptor.ConfigCustom }
     val customs = descriptors.filterIsInstance<ConfigDescriptor.ConfigCustom>()
     item {
-        if (title != null) SmallTitle(text = title)
-        SettingsGroup(modifier = Modifier.padding(top = if (title == null) 12.dp else 2.dp)) {
+        // The group title is handed to SettingsGroup so each style draws its own section header.
+        SettingsGroup(
+            title = title,
+            modifier = Modifier.padding(top = if (title == null) 12.dp else 2.dp),
+        ) {
             plain.forEach { descriptor ->
                 CfgRow(cfg, descriptor, onChanged, onOpenRoute, onEditList)
             }
