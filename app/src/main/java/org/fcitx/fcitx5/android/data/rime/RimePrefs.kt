@@ -44,6 +44,23 @@ class RimePrefs(sharedPreferences: SharedPreferences) {
     val fuzzyInIng = ManagedPreference.PBool(sharedPreferences, KEY_FUZZY_IN_ING, false)
     val fuzzyAnAng = ManagedPreference.PBool(sharedPreferences, KEY_FUZZY_AN_ANG, false)
 
+    /** Which dictionary package the user wants: Base, or a Pro (辅助码) package. */
+    val dictVariant = ManagedPreference.PString(
+        sharedPreferences, KEY_DICT_VARIANT, RimeDictPackages.Variant.Base.id
+    )
+
+    /** 辅助码 variant id used when [dictVariant] is Pro. */
+    val dictScheme = ManagedPreference.PString(sharedPreferences, KEY_DICT_SCHEME, "")
+
+    /** Whether the (large) language model should be installed as well. */
+    val dictGrammar = ManagedPreference.PBool(sharedPreferences, KEY_DICT_GRAMMAR, false)
+
+    /** Release tag the user last downloaded, so "update" can tell when a newer one exists. */
+    val dictTag = ManagedPreference.PString(sharedPreferences, KEY_DICT_TAG, "")
+
+    /** Release tag currently unpacked in the Rime user directory. */
+    val dictInstalledTag = ManagedPreference.PString(sharedPreferences, KEY_DICT_INSTALLED_TAG, "")
+
     /** Set once the generated custom config has been written to the Rime user directory. */
     val deployed = ManagedPreference.PBool(sharedPreferences, KEY_DEPLOYED, false)
 
@@ -81,6 +98,11 @@ class RimePrefs(sharedPreferences: SharedPreferences) {
         const val KEY_FUZZY_N_L = "rime_fuzzy_n_l"
         const val KEY_FUZZY_IN_ING = "rime_fuzzy_in_ing"
         const val KEY_FUZZY_AN_ANG = "rime_fuzzy_an_ang"
+        const val KEY_DICT_VARIANT = "rime_dict_variant"
+        const val KEY_DICT_SCHEME = "rime_dict_scheme"
+        const val KEY_DICT_GRAMMAR = "rime_dict_grammar"
+        const val KEY_DICT_TAG = "rime_dict_tag"
+        const val KEY_DICT_INSTALLED_TAG = "rime_dict_installed_tag"
         const val KEY_DEPLOYED = "rime_deployed"
         const val KEY_DEPLOYED_SIGNATURE = "rime_deployed_signature"
 

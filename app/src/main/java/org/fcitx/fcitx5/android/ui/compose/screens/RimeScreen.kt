@@ -9,7 +9,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
+import org.fcitx.fcitx5.android.ui.compose.component.DropdownRow
+import org.fcitx.fcitx5.android.data.rime.RimeDictState
+import org.fcitx.fcitx5.android.data.rime.RimeDictPackages
+import org.fcitx.fcitx5.android.data.rime.RimeDictDownloader
+import androidx.compose.material.icons.rounded.Tune
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.automirrored.rounded.LibraryBooks
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.SettingsBackupRestore
@@ -58,6 +66,7 @@ fun RimeScreen(
     val prefs = remember { RimePrefs.ensureInitialized(context) }
     val scope = rememberCoroutineScope()
     var revision by remember { mutableIntStateOf(0) }
+    val dictState by RimeDictDownloader.state.collectAsStateWithLifecycle()
 
     val exportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/yaml")
@@ -98,6 +107,7 @@ fun RimeScreen(
         bottomInnerPadding = bottomInnerPadding,
         onBack = onBack,
     ) {
+        dictionarySection(prefs, revision, scope) { revision++ }
         statusSection(prefs, revision)
         defaultSchemaSection(prefs, revision) { revision++ }
         doublePinyinSection(prefs, revision) { revision++ }
@@ -114,6 +124,100 @@ fun RimeScreen(
             onExport = { exportLauncher.launch("rime-config.yaml") },
             onImport = { importLauncher.launch(arrayOf("application/yaml", "text/plain", "*/*")) },
         )
+    }
+}
+
+/**
+ * 词库: installs or updates the 万象拼音 schema package (Base, or a Pro 辅助码 variant) and the
+ * optional language model. The package is downloaded from the project's GitHub releases, through a
+ * mirror first because the direct host is often unreachable.
+ */
+private fun LazyListScope.dictionarySection(
+    prefs: RimePrefs,
+    revision: Int,
+    scope: kotlinx.coroutines.CoroutineScope,
+    onChanged: () -> Unit,
+) {
+    item {
+        val variant = RimeDictPackages.Variant.fromId(prefs.dictVariant.getValue())
+        val scheme = prefs.dictScheme.getValue().ifBlank { RimeDictPackages.PRO_SCHEMES.first().first }
+        val installedTag = prefs.dictInstalledTag.getValue()
+        val installed = remember(revision) { RimeManager.isWanxiangAvailable() }
+        val version = remember(revision) {
+            RimeManager.installedDictVersion() ?: installedTag.ifBlank { null }
+        }
+        val schemeLabels = RimeDictPackages.PRO_SCHEMES.map { it.second }
+        val schemeIndex = RimeDictPackages.PRO_SCHEMES.indexOfFirst { it.first == scheme }
+            .coerceAtLeast(0)
+
+        SettingsGroup(
+            title = stringResource(R.string.ksu_rime_dict),
+            modifier = Modifier.padding(top = 12.dp),
+        ) {
+            DropdownRow(
+                title = stringResource(R.string.ksu_rime_dict_variant),
+                summary = variant.label,
+                icon = Icons.AutoMirrored.Rounded.LibraryBooks,
+                items = RimeDictPackages.Variant.entries.map { it.label },
+                selectedIndex = RimeDictPackages.Variant.entries.indexOf(variant),
+                onSelectedIndexChange = { index ->
+                    prefs.dictVariant.setValue(RimeDictPackages.Variant.entries[index].id)
+                    onChanged()
+                },
+            )
+            if (variant == RimeDictPackages.Variant.Pro) {
+                DropdownRow(
+                    title = stringResource(R.string.ksu_rime_dict_scheme),
+                    icon = Icons.Rounded.Tune,
+                    items = schemeLabels,
+                    selectedIndex = schemeIndex,
+                    onSelectedIndexChange = { index ->
+                        prefs.dictScheme.setValue(RimeDictPackages.PRO_SCHEMES[index].first)
+                        onChanged()
+                    },
+                )
+            }
+            SwitchRow(
+                pref = prefs.dictGrammar,
+                title = stringResource(R.string.ksu_rime_dict_grammar),
+                summary = stringResource(R.string.ksu_rime_dict_grammar_summary),
+            )
+            NavRow(
+                title = if (installed) stringResource(R.string.ksu_rime_dict_update)
+                else stringResource(R.string.ksu_rime_dict_install),
+                summary = when (val state = dictState) {
+                    is RimeDictState.Downloading ->
+                        "${state.what} ${state.percent}%"
+
+                    is RimeDictState.Extracting -> "${state.what}…"
+                    is RimeDictState.Resolving -> stringResource(R.string.ksu_rime_dict_resolving)
+                    is RimeDictState.Failed -> state.message
+                    is RimeDictState.Done -> state.detail
+                    RimeDictState.Idle -> buildString {
+                        if (installed) {
+                            append(stringResource(R.string.ksu_rime_available))
+                            version?.let { append(" · ").append(it) }
+                        } else {
+                            append(stringResource(R.string.ksu_rime_unavailable))
+                        }
+                    }
+                },
+                icon = Icons.Rounded.CloudDownload,
+                enabled = dictState !is RimeDictState.Downloading &&
+                    dictState !is RimeDictState.Extracting &&
+                    dictState !is RimeDictState.Resolving,
+                onClick = {
+                    scope.launch {
+                        RimeDictDownloader.install(
+                            variant = variant,
+                            scheme = scheme,
+                            withGrammar = prefs.dictGrammar.getValue(),
+                        )
+                        onChanged()
+                    }
+                },
+            )
+        }
     }
 }
 

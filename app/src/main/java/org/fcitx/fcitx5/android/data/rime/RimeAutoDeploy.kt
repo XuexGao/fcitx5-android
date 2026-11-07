@@ -33,6 +33,12 @@ object RimeAutoDeploy {
      * @return true when files were written on this call
      */
     suspend fun ensureDeployed(context: Context): Boolean = withContext(Dispatchers.IO) {
+        // No schema on disk means this is a fresh install: fetch the Base package in the background
+        // so 万象拼音 becomes usable without the user having to open the settings page first.
+        if (!RimeManager.isWanxiangAvailable() && !RimeDictDownloader.isRunning) {
+            runCatching { RimeDictDownloader.install() }
+                .onFailure { Timber.w(it, "Automatic dictionary download failed") }
+        }
         runCatching {
             val written = RimeManager.applyConfiguration(context)
             if (written.isNotEmpty()) {

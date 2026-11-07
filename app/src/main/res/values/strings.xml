@@ -966,6 +966,14 @@
     <string name="ksu_rime_import_failed">导入失败，请检查文件格式</string>
     <string name="ksu_rime_reset">恢复默认方案设置</string>
     <string name="ksu_rime_reset_done">已恢复默认方案设置</string>
+    <string name="ksu_rime_dict">词库</string>
+    <string name="ksu_rime_dict_variant">词库版本</string>
+    <string name="ksu_rime_dict_scheme">辅助码</string>
+    <string name="ksu_rime_dict_grammar">语法模型（约 400 MB）</string>
+    <string name="ksu_rime_dict_grammar_summary">下载 RIME-LMDG 语言模型，提升整句准确率</string>
+    <string name="ksu_rime_dict_install">下载词库</string>
+    <string name="ksu_rime_dict_update">更新词库</string>
+    <string name="ksu_rime_dict_resolving">正在获取版本…</string>
     <string name="ksu_rime_status">万象拼音状态</string>
     <string name="ksu_rime_available">已安装，可直接使用</string>
     <string name="ksu_rime_unavailable">未检测到，请确认已安装 Rime 插件</string>

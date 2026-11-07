@@ -65,8 +65,15 @@ install(FILES
         )
 
 # ---- rime-wanxiang (万象拼音) ----------------------------------------------
+#
+# 万象拼音 is NOT bundled any more: the schema package and the language model are downloaded from
+# the project's GitHub releases on first use (see data/rime/RimeDictDownloader.kt) into Rime's user
+# data directory. The old submodule was never wired into the tree, so bundling never actually
+# happened and the settings page always reported the schema as missing.
+#
+# If a checkout still carries the submodule (e.g. for offline builds), it is installed as before.
 set(WANXIANG_DIR "${RIME_PLUGIN_DIR}/rime-wanxiang")
-option(INCLUDE_WANXIANG_DICT "Bundle the rime-wanxiang dictionaries" ON)
+option(INCLUDE_WANXIANG_DICT "Bundle the rime-wanxiang dictionaries when the submodule is present" OFF)
 if (EXISTS "${WANXIANG_DIR}/wanxiang.schema.yaml")
     file(GLOB WANXIANG_YAML "${WANXIANG_DIR}/wanxiang*.yaml")
     install(FILES
@@ -89,6 +96,4 @@ if (EXISTS "${WANXIANG_DIR}/wanxiang.schema.yaml")
                 COMPONENT prebuilt-assets
                 )
     endif ()
-else ()
-    message(WARNING "rime-wanxiang submodule is missing; building without it")
 endif ()

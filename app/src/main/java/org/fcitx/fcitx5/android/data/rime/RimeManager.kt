@@ -69,9 +69,21 @@ object RimeManager {
 
     data class RimeSchema(val id: String, val displayName: String, val inUserDir: Boolean)
 
-    /** `true` when the 万象拼音 schema is deployed and therefore usable. */
+    /**
+     * `true` when the 万象拼音 schema is available.
+     *
+     * The schema can live in either half of librime's data path: the deployed shared data (when the
+     * package was bundled) or the user directory (where the downloader unpacks it).
+     */
     fun isWanxiangAvailable(): Boolean =
-        File(sharedDir, "$DEFAULT_SCHEMA.schema.yaml").isFile
+        File(userDir, "$DEFAULT_SCHEMA.schema.yaml").isFile ||
+            File(sharedDir, "$DEFAULT_SCHEMA.schema.yaml").isFile
+
+    /** Release tag currently unpacked in the user directory, read back from the schema package. */
+    fun installedDictVersion(): String? =
+        File(userDir, "version.txt").takeIf { it.isFile }
+            ?.let { runCatching { it.readText().trim() }.getOrNull() }
+            ?.takeIf { it.isNotBlank() }
 
     /**
      * Renders the current preferences into the Rime user directory.
