@@ -8,14 +8,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Android
-import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.BugReport
 import androidx.compose.material.icons.rounded.ContactPage
-import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.Layers
+import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.LibraryBooks
-import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.ViewCarousel
 import androidx.compose.runtime.Composable
@@ -26,7 +23,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.data.prefs.AppearancePrefs
-import org.fcitx.fcitx5.android.ui.compose.component.DropdownRow
 import org.fcitx.fcitx5.android.ui.compose.component.NavRow
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
@@ -48,6 +44,7 @@ fun SettingsPage(
         bottomInnerPadding = bottomInnerPadding,
     ) {
         appThemeSection(onOpenRoute)
+        keyboardSettingsSection(onOpenRoute)
         shellSection()
         appSection(onOpenRoute)
         aboutSection(onOpenRoute)
@@ -77,59 +74,45 @@ private fun LazyListScope.shellSection() {
             title = stringResource(R.string.ksu_app_other),
             modifier = Modifier.padding(top = 12.dp),
         ) {
-            DropdownRow(
-                title = stringResource(R.string.ksu_app_ui_mode),
-                summary = stringResource(R.string.ksu_app_ui_mode_summary),
-                icon = Icons.Rounded.Dashboard,
-                items = listOf("Miuix", "Material"),
-                selectedIndex = if (prefs.uiMode.getValue() == AppearancePrefs.UI_MODE_MATERIAL) 1 else 0,
-                onSelectedIndexChange = { index ->
-                    prefs.uiMode.setValue(
-                        if (index == 1) AppearancePrefs.UI_MODE_MATERIAL
-                        else AppearancePrefs.UI_MODE_MIUIX
-                    )
-                },
-            )
-            SwitchRow(
-                pref = prefs.enableBlur,
-                title = stringResource(R.string.ksu_app_enable_blur),
-                summary = stringResource(R.string.ksu_app_enable_blur_summary),
-                icon = Icons.Rounded.BlurOn,
-            )
-            SwitchRow(
-                pref = prefs.floatingBottomBar,
-                title = stringResource(R.string.ksu_app_floating_bar),
-                icon = Icons.Rounded.ViewCarousel,
-            )
-            SwitchRow(
-                pref = prefs.floatingBottomBarBlur,
-                title = stringResource(R.string.ksu_app_floating_bar_blur),
-                enabled = prefs.floatingBottomBar.getValue(),
-            )
+            // The style switch, blur and bottom-bar options live in 主题设置; only this one stays.
             SwitchRow(
                 pref = prefs.showKeyboardPreview,
                 title = stringResource(R.string.ksu_app_show_preview),
-                icon = Icons.Rounded.Layers,
+                summary = stringResource(R.string.ksu_app_show_preview_summary),
             )
         }
     }
 }
 
+/** 设置: the screens that configure a keyboard component. */
+private fun LazyListScope.keyboardSettingsSection(onOpenRoute: (SettingsRoute) -> Unit) {
+    item {
+        SettingsGroup(
+            title = stringResource(R.string.ksu_settings_settings),
+            modifier = Modifier.padding(top = 12.dp),
+        ) {
+            NavRow(
+                title = stringResource(R.string.virtual_keyboard),
+                icon = Icons.Rounded.Keyboard,
+                onClick = { onOpenRoute(SettingsRoute.VirtualKeyboard) },
+            )
+            NavRow(
+                title = stringResource(R.string.candidates_window),
+                icon = Icons.Rounded.ViewCarousel,
+                onClick = { onOpenRoute(SettingsRoute.CandidatesWindow) },
+            )
+        }
+    }
+}
+
+/** 应用: the options that describe the app itself rather than the keyboard. */
 private fun LazyListScope.appSection(onOpenRoute: (SettingsRoute) -> Unit) {
     item {
         val context = LocalContext.current
         SettingsGroup(
-            title = stringResource(R.string.ksu_app_other),
+            title = stringResource(R.string.ksu_settings_app),
             modifier = Modifier.padding(top = 12.dp),
         ) {
-            NavRow(
-                title = stringResource(R.string.ksu_clipboard_sync),
-                summary = stringResource(R.string.clipboard_sync_settings_summary),
-                icon = Icons.Rounded.Memory,
-                onClick = {
-                    onOpenRoute(SettingsRoute.Clipboard)
-                },
-            )
             NavRow(
                 title = stringResource(R.string.ksu_app_notification),
                 summary = stringResource(R.string.notification_permission_title),

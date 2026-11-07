@@ -34,6 +34,8 @@ data class ColorPaletteUiState(
     val enableBlur: Boolean,
     val enableFloatingBottomBar: Boolean,
     val enableFloatingBottomBarBlur: Boolean,
+    /** "miuix" or "material"; the style switch lives here per the reference's settings page. */
+    val uiMode: String,
 )
 
 @Immutable
@@ -48,6 +50,7 @@ data class ColorPaletteScreenActions(
     val onSetEnableBlur: (Boolean) -> Unit,
     val onSetEnableFloatingBottomBar: (Boolean) -> Unit,
     val onSetEnableFloatingBottomBarBlur: (Boolean) -> Unit,
+    val onSetUiMode: (String) -> Unit,
 )
 
 @Composable
@@ -61,6 +64,7 @@ fun ColorPaletteScreen(bottomInnerPadding: Dp, onBack: () -> Unit) {
     val enableBlur = rememberPref(prefs.enableBlur)
     val floatingBottomBar = rememberPref(prefs.floatingBottomBar)
     val floatingBottomBarBlur = rememberPref(prefs.floatingBottomBarBlur)
+    val uiMode = rememberPref(prefs.uiMode)
 
     val state = ColorPaletteUiState(
         colorMode = colorMode.value,
@@ -72,6 +76,7 @@ fun ColorPaletteScreen(bottomInnerPadding: Dp, onBack: () -> Unit) {
         enableBlur = enableBlur.value,
         enableFloatingBottomBar = floatingBottomBar.value,
         enableFloatingBottomBarBlur = floatingBottomBarBlur.value,
+        uiMode = uiMode.value,
     )
     val actions = ColorPaletteScreenActions(
         onBack = onBack,
@@ -94,6 +99,7 @@ fun ColorPaletteScreen(bottomInnerPadding: Dp, onBack: () -> Unit) {
         onSetEnableBlur = { enableBlur.value = it },
         onSetEnableFloatingBottomBar = { floatingBottomBar.value = it },
         onSetEnableFloatingBottomBarBlur = { floatingBottomBarBlur.value = it },
+        onSetUiMode = { uiMode.value = it },
     )
 
     when (LocalUiMode.current) {

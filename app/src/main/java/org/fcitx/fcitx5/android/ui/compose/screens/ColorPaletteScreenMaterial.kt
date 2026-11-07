@@ -41,6 +41,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Dashboard
+import androidx.compose.material.icons.rounded.BlurOn
+import androidx.compose.material.icons.rounded.CallToAction
+import androidx.compose.material.icons.rounded.WaterDrop
 import androidx.compose.material.icons.filled.Brightness1
 import androidx.compose.material.icons.filled.Brightness3
 import androidx.compose.material.icons.filled.Brightness4
@@ -85,6 +89,7 @@ import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
 import org.fcitx.fcitx5.android.ui.compose.component.bottombar.useNavigationRail
 import org.fcitx.fcitx5.android.ui.compose.component.material.SegmentedColumn
 import org.fcitx.fcitx5.android.ui.compose.component.material.SegmentedDropdownItem
+import org.fcitx.fcitx5.android.ui.compose.component.material.SegmentedSwitchItem
 import org.fcitx.fcitx5.android.ui.compose.theme.colorSpecNames
 import org.fcitx.fcitx5.android.ui.compose.theme.keyColorOptions
 import org.fcitx.fcitx5.android.ui.compose.theme.paletteStyleNames
@@ -211,6 +216,44 @@ fun ColorPaletteScreenMaterial(
                     SegmentedColumn(
                         modifier = Modifier.padding(top = 4.dp),
                         content = listOf(
+                            {
+                                SegmentedDropdownItem(
+                                    icon = Icons.Rounded.Dashboard,
+                                    title = stringResource(R.string.ksu_app_ui_mode),
+                                    summary = stringResource(R.string.ksu_app_ui_mode_summary),
+                                    items = listOf("Miuix", "Material"),
+                                    selectedIndex = if (state.uiMode == "material") 1 else 0,
+                                    onItemSelected = { index ->
+                                        actions.onSetUiMode(if (index == 1) "material" else "miuix")
+                                    },
+                                )
+                            },
+                            {
+                                SegmentedSwitchItem(
+                                    icon = Icons.Rounded.BlurOn,
+                                    title = stringResource(R.string.ksu_app_enable_blur),
+                                    summary = stringResource(R.string.ksu_app_enable_blur_summary),
+                                    checked = state.enableBlur,
+                                    onCheckedChange = { actions.onSetEnableBlur(it) },
+                                )
+                            },
+                            {
+                                SegmentedSwitchItem(
+                                    icon = Icons.Rounded.CallToAction,
+                                    title = stringResource(R.string.ksu_app_floating_bar),
+                                    checked = state.enableFloatingBottomBar,
+                                    onCheckedChange = { actions.onSetEnableFloatingBottomBar(it) },
+                                )
+                            },
+                            {
+                                SegmentedSwitchItem(
+                                    icon = Icons.Rounded.WaterDrop,
+                                    title = stringResource(R.string.ksu_app_floating_bar_blur),
+                                    checked = state.enableFloatingBottomBarBlur,
+                                    enabled = state.enableFloatingBottomBar,
+                                    onCheckedChange = { actions.onSetEnableFloatingBottomBarBlur(it) },
+                                )
+                            },
                             {
                                 SegmentedDropdownItem(
                                     icon = Icons.Rounded.Style,

@@ -7,16 +7,12 @@ package org.fcitx.fcitx5.android.ui.compose.pages
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.Palette
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.Sync
-import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Verified
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -34,7 +30,6 @@ import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
 import org.fcitx.fcitx5.android.ui.compose.component.StatusCard
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
-import org.fcitx.fcitx5.android.ui.main.settings.behavior.ButtonsCustomizerActivity
 import org.fcitx.fcitx5.android.utils.InputMethodUtil
 
 /**
@@ -53,11 +48,9 @@ fun HomePage(
     ) {
         homeStatusCard()
         homeStatusSection(onOpenRoute)
-        homeQuickActionsSection(onOpenRoute, onOpenActivity)
-        homeAboutSection(onOpenRoute)
+        homeVersionSection()
     }
 }
-
 /**
  * The "ready" card from the template: green when the input method is enabled and selected, red
  * otherwise, with the app version underneath. Tapping it opens the system input method settings,
@@ -123,46 +116,8 @@ private fun LazyListScope.homeStatusSection(onOpenRoute: (SettingsRoute) -> Unit
         }
     }
 }
-
-private fun LazyListScope.homeQuickActionsSection(
-    onOpenRoute: (SettingsRoute) -> Unit,
-    onOpenActivity: (Class<*>) -> Unit,
-) {
-    item {
-        val context = LocalContext.current
-        SettingsGroup(
-            title = stringResource(R.string.ksu_home_quick_actions),
-            modifier = Modifier.padding(top = 12.dp),
-        ) {
-            NavRow(
-                title = stringResource(R.string.ksu_home_enable_ime),
-                summary = stringResource(R.string.ksu_home_enable_ime_summary),
-                icon = Icons.Rounded.Android,
-                onClick = { InputMethodUtil.startSettingsActivity(context) },
-            )
-            NavRow(
-                title = stringResource(R.string.ksu_home_pick_ime),
-                summary = stringResource(R.string.ksu_home_pick_ime_summary),
-                icon = Icons.Rounded.Language,
-                onClick = { InputMethodUtil.showPicker() },
-            )
-            NavRow(
-                title = stringResource(R.string.ksu_features_toolbar_customize),
-                summary = stringResource(R.string.ksu_features_toolbar_customize_summary),
-                icon = Icons.Rounded.Tune,
-                onClick = { onOpenActivity(ButtonsCustomizerActivity::class.java) },
-            )
-            NavRow(
-                title = stringResource(R.string.ksu_home_advanced_settings),
-                summary = stringResource(R.string.ksu_home_advanced_settings_summary),
-                icon = Icons.Rounded.Settings,
-                onClick = { onOpenRoute(SettingsRoute.Advanced) },
-            )
-        }
-    }
-}
-
-private fun LazyListScope.homeAboutSection(onOpenRoute: (SettingsRoute) -> Unit) {
+/** 版本信息: what this build is — nothing here navigates anywhere. */
+private fun LazyListScope.homeVersionSection() {
     item {
         val context = LocalContext.current
         SettingsGroup(
@@ -178,17 +133,6 @@ private fun LazyListScope.homeAboutSection(onOpenRoute: (SettingsRoute) -> Unit)
                 title = stringResource(R.string.ksu_home_package),
                 summary = context.packageName,
                 icon = Icons.Rounded.Extension,
-            )
-            NavRow(
-                title = stringResource(R.string.about),
-                icon = Icons.Rounded.Info,
-                onClick = { onOpenRoute(SettingsRoute.About) },
-            )
-            NavRow(
-                title = stringResource(R.string.ksu_home_redeploy_rime),
-                summary = stringResource(R.string.ksu_rime_redeploy_summary),
-                icon = Icons.Rounded.Sync,
-                onClick = { onOpenRoute(SettingsRoute.RimeSchemas) },
             )
         }
     }

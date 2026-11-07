@@ -33,6 +33,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.CallToAction
 import androidx.compose.material.icons.rounded.Colorize
+import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.DesignServices
 import androidx.compose.material.icons.rounded.Style
 import androidx.compose.material.icons.rounded.Wallpaper
@@ -224,6 +225,23 @@ fun ColorPaletteScreenMiuix(
                     .padding(top = 12.dp)
                     .fillMaxWidth(),
             ) {
+                OverlayDropdownPreference(
+                    title = stringResource(id = R.string.ksu_app_ui_mode),
+                    summary = stringResource(id = R.string.ksu_app_ui_mode_summary),
+                    items = listOf("Miuix", "Material"),
+                    selectedIndex = if (state.uiMode == "material") 1 else 0,
+                    startAction = {
+                        Icon(
+                            Icons.Rounded.Dashboard,
+                            modifier = Modifier.padding(end = 6.dp),
+                            contentDescription = stringResource(id = R.string.ksu_app_ui_mode),
+                            tint = colorScheme.onBackground,
+                        )
+                    },
+                    onSelectedIndexChange = { index ->
+                        actions.onSetUiMode(if (index == 1) "material" else "miuix")
+                    },
+                )
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     SwitchPreference(
                         title = stringResource(id = R.string.ksu_app_enable_blur),

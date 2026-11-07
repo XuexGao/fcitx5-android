@@ -6,10 +6,18 @@ package org.fcitx.fcitx5.android.ui.compose.screens
 
 import android.net.Uri
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Bolt
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.FormatQuote
+import androidx.compose.material.icons.automirrored.rounded.LibraryBooks
+import androidx.compose.material.icons.rounded.List
+import androidx.compose.material.icons.rounded.TableChart
+import androidx.compose.material.icons.rounded.TextFields
+import androidx.compose.material.icons.rounded.Tune
 import arrow.core.getOrElse
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
@@ -289,6 +297,7 @@ private fun CfgRow(
                 title = label,
                 summary = keys?.joinToString(", ") { it.value }.orEmpty()
                     .ifEmpty { stringResource(R.string.none) },
+                icon = Icons.Rounded.List,
                 onClick = { onEditList(cfg, descriptor) },
             )
         }
@@ -317,10 +326,10 @@ private fun ExternalRow(
     val context = LocalContext.current
     when (descriptor.knownType) {
         ConfigDescriptor.ConfigExternal.ETy.PinyinDict ->
-            NavRow(title = label, summary = summary, onClick = { onOpenRoute(SettingsRoute.PinyinDict("")) })
+            NavRow(title = label, summary = summary, icon = Icons.Rounded.LibraryBooks, onClick = { onOpenRoute(SettingsRoute.PinyinDict("")) })
 
         ConfigDescriptor.ConfigExternal.ETy.Punctuation ->
-            NavRow(title = label, summary = summary, onClick = {
+            NavRow(title = label, summary = summary, icon = Icons.Rounded.FormatQuote, onClick = {
                 onOpenRoute(
                     SettingsRoute.Punctuation(
                         label, descriptor.uri?.substringAfterLast('/')
@@ -329,7 +338,7 @@ private fun ExternalRow(
             })
 
         ConfigDescriptor.ConfigExternal.ETy.QuickPhrase ->
-            NavRow(title = label, summary = summary, onClick = { onOpenRoute(SettingsRoute.QuickPhraseList) })
+            NavRow(title = label, summary = summary, icon = Icons.Rounded.Bolt, onClick = { onOpenRoute(SettingsRoute.QuickPhraseList) })
 
         ConfigDescriptor.ConfigExternal.ETy.Chttrans ->
             NavRow(title = label, summary = summary, onClick = {
@@ -342,10 +351,10 @@ private fun ExternalRow(
             })
 
         ConfigDescriptor.ConfigExternal.ETy.AndroidTable ->
-            NavRow(title = label, summary = summary, onClick = { onOpenRoute(SettingsRoute.TableInputMethods) })
+            NavRow(title = label, summary = summary, icon = Icons.Rounded.TableChart, onClick = { onOpenRoute(SettingsRoute.TableInputMethods) })
 
         ConfigDescriptor.ConfigExternal.ETy.PinyinCustomPhrase ->
-            NavRow(title = label, summary = summary, onClick = { onOpenRoute(SettingsRoute.PinyinCustomPhrase) })
+            NavRow(title = label, summary = summary, icon = Icons.Rounded.TextFields, onClick = { onOpenRoute(SettingsRoute.PinyinCustomPhrase) })
 
         ConfigDescriptor.ConfigExternal.ETy.MultiSelect -> {
             val route = descriptor.uri?.let { parseMultiSelect(it, label) }
@@ -378,7 +387,7 @@ private fun ExternalRow(
         }
 
         ConfigDescriptor.ConfigExternal.ETy.RimeUserDataDir ->
-            NavRow(title = label, summary = summary, onClick = { openRimeDataDir(context) })
+            NavRow(title = label, summary = summary, icon = Icons.Rounded.FolderOpen, onClick = { openRimeDataDir(context) })
 
         else -> NavRow(title = label, summary = summary, icon = Icons.Rounded.Tune)
     }
@@ -481,6 +490,7 @@ private fun TextRowRaw(
         title = title,
         summary = listOfNotNull(summary, displayValue ?: value.ifEmpty { null }).joinToString(" · ")
             .ifEmpty { null },
+        icon = Icons.Rounded.Edit,
         onClick = { showDialog = true },
     )
     if (showDialog) {

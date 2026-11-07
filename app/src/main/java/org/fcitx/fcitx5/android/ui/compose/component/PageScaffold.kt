@@ -120,7 +120,6 @@ private fun MiuixPageScaffold(
                 )
             }
         },
-        popupHost = { },
         contentWindowInsets = WindowInsets.systemBars
             .add(WindowInsets.displayCutout)
             .only(WindowInsetsSides.Horizontal),

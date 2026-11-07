@@ -1017,6 +1017,8 @@
     <string name="ksu_app_about">关于</string>
     <string name="ksu_home_ready_title">一切就绪</string>
     <string name="ksu_home_not_ready_title">还有设置未完成</string>
+    <string name="ksu_settings_settings">设置</string>
+    <string name="ksu_app_show_preview_summary">在「界面」页顶部显示实时键盘预览</string>
     <string name="ksu_app_ui_mode">设置界面风格</string>
     <string name="ksu_app_ui_mode_summary">Miuix 经典风格，或 Material 3 风格</string>
     <string name="ksu_app_theme_settings">主题设置</string>

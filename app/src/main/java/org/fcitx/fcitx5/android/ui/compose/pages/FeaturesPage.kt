@@ -7,22 +7,15 @@ package org.fcitx.fcitx5.android.ui.compose.pages
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Article
 import androidx.compose.material.icons.rounded.EmojiEmotions
 import androidx.compose.material.icons.rounded.Extension
 import androidx.compose.material.icons.rounded.FormatQuote
-import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.LibraryBooks
 import androidx.compose.material.icons.rounded.Memory
-import androidx.compose.material.icons.rounded.MoreHoriz
-import androidx.compose.material.icons.rounded.ContentPaste
 import androidx.compose.material.icons.rounded.Speaker
 import androidx.compose.material.icons.rounded.Spellcheck
-import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material.icons.rounded.TextFields
-import androidx.compose.material.icons.rounded.Timer
-import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Vibration
 import androidx.compose.runtime.Composable
@@ -134,7 +127,7 @@ private fun LazyListScope.typingBehaviourSection() {
             SwitchRow(
                 pref = keyboard.spaceSwipeMoveCursor,
                 title = stringResource(R.string.space_swipe_move_cursor),
-                icon = Icons.Rounded.SwapHoriz,
+
             )
             EnumChoiceRow(
                 pref = keyboard.spaceKeyLongPressBehavior,
@@ -149,7 +142,7 @@ private fun LazyListScope.typingBehaviourSection() {
             SwitchRow(
                 pref = keyboard.showLangSwitchKey,
                 title = stringResource(R.string.show_lang_switch_key),
-                icon = Icons.Rounded.Language,
+
             )
             EnumChoiceRow(
                 pref = keyboard.langSwitchKeyBehavior,
@@ -168,7 +161,7 @@ private fun LazyListScope.typingBehaviourSection() {
                 range = 100f..1000f,
                 steps = 17,
                 valueText = { "$it ms" },
-                icon = Icons.Rounded.Timer,
+
             )
             SwitchRow(
                 pref = keyboard.keepLettersUppercase,
@@ -181,7 +174,7 @@ private fun LazyListScope.typingBehaviourSection() {
             SwitchRow(
                 pref = keyboard.expandKeypressArea,
                 title = stringResource(R.string.expand_keypress_area),
-                icon = Icons.Rounded.TouchApp,
+
             )
             SwitchRow(
                 pref = keyboard.focusChangeResetKeyboard,
@@ -268,7 +261,7 @@ private fun LazyListScope.clipboardSection(onOpenRoute: (SettingsRoute) -> Unit)
             SwitchRow(
                 pref = clipboard.clipboardListening,
                 title = stringResource(R.string.clipboard_listening),
-                icon = Icons.Rounded.ContentPaste,
+
             )
             SwitchRow(
                 pref = clipboard.clipboardSuggestion,
@@ -328,25 +321,11 @@ private fun LazyListScope.pluginsSection(onOpenRoute: (SettingsRoute) -> Unit) {
             title = stringResource(R.string.plugins),
             modifier = Modifier.padding(top = 12.dp),
         ) {
+            // 高级 / 关于 / 虚拟键盘 live on the 设置 page; this group is only about extensions.
             NavRow(
                 title = stringResource(R.string.plugins),
                 icon = Icons.Rounded.Extension,
                 onClick = { onOpenRoute(SettingsRoute.Plugin) },
-            )
-            NavRow(
-                title = stringResource(R.string.advanced),
-                icon = Icons.Rounded.MoreHoriz,
-                onClick = { onOpenRoute(SettingsRoute.Advanced) },
-            )
-            NavRow(
-                title = stringResource(R.string.about),
-                icon = Icons.Rounded.Article,
-                onClick = { onOpenRoute(SettingsRoute.About) },
-            )
-            NavRow(
-                title = stringResource(R.string.virtual_keyboard),
-                icon = Icons.Rounded.Keyboard,
-                onClick = { onOpenRoute(SettingsRoute.VirtualKeyboard) },
             )
         }
     }

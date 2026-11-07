@@ -4,22 +4,15 @@
  */
 package org.fcitx.fcitx5.android.ui.compose.pages
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Animation
 import androidx.compose.material.icons.rounded.AspectRatio
-import androidx.compose.material.icons.rounded.Brush
-import androidx.compose.material.icons.rounded.FormatSize
-import androidx.compose.material.icons.rounded.Keyboard
-import androidx.compose.material.icons.rounded.Layers
 import androidx.compose.material.icons.rounded.Palette
-import androidx.compose.material.icons.rounded.SpaceBar
-import androidx.compose.material.icons.rounded.Straighten
-import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Wallpaper
 import androidx.compose.runtime.Composable
@@ -105,20 +98,14 @@ private fun LazyListScope.previewSection() {
                 title = stringResource(R.string.ksu_ime_appearance_preview),
                 modifier = Modifier.padding(top = 12.dp),
             ) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    KeyboardPreview(
-                        revision = revision,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp),
-                    )
-                    top.yukonga.miuix.kmp.basic.Text(
-                        text = stringResource(R.string.ksu_ime_appearance_preview_hint),
-                        style = top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.footnote1,
-                        color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
-                }
+                KeyboardPreview(
+                    revision = revision,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 12.dp)
+                        .height(268.dp)
+                        .clip(RoundedCornerShape(20.dp)),
+                )
             }
         }
     }
@@ -138,8 +125,8 @@ private fun KeyboardPreview(revision: Int, modifier: Modifier = Modifier) {
                 // its constructor, so rebuilding is what makes the preview live.
                 val ui = KeyboardPreviewUi(context, ThemeManager.activeTheme)
                 ui.root.apply {
-                    scaleX = 0.62f
-                    scaleY = 0.62f
+                    scaleX = 0.74f
+                    scaleY = 0.74f
                     layoutParams = android.widget.FrameLayout.LayoutParams(
                         android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                         android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -176,7 +163,7 @@ private fun LazyListScope.themeSection(
             SwitchRow(
                 pref = ThemeManager.prefs.followSystemDayNightTheme,
                 title = stringResource(R.string.ksu_ime_follow_system_theme),
-                icon = Icons.Rounded.Animation,
+
             )
         }
     }
@@ -194,14 +181,14 @@ private fun LazyListScope.keyAppearanceSection() {
                 title = stringResource(R.string.ksu_ime_key_radius),
                 range = 0f..48f,
                 valueText = { "$it dp" },
-                icon = Icons.Rounded.Brush,
+
             )
             SliderRow(
                 pref = prefs.keyHorizontalMargin,
                 title = stringResource(R.string.ksu_ime_key_h_margin),
                 range = 0f..24f,
                 valueText = { "$it dp" },
-                icon = Icons.Rounded.Straighten,
+
             )
             SliderRow(
                 pref = prefs.keyHorizontalMarginLandscape,
@@ -224,7 +211,7 @@ private fun LazyListScope.keyAppearanceSection() {
             SwitchRow(
                 pref = prefs.keyBorder,
                 title = stringResource(R.string.ksu_ime_key_border),
-                icon = Icons.Rounded.Layers,
+
             )
             SwitchRow(
                 pref = prefs.keyBorderStroke,
@@ -234,12 +221,12 @@ private fun LazyListScope.keyAppearanceSection() {
             SwitchRow(
                 pref = prefs.keyRippleEffect,
                 title = stringResource(R.string.ksu_ime_key_ripple),
-                icon = Icons.Rounded.TouchApp,
+
             )
             SwitchRow(
                 pref = prefs.specialKeyOvalShape,
                 title = stringResource(R.string.ksu_ime_key_oval),
-                icon = Icons.Rounded.SpaceBar,
+
             )
             SliderRow(
                 pref = prefs.textEditingButtonRadius,
@@ -275,7 +262,7 @@ private fun LazyListScope.keyboardLayoutSection(onOpenRoute: (SettingsRoute) -> 
                 title = stringResource(R.string.ksu_ime_keyboard_height),
                 range = 10f..90f,
                 valueText = { "$it%" },
-                icon = Icons.Rounded.Keyboard,
+
             )
             SliderRow(
                 pref = prefs.keyboardHeightPercentLandscape,
@@ -350,7 +337,7 @@ private fun LazyListScope.candidateSection(onOpenRoute: (SettingsRoute) -> Unit)
                 title = stringResource(R.string.ksu_ime_candidate_font_size),
                 range = 12f..32f,
                 valueText = { "$it sp" },
-                icon = Icons.Rounded.FormatSize,
+
             )
             SliderRow(
                 pref = prefs.windowRadius,
@@ -386,12 +373,6 @@ private fun LazyListScope.candidateSection(onOpenRoute: (SettingsRoute) -> Unit)
                 pref = keyboard.expandedCandidateStyle,
                 title = stringResource(R.string.ksu_ime_expanded_candidate_style),
                 entries = org.fcitx.fcitx5.android.input.candidates.expanded.ExpandedCandidateStyle.entries,
-            )
-            NavRow(
-                title = stringResource(R.string.candidates_window),
-                summary = stringResource(R.string.candidates_window),
-                icon = Icons.Rounded.Layers,
-                onClick = { onOpenRoute(SettingsRoute.CandidatesWindow) },
             )
         }
     }

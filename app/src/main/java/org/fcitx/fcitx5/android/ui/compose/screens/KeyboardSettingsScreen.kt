@@ -7,6 +7,13 @@ package org.fcitx.fcitx5.android.ui.compose.screens
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.rounded.CenterFocusStrong
+import androidx.compose.material.icons.rounded.Dialpad
+import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.GridView
+import androidx.compose.material.icons.rounded.TextFields
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Build
 import androidx.compose.material.icons.rounded.Keyboard
@@ -182,6 +189,7 @@ private fun LayoutTools(onOpenActivity: (Class<*>) -> Unit) {
     val splitEnabled = rememberPref(AppPrefs.getInstance().keyboard.splitKeyboardEnabled)
     NavRow(
         title = stringResource(R.string.split_keyboard_calibration_title),
+        icon = Icons.Rounded.CenterFocusStrong,
         enabled = splitEnabled.value,
         onClick = { onOpenActivity(SplitKeyboardCalibrationActivity::class.java) },
     )
@@ -191,6 +199,7 @@ private fun LayoutTools(onOpenActivity: (Class<*>) -> Unit) {
 private fun ToolbarTools(onOpenActivity: (Class<*>) -> Unit) {
     NavRow(
         title = stringResource(R.string.edit_buttons),
+        icon = Icons.Rounded.Tune,
         summary = stringResource(R.string.edit_buttons_summary),
         onClick = { onOpenActivity(ButtonsCustomizerActivity::class.java) },
     )
@@ -211,18 +220,22 @@ private fun EditorsTools(onOpenActivity: (Class<*>) -> Unit) {
 
     NavRow(
         title = stringResource(R.string.edit_fontset),
+        icon = Icons.Rounded.TextFields,
         onClick = { onOpenActivity(FontsetEditorActivity::class.java) },
     )
     NavRow(
         title = stringResource(R.string.edit_popup_preset),
+        icon = Icons.Rounded.GridView,
         onClick = { onOpenActivity(PopupEditorActivity::class.java) },
     )
     NavRow(
         title = stringResource(R.string.edit_text_keyboard_layout),
+        icon = Icons.Rounded.Edit,
         onClick = { onOpenActivity(TextKeyboardLayoutEditorActivity::class.java) },
     )
     NavRow(
         title = stringResource(R.string.text_keyboard_layout_file_select_title),
+        icon = Icons.Rounded.FolderOpen,
         summary = stringResource(
             R.string.text_keyboard_layout_file_select_summary,
             displayProfile(layoutProfile.value),
@@ -231,11 +244,13 @@ private fun EditorsTools(onOpenActivity: (Class<*>) -> Unit) {
     )
     NavRow(
         title = stringResource(R.string.numeric_layout_override_title),
+        icon = Icons.Rounded.Dialpad,
         summary = numericOverrideSummary(context, numericOverride.value),
         onClick = { numericPicker = true },
     )
     NavRow(
         title = stringResource(R.string.web_editor_bridge_title),
+        icon = Icons.Rounded.Public,
         summary = bridgeSession?.let { session ->
             context.getString(
                 R.string.web_editor_bridge_running_status,

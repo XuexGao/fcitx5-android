@@ -180,7 +180,7 @@ fun SwitchRow(
     SwitchRowRaw(
         title = title,
         summary = summary,
-        icon = icon,
+
         checked = state.value,
         enabled = enabled,
         onCheckedChange = {
@@ -238,7 +238,7 @@ fun SliderRow(
     SliderRowRaw(
         title = title,
         summary = summary,
-        icon = icon,
+
         value = state.value,
         range = range,
         steps = steps,
