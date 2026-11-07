@@ -325,11 +325,17 @@
   待有设备可逐步调试时再重做。
 - **对话框 markdown**：模板的确认弹窗能渲染 markdown（更新日志用），本工程没有这个场景，未引入 commonmark，按纯文本显示。
 - **未搬的模板功能**：预测性返回/滑动关闭/分页手势拦截、页面缩放、发日志、更新检查、权限页——本工程没有对应偏好或行为，硬搬会是"发明"而不是移植。
-- **`ThemeScreen`/`IconThemeScreen`** 的自定义行（色板缩略图、图标主题网格）仍用 miuix 的颜色/排版；它们的 Material 外观是下一步。
+- **`ThemeScreen`/`IconThemeScreen`**（stage-35 已补）：自定义行（键盘主题色板、图标主题网格）现在也按 `LocalUiMode` 切换文本样式与图标色；
+  只有 `ColorPaletteScreenMiuix` 因为本来就是 miuix 变体才会直接用 miuix 组件。
 
 ### 验证
 
 - `MaterialUiModeTest`（新增，已加入模拟器流水线的硬门槛）：在 Activity 启动前写入 `ui_mode=material`，走完四个页面并断言主页状态卡片存在，
   这样 Material 侧的 `PageScaffold`/分组/行/底栏都会在 API 30 与 34 上真正跑一遍。
-- 三条流水线在 `stage-33` 的最新提交上全绿（Compile Check / Commit CI，模拟器 34 上 23 项测试通过；
-  API 30 曾因 GitHub Runner 下载 emulator 失败而红，已重跑）。
+- 三条流水线在 `stage-35`（当前 head）上全绿：Compile Check、Commit CI，以及 Emulator UI Test（API 30 与 34 各 23 项测试通过）。
+
+### Material 模式的一个坑（已修）
+
+miuix 在没有任何 `MiuixTheme` 提供者时的默认调色板是**全透明**。Material 变体页面里若还残留任何 miuix 组件（图标着色、色板、分组小标题），
+在 Material 模式下会直接看不见。`FcitxMaterialTheme` 现在会用同一套偏好额外包一层 miuix 主题（`miuixController` 与 miuix 变体共用），
+所以两种风格下 miuix 组件都有正确配色——这也是为什么组件层的 `SettingsGroup` 允许 Material 分支复用 miuix 的色值。
