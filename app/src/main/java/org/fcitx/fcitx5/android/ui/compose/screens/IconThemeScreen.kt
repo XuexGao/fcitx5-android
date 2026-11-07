@@ -56,6 +56,9 @@ import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.data.theme.IconTheme
 import org.fcitx.fcitx5.android.data.theme.IconThemeManager
 import org.fcitx.fcitx5.android.data.theme.ThemeManager
+import androidx.compose.material3.MaterialTheme
+import org.fcitx.fcitx5.android.ui.compose.LocalUiMode
+import org.fcitx.fcitx5.android.ui.compose.UiMode
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
 import org.fcitx.fcitx5.android.ui.compose.component.PickerDialog
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
@@ -285,12 +288,21 @@ fun IconThemeScreen(
         busy?.let { status ->
             item {
                 SettingsGroup(modifier = Modifier.padding(top = 12.dp)) {
-                    Text(
-                        text = status,
-                        style = MiuixTheme.textStyles.body2,
-                        color = colorScheme.onSurfaceVariantSummary,
-                        modifier = Modifier.padding(16.dp),
-                    )
+                    when (LocalUiMode.current) {
+                        UiMode.Miuix -> Text(
+                            text = status,
+                            style = MiuixTheme.textStyles.body2,
+                            color = colorScheme.onSurfaceVariantSummary,
+                            modifier = Modifier.padding(16.dp),
+                        )
+
+                        UiMode.Material -> androidx.compose.material3.Text(
+                            text = status,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.padding(16.dp),
+                        )
+                    }
                 }
             }
         }
@@ -455,14 +467,26 @@ private fun IconThemeTile(
                 )
             }
         }
-        Text(
-            text = if (isDefault) stringResource(R.string.default_) else theme.name,
-            style = MiuixTheme.textStyles.footnote1,
-            color = if (active) colorScheme.primary else colorScheme.onSurface,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            textAlign = TextAlign.Center,
-        )
+        when (LocalUiMode.current) {
+            UiMode.Miuix -> Text(
+                text = if (isDefault) stringResource(R.string.default_) else theme.name,
+                style = MiuixTheme.textStyles.footnote1,
+                color = if (active) colorScheme.primary else colorScheme.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+            )
+
+            UiMode.Material -> androidx.compose.material3.Text(
+                text = if (isDefault) stringResource(R.string.default_) else theme.name,
+                style = MaterialTheme.typography.labelMedium,
+                color = if (active) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+            )
+        }
         if (!isDefault) {
             IconButton(onClick = onEdit) {
                 Icon(
@@ -491,13 +515,23 @@ private fun NewThemeTile(modifier: Modifier, onClick: () -> Unit) {
             tint = colorScheme.primary,
             modifier = Modifier.size(44.dp),
         )
-        Text(
-            text = stringResource(R.string.icon_theme_new),
-            style = MiuixTheme.textStyles.footnote1,
-            color = colorScheme.primary,
-            maxLines = 2,
-            textAlign = TextAlign.Center,
-        )
+        when (LocalUiMode.current) {
+            UiMode.Miuix -> Text(
+                text = stringResource(R.string.icon_theme_new),
+                style = MiuixTheme.textStyles.footnote1,
+                color = colorScheme.primary,
+                maxLines = 2,
+                textAlign = TextAlign.Center,
+            )
+
+            UiMode.Material -> androidx.compose.material3.Text(
+                text = stringResource(R.string.icon_theme_new),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 2,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 

@@ -35,6 +35,10 @@ import androidx.compose.ui.unit.dp
 import org.fcitx.fcitx5.android.R
 import org.fcitx.fcitx5.android.data.theme.Theme
 import org.fcitx.fcitx5.android.data.theme.ThemeManager
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text as MaterialText
+import org.fcitx.fcitx5.android.ui.compose.LocalUiMode
+import org.fcitx.fcitx5.android.ui.compose.UiMode
 import org.fcitx.fcitx5.android.ui.compose.component.PageScaffold
 import org.fcitx.fcitx5.android.ui.compose.screens.ProviderRows
 import org.fcitx.fcitx5.android.ui.compose.component.SettingsGroup
@@ -97,29 +101,53 @@ private fun ThemeRow(theme: Theme, selected: Boolean, onSelect: () -> Unit) {
     ) {
         ThemeSwatch(theme)
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = theme.name,
-                style = MiuixTheme.textStyles.body1,
-                color = colorScheme.onSurface,
-            )
-            Text(
-                text = if (theme.isDark) stringResource(R.string.theme_dark)
-                else stringResource(R.string.theme_light),
-                style = MiuixTheme.textStyles.footnote1,
-                color = colorScheme.onSurfaceVariantSummary,
-            )
+            when (LocalUiMode.current) {
+                UiMode.Miuix -> {
+                    Text(
+                        text = theme.name,
+                        style = MiuixTheme.textStyles.body1,
+                        color = colorScheme.onSurface,
+                    )
+                    Text(
+                        text = if (theme.isDark) stringResource(R.string.theme_dark)
+                        else stringResource(R.string.theme_light),
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = colorScheme.onSurfaceVariantSummary,
+                    )
+                }
+
+                UiMode.Material -> {
+                    MaterialText(text = theme.name, style = MaterialTheme.typography.bodyLarge)
+                    MaterialText(
+                        text = if (theme.isDark) stringResource(R.string.theme_dark)
+                        else stringResource(R.string.theme_light),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline,
+                    )
+                }
+            }
         }
-        if (selected) {
-            top.yukonga.miuix.kmp.basic.Icon(
-                imageVector = Icons.Rounded.CheckCircle,
+        val (trailingIcon, trailingTint) = when (LocalUiMode.current) {
+            UiMode.Miuix -> if (selected) Icons.Rounded.CheckCircle to colorScheme.primary
+            else Icons.Rounded.Palette to colorScheme.onSurfaceVariantSummary
+
+            UiMode.Material -> if (selected) {
+                Icons.Rounded.CheckCircle to MaterialTheme.colorScheme.primary
+            } else {
+                Icons.Rounded.Palette to MaterialTheme.colorScheme.outline
+            }
+        }
+        when (LocalUiMode.current) {
+            UiMode.Miuix -> top.yukonga.miuix.kmp.basic.Icon(
+                imageVector = trailingIcon,
                 contentDescription = null,
-                tint = colorScheme.primary,
+                tint = trailingTint,
             )
-        } else {
-            top.yukonga.miuix.kmp.basic.Icon(
-                imageVector = Icons.Rounded.Palette,
+
+            UiMode.Material -> androidx.compose.material3.Icon(
+                imageVector = trailingIcon,
                 contentDescription = null,
-                tint = colorScheme.onSurfaceVariantSummary,
+                tint = trailingTint,
             )
         }
     }
