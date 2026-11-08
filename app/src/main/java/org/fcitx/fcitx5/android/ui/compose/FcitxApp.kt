@@ -37,6 +37,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
@@ -151,7 +153,7 @@ fun FcitxApp(
                     true,
                 )
                 val blurred = BitmapBlurUtil.blur(small, GLASS_BLUR_RADIUS)
-                glassBackdrop = GlassBackdrop(blurred.asImageBitmap(), scale)
+                glassBackdrop = GlassBackdrop(blurred.asImageBitmap(), scale.toFloat())
             }.onFailure { Timber.w(it, "Could not build the glass backdrop") }
         }
         val blurBackdrop = rememberBlurBackdrop(enableBlur)
