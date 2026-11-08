@@ -337,8 +337,14 @@ internal fun IosLiquidGlassNavigationBar(
         dampedDrag.animateToValue(index.toFloat())
     }
 
+    // InteractiveHighlight builds an android.graphics.RuntimeShader (API 33). Below that the
+    // constructor throws NoSuchMethodError, so the highlight is only created where it can exist;
+    // the rest of the bar (blur, lens, indicator) is unaffected.
+    val runtimeShaderSupported = top.yukonga.miuix.kmp.blur.isRuntimeShaderSupported()
     // Keyed on dampedDrag: the position lambda captures it; a stale capture would freeze the press spot.
-    val interactiveHighlight = remember(animationScope, isLtr, dampedDrag) {
+    val interactiveHighlight: InteractiveHighlight? =
+        remember(animationScope, isLtr, dampedDrag, runtimeShaderSupported) {
+        if (!runtimeShaderSupported) return@remember null
         InteractiveHighlight(
             animationScope = animationScope,
             position = { layerSize, _ ->
@@ -485,7 +491,7 @@ internal fun IosLiquidGlassNavigationBar(
                             },
                         )
                         .then(
-                            if (isBlurActive) {
+                            if (isBlurActive && interactiveHighlight != null) {
                                 interactiveHighlight.modifier.then(interactiveHighlight.gestureModifier)
                             } else {
                                 Modifier
@@ -523,7 +529,7 @@ internal fun IosLiquidGlassNavigationBar(
                                 },
                                 onDrawSurface = { drawRect(containerColor) },
                             )
-                            .then(interactiveHighlight.modifier)
+                            .then(interactiveHighlight?.modifier ?: Modifier)
                             .height(56.dp)
                             .padding(horizontal = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,

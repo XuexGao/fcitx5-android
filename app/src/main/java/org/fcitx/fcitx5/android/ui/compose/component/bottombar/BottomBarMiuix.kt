@@ -54,7 +54,10 @@ fun BottomBarMiuix(
         NavigationItem(label = stringResource(destination.label), icon = destination.icon)
     }
 
-    if (floating && glassEnabled && backdrop != null) {
+    // The reference bar is drawn through RenderEffect; below API 31 miuix cannot composite it, so
+    // the bar would not appear at all. Gate on the capability, not just on the setting.
+    val canGlass = top.yukonga.miuix.kmp.shader.isRenderEffectSupported()
+    if (floating && glassEnabled && backdrop != null && canGlass) {
         LiquidGlassNavigationBar(
             items = items,
             selectedIndex = mainState.selectedPage,
