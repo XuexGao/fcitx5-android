@@ -201,7 +201,6 @@ private fun rememberGravityRotatedHighlight(
     }
 }
 
-@Composable
 /**
  * Toggles for the liquid glass bar.
  *
