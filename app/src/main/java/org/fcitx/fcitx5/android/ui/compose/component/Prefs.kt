@@ -23,6 +23,7 @@ import androidx.compose.foundation.background
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text as MaterialText
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -38,9 +39,11 @@ import org.fcitx.fcitx5.android.data.prefs.ManagedPreference
 import org.fcitx.fcitx5.android.data.prefs.ManagedPreferenceEnum
 import org.fcitx.fcitx5.android.ui.compose.LocalUiMode
 import org.fcitx.fcitx5.android.ui.compose.UiMode
+import org.fcitx.fcitx5.android.ui.compose.component.material.LocalListItemShapes
 import org.fcitx.fcitx5.android.ui.compose.component.material.SegmentedDropdownItem
 import org.fcitx.fcitx5.android.ui.compose.component.material.SegmentedListItem
 import org.fcitx.fcitx5.android.ui.compose.component.material.SegmentedSwitchItem
+import org.fcitx.fcitx5.android.ui.compose.component.material.uniformSegmentedShapes
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.SmallTitle
@@ -109,7 +112,14 @@ fun SettingsGroup(
                     modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 8.dp),
                 )
             }
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) { content() }
+            // Each row resolves its corners from this local; without it every row fell back to
+            // material3's single-row shape (one big rounded block) and the group lost its seams.
+            CompositionLocalProvider(LocalListItemShapes provides uniformSegmentedShapes()) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) { content() }
+            }
         }
     }
 }

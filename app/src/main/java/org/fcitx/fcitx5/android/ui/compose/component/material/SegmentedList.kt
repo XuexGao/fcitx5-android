@@ -102,6 +102,23 @@ private fun defaultSingleSegmentedShape(index: Int, count: Int): ListItemShapes 
     )
 }
 
+/**
+ * Uniform corners for rows that are not laid out by [SegmentedColumn].
+ *
+ * [SegmentedColumn] derives per-row corners from the row index; a group that receives its rows as
+ * one opaque lambda cannot do that, so it publishes this uniform shape instead: 12 dp at rest,
+ * 20 dp while pressed. Rows are separated by a 2 dp gap, so they still read as a list.
+ */
+@Composable
+fun uniformSegmentedShapes(): ListItemShapes {
+    val rest = RoundedCornerShape(12.dp)
+    val pressed = RoundedCornerShape(20.dp)
+    return ListItemDefaults.segmentedShapes(0, 1).copy(
+        shape = rest,
+        pressedShape = pressed,
+    )
+}
+
 @Composable
 fun SegmentedColumn(
     modifier: Modifier = Modifier,

@@ -76,10 +76,8 @@ import org.fcitx.fcitx5.android.ui.compose.screens.SymbolScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.TableInputMethodScreen
 import org.fcitx.fcitx5.android.ui.compose.screens.ThemeScreen
 import org.fcitx.fcitx5.android.ui.compose.theme.FcitxTheme
-import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableBlur
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBar
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBarBlur
-import org.fcitx.fcitx5.android.ui.compose.util.rememberBlurBackdrop
 import org.fcitx.fcitx5.android.ui.main.MainViewModel
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
 import top.yukonga.miuix.kmp.blur.layerBackdrop
@@ -106,7 +104,6 @@ fun FcitxApp(
     FcitxTheme(prefs = prefs) {
         val scope = rememberCoroutineScope()
         val uiMode = LocalUiMode.current
-        val enableBlur = LocalEnableBlur.current
         val enableFloatingBottomBar = LocalEnableFloatingBottomBar.current
         val enableFloatingBottomBarBlur = LocalEnableFloatingBottomBarBlur.current
         val useRail = useNavigationRail(enableFloatingBottomBar)
@@ -117,9 +114,12 @@ fun FcitxApp(
         // The reference glass bar samples two backdrops: one for the bar's own surface and one
         // for its moving indicator. Both are provided here, above the pager.
         val glassEnabled = enableFloatingBottomBar && enableFloatingBottomBarBlur
-        val blurBackdrop = rememberBlurBackdrop(enableBlur)
+        // The bar samples the page content behind it. This is *the* backdrop the template passes
+        // in; it must have the content drawn into it, which is what layerBackdrop does below.
+        // Same construction the template uses: a layer backdrop tinted with the surface colour,
+        // into which the pager content is drawn via Modifier.layerBackdrop.
         val barBackdrop = rememberLayerBackdrop {
-            drawRect(androidx.compose.ui.graphics.Color.Transparent)
+            drawRect(top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surface)
             drawContent()
         }
 
@@ -152,10 +152,7 @@ fun FcitxApp(
 
         CompositionLocalProvider(LocalMainPagerState provides mainPagerState) {
             val pageContent: @Composable (Dp) -> Unit = { bottomInnerPadding ->
-                Box(
-                    modifier = if (blurBackdrop != null) Modifier.layerBackdrop(blurBackdrop)
-                    else Modifier,
-                ) {
+                Box(modifier = Modifier) {
                     HorizontalPager(
                         state = mainPagerState.pagerState,
                         modifier = Modifier
@@ -200,8 +197,7 @@ fun FcitxApp(
                             BottomBar(
                                 modifier = Modifier.align(Alignment.BottomCenter),
                                 backdrop = barBackdrop,
-                                blurBackdrop = if (enableBlur) blurBackdrop else null,
-                                blurActive = enableBlur,
+                                blurActive = glassEnabled,
                             )
                         }
                     }

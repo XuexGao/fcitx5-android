@@ -118,28 +118,27 @@ private fun LazyListScope.previewSection() {
 /**
  * Hosts the View-based keyboard preview inside Compose.
  *
- * The keyboard is laid out at its natural width and centred, then scaled down to fit, so it looks
- * like a keyboard rather than a stretched strip. It is rebuilt only when [revision] changes (the
- * preference listeners bump it), not on every recomposition.
+ * [KeyboardPreviewUi] lays its keyboard out at the bottom of a FrameLayout and reports its natural
+ * size through `onSizeMeasured`; the preview therefore uses `wrap_content` and the component's own
+ * `setSizeScale` rather than scaling the view (scaling a bottom-anchored view pushed it into a
+ * corner). Rebuilt only when [revision] changes.
  */
 @Composable
 private fun KeyboardPreview(revision: Int, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        // Only this subtree is keyed: the rest of the page keeps its state across revisions.
         key(revision) {
             AndroidView(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxWidth(),
                 factory = {
                     val ui = KeyboardPreviewUi(context, ThemeManager.activeTheme)
+                    // Let the component shrink itself so the keyboard keeps its proportions and
+                    // stays inside the card.
+                    ui.setSizeScale(PREVIEW_SCALE)
                     ui.root.apply {
-                        // Natural width, scaled about its own centre: the keyboard keeps its
-                        // proportions and stays centred instead of being stretched to the card.
-                        scaleX = PREVIEW_SCALE
-                        scaleY = PREVIEW_SCALE
-                        layoutParams = android.view.ViewGroup.LayoutParams(
+                        layoutParams = android.widget.FrameLayout.LayoutParams(
                             android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                            android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
                         )
                     }
                 },

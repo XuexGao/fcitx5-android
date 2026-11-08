@@ -44,8 +44,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 @Composable
 fun BottomBarMiuix(
     modifier: Modifier = Modifier,
-    backdrop: Backdrop? = null,
-    blurBackdrop: LayerBackdrop? = null,
+    backdrop: LayerBackdrop? = null,
     blurActive: Boolean = false,
 ) {
     val mainState = LocalMainPagerState.current
@@ -55,12 +54,12 @@ fun BottomBarMiuix(
         NavigationItem(label = stringResource(destination.label), icon = destination.icon)
     }
 
-    if (floating && glassEnabled && blurBackdrop != null) {
+    if (floating && glassEnabled && backdrop != null) {
         LiquidGlassNavigationBar(
             items = items,
             selectedIndex = mainState.selectedPage,
             onItemClick = { mainState.animateToPage(it) },
-            backdrop = blurBackdrop,
+            backdrop = backdrop,
             isBlurActive = blurActive,
             modifier = modifier,
         )
