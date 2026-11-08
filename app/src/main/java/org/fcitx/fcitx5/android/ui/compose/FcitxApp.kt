@@ -36,6 +36,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
@@ -86,6 +87,7 @@ import org.fcitx.fcitx5.android.ui.compose.screens.ThemeScreen
 import org.fcitx.fcitx5.android.ui.compose.theme.FcitxTheme
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableBlur
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBar
+import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBarBlur
 import org.fcitx.fcitx5.android.ui.compose.util.rememberBlurBackdrop
 import org.fcitx.fcitx5.android.ui.main.MainViewModel
 import timber.log.Timber
@@ -119,6 +121,7 @@ fun FcitxApp(
         val uiMode = LocalUiMode.current
         val enableBlur = LocalEnableBlur.current
         val enableFloatingBottomBar = LocalEnableFloatingBottomBar.current
+        val enableFloatingBottomBarBlur = LocalEnableFloatingBottomBarBlur.current
         val useRail = useNavigationRail(enableFloatingBottomBar)
 
         val pagerState = rememberPagerState(pageCount = { MainDestination.entries.size })
@@ -143,8 +146,8 @@ fun FcitxApp(
                 val scale = GLASS_DOWNSCALE
                 val small = Bitmap.createScaledBitmap(
                     shot,
-                    (shot.width / scale).toInt().coerceAtLeast(1),
-                    (shot.height / scale).toInt().coerceAtLeast(1),
+                    (shot.width / scale).coerceAtLeast(1),
+                    (shot.height / scale).coerceAtLeast(1),
                     true,
                 )
                 val blurred = BitmapBlurUtil.blur(small, GLASS_BLUR_RADIUS)
