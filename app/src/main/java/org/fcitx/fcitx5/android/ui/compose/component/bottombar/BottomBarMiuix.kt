@@ -36,30 +36,52 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
  * (it kept Compose permanently busy in the emulator test), so it is deliberately not used yet.
  */
 @Composable
-fun BottomBarMiuix(modifier: Modifier = Modifier) {
+fun BottomBarMiuix(modifier: Modifier = Modifier, glass: GlassBackdrop? = null) {
     val mainState = LocalMainPagerState.current
     val floating = LocalEnableFloatingBottomBar.current
-    val glass = LocalEnableFloatingBottomBarBlur.current
+    val glassEnabled = LocalEnableFloatingBottomBarBlur.current
     val shape = RoundedCornerShape(26.dp)
-    val surface = if (glass) colorScheme.surface.copy(alpha = 0.78f) else colorScheme.surface
+    val surface = if (glassEnabled) colorScheme.surface.copy(alpha = 0.78f) else colorScheme.surface
 
     if (floating) {
-        Box(
-            modifier = modifier
-                .padding(horizontal = 14.dp, vertical = 8.dp)
-                .clip(shape)
-                .background(surface)
-                .then(
-                    if (glass) Modifier.border(1.dp, colorScheme.outline.copy(alpha = 0.35f), shape)
-                    else Modifier
-                ),
-        ) {
-            // The bar reads this local when its own display mode is left at the default.
-            CompositionLocalProvider(
-                LocalNavigationBarDisplayMode provides NavigationBarDisplayMode.IconWithSelectedLabel
+        if (glassEnabled && glass != null) {
+            // Blurred snapshot behind the bar; works from API 24 up (see LiquidGlassBar).
+            LiquidGlassBar(
+                backdrop = glass.bitmap,
+                backdropScale = glass.scale,
+                modifier = modifier,
             ) {
-                NavigationBar(color = Color.Transparent) {
-                    TabItems(mainState.selectedPage) { mainState.animateToPage(it) }
+                CompositionLocalProvider(
+                    LocalNavigationBarDisplayMode
+                        provides NavigationBarDisplayMode.IconWithSelectedLabel
+                ) {
+                    NavigationBar(color = Color.Transparent) {
+                        TabItems(mainState.selectedPage) { mainState.animateToPage(it) }
+                    }
+                }
+            }
+        } else {
+            Box(
+                modifier = modifier
+                    .padding(horizontal = 14.dp, vertical = 8.dp)
+                    .clip(shape)
+                    .background(surface)
+                    .then(
+                        if (glassEnabled) {
+                            Modifier.border(1.dp, colorScheme.outline.copy(alpha = 0.35f), shape)
+                        } else {
+                            Modifier
+                        }
+                    ),
+            ) {
+                // The bar reads this local when its own display mode is left at the default.
+                CompositionLocalProvider(
+                    LocalNavigationBarDisplayMode
+                        provides NavigationBarDisplayMode.IconWithSelectedLabel
+                ) {
+                    NavigationBar(color = Color.Transparent) {
+                        TabItems(mainState.selectedPage) { mainState.animateToPage(it) }
+                    }
                 }
             }
         }

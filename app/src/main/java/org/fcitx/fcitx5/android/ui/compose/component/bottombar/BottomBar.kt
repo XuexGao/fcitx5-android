@@ -12,9 +12,12 @@ import org.fcitx.fcitx5.android.ui.compose.LocalUiMode
 import org.fcitx.fcitx5.android.ui.compose.UiMode
 
 @Composable
-fun BottomBar(modifier: Modifier = Modifier) {
+fun BottomBar(
+    modifier: Modifier = Modifier,
+    glass: GlassBackdrop? = null,
+) {
     when (LocalUiMode.current) {
-        UiMode.Miuix -> BottomBarMiuix(modifier)
+        UiMode.Miuix -> BottomBarMiuix(modifier, glass)
         UiMode.Material -> BottomBarMaterial()
     }
 }

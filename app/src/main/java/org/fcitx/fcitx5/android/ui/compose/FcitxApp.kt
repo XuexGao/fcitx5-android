@@ -22,6 +22,16 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import android.graphics.Bitmap
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.rememberGraphicsLayer
+import org.fcitx.fcitx5.android.ui.compose.component.bottombar.GlassBackdrop
+import org.fcitx.fcitx5.android.utils.BitmapBlurUtil
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
@@ -78,8 +88,13 @@ import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableBlur
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBar
 import org.fcitx.fcitx5.android.ui.compose.util.rememberBlurBackdrop
 import org.fcitx.fcitx5.android.ui.main.MainViewModel
+import timber.log.Timber
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
 import top.yukonga.miuix.kmp.blur.layerBackdrop
+
+/** How much the glass snapshot is downscaled before blurring; bigger is cheaper and softer. */
+private const val GLASS_DOWNSCALE = 4
+private const val GLASS_BLUR_RADIUS = 20f
 
 /** Test tag for a bottom-bar tab, used by the instrumented UI tests. */
 fun tabTag(index: Int): String = "bottom_tab_$index"
@@ -108,6 +123,34 @@ fun FcitxApp(
 
         val pagerState = rememberPagerState(pageCount = { MainDestination.entries.size })
         val mainPagerState = rememberMainPagerState(pagerState, scope, animatePageChanges = !useRail)
+
+        // ---- liquid glass ----------------------------------------------------------------
+        // The bar blurs a software snapshot of the page content, so the effect is identical on
+        // Android 10 (RenderScript) and on newer releases, instead of depending on RenderEffect.
+        val glassEnabled = enableFloatingBottomBar && enableFloatingBottomBarBlur
+        val contentLayer = rememberGraphicsLayer()
+        var glassBackdrop by remember { mutableStateOf<GlassBackdrop?>(null) }
+        LaunchedEffect(glassEnabled, pagerState.settledPage, uiMode) {
+            if (!glassEnabled) {
+                glassBackdrop = null
+                return@LaunchedEffect
+            }
+            // Let the pager record at least one frame into the layer before reading it back.
+            withFrameNanos { }
+            withFrameNanos { }
+            runCatching {
+                val shot = contentLayer.toImageBitmap().asAndroidBitmap()
+                val scale = GLASS_DOWNSCALE
+                val small = Bitmap.createScaledBitmap(
+                    shot,
+                    (shot.width / scale).toInt().coerceAtLeast(1),
+                    (shot.height / scale).toInt().coerceAtLeast(1),
+                    true,
+                )
+                val blurred = BitmapBlurUtil.blur(small, GLASS_BLUR_RADIUS)
+                glassBackdrop = GlassBackdrop(blurred.asImageBitmap(), scale)
+            }.onFailure { Timber.w(it, "Could not build the glass backdrop") }
+        }
         val blurBackdrop = rememberBlurBackdrop(enableBlur)
         // Every settings screen is Compose, so opening a route is just a push.
         val composeStack = remember { mutableStateListOf<SettingsRoute>() }
@@ -129,6 +172,10 @@ fun FcitxApp(
         // The bar highlights the tapped page at once; a swipe updates the pager's own page.
         LaunchedEffect(mainPagerState.pagerState.currentPage) { mainPagerState.syncPage() }
 
+        DisposableEffect(glassEnabled) {
+            onDispose { if (!glassEnabled) glassBackdrop = null }
+        }
+
         BackHandler(enabled = composeStack.isNotEmpty()) { closeTop() }
         BackHandler(
             enabled = composeStack.isEmpty() && mainPagerState.selectedPage != 0
@@ -144,7 +191,18 @@ fun FcitxApp(
                 ) {
                     HorizontalPager(
                         state = mainPagerState.pagerState,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .then(
+                                if (glassEnabled) {
+                                    Modifier.drawWithContent {
+                                        contentLayer.record { this@drawWithContent.drawContent() }
+                                        drawLayer(contentLayer)
+                                    }
+                                } else {
+                                    Modifier
+                                }
+                            ),
                         beyondViewportPageCount = 1,
                     ) { page ->
                         when (page) {
@@ -179,7 +237,10 @@ fun FcitxApp(
                 } else {
                     val bar: @Composable () -> Unit = {
                         Box(modifier = Modifier.fillMaxWidth()) {
-                            BottomBar(modifier = Modifier.align(Alignment.BottomCenter))
+                            BottomBar(
+                                modifier = Modifier.align(Alignment.BottomCenter),
+                                glass = glassBackdrop,
+                            )
                         }
                     }
                     val shellContent: @Composable (Dp) -> Unit = { innerBottom ->
