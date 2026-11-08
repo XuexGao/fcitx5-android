@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
@@ -22,6 +24,10 @@ import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBarBlu
 import top.yukonga.miuix.kmp.basic.NavigationItem
 import top.yukonga.miuix.kmp.blur.Backdrop
 import top.yukonga.miuix.kmp.blur.LayerBackdrop
+import top.yukonga.miuix.kmp.basic.LocalNavigationBarDisplayMode
+import top.yukonga.miuix.kmp.basic.NavigationBar
+import top.yukonga.miuix.kmp.basic.NavigationBarDisplayMode
+import top.yukonga.miuix.kmp.basic.NavigationBarItem
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 
 /**
@@ -83,13 +89,12 @@ fun BottomBarMiuix(
 /** The plain miuix navigation bar, used when the glass effect is unavailable. */
 @Composable
 private fun PlainNavigationBar(selected: Int, onSelect: (Int) -> Unit) {
-    androidx.compose.runtime.CompositionLocalProvider(
-        top.yukonga.miuix.kmp.basic.LocalNavigationBarDisplayMode provides
-            top.yukonga.miuix.kmp.basic.NavigationBarDisplayMode.IconWithSelectedLabel
+    CompositionLocalProvider(
+        LocalNavigationBarDisplayMode provides NavigationBarDisplayMode.IconWithSelectedLabel
     ) {
-        top.yukonga.miuix.kmp.basic.NavigationBar(color = androidx.compose.ui.graphics.Color.Transparent) {
+        NavigationBar(color = Color.Transparent) {
             MainDestination.entries.forEachIndexed { index, destination ->
-                top.yukonga.miuix.kmp.basic.NavigationBarItem(
+                NavigationBarItem(
                     selected = selected == index,
                     onClick = { onSelect(index) },
                     icon = destination.icon,

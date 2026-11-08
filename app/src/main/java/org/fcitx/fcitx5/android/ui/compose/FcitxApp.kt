@@ -22,12 +22,10 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -83,7 +81,6 @@ import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBar
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBarBlur
 import org.fcitx.fcitx5.android.ui.compose.util.rememberBlurBackdrop
 import org.fcitx.fcitx5.android.ui.main.MainViewModel
-import timber.log.Timber
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
@@ -145,10 +142,6 @@ fun FcitxApp(
 
         // The bar highlights the tapped page at once; a swipe updates the pager's own page.
         LaunchedEffect(mainPagerState.pagerState.currentPage) { mainPagerState.syncPage() }
-
-        DisposableEffect(glassEnabled) {
-            onDispose { if (!glassEnabled) glassBackdrop = null }
-        }
 
         BackHandler(enabled = composeStack.isNotEmpty()) { closeTop() }
         BackHandler(
