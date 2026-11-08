@@ -339,3 +339,69 @@
 miuix 在没有任何 `MiuixTheme` 提供者时的默认调色板是**全透明**。Material 变体页面里若还残留任何 miuix 组件（图标着色、色板、分组小标题），
 在 Material 模式下会直接看不见。`FcitxMaterialTheme` 现在会用同一套偏好额外包一层 miuix 主题（`miuixController` 与 miuix 变体共用），
 所以两种风格下 miuix 组件都有正确配色——这也是为什么组件层的 `SettingsGroup` 允许 Material 分支复用 miuix 的色值。
+
+---
+
+## 13. 交互与词库整改（stage-37 … stage-39）
+
+### 弹窗全部打不开（回归修复）
+
+miuix 的 `Scaffold` 签名是 `popupHost: @Composable () -> Unit = { MiuixPopupHost() }`——默认值才提供覆盖层宿主。
+风格切换那一版把 `PageScaffold` 和外壳的 `Scaffold` 都显式传了 `popupHost = { }`（照抄模板），
+等于把宿主换成空实现，于是所有 `OverlayDropdownPreference`、`OverlayDialog` 都不弹。
+模板没事是因为它 `MainActivity` 最外层用的是默认值。现在两处覆写都已删除（官方 demo 就是 `Scaffold { }`）。
+
+### 设置页重排
+
+| 项 | 去向 |
+| --- | --- |
+| 界面风格 / 模糊 / 浮动底栏 / 底栏模糊 | 移入 **主题设置**（Miuix 与 Material 两版都有） |
+| 显示按键预览 | 留在设置页「其它」，是这一组唯一的行 |
+| 虚拟键盘 / 候选窗口 | 移入设置页新增的「设置」组（原来一个在功能页、一个在界面页） |
+| 高级 / 关于 / 剪贴板同步 | 只保留一处，去掉重复入口 |
+| 功能页「效率」组 | 只剩插件（高级/关于/虚拟键盘已移走） |
+
+### 图标规则
+
+开关与滑杆类**不再带图标**，可点击进入新页面的行**都带图标**（配置页、键盘设置页、Rime 页逐补齐）；
+全仓校验过「每个 `Icons.*` 用法都有对应 import」。
+
+### 键盘预览
+
+删掉两行提示文案，尺寸 0.62 → 0.74、高度 268dp，并裁成 20dp 圆角。
+
+### 主页
+
+只剩「就绪卡片 + 状态列表 + 版本信息」；快捷操作整组与「重新部署 Rime」已删除。
+
+### Rime 与词库
+
+**根因**：`rime-wanxiang` 在 `.gitmodules` 里有声明，但 `git ls-tree` 里**没有 gitlink**，
+目录从不存在 → 从未打包进 APK → `wanxiang.schema.yaml` 永远缺失 → 永远显示「rime 未安装」、词库降级默认。
+
+**改法**（stage-38）：
+
+- 删除失效的 submodule；CMake 里改为 `INCLUDE_WANXIANG_DICT=OFF` 的可选兜底，不再报 warning 断构建。
+- 新增 `RimeDictPackages` / `RimeDictDownloader`：从 `amzxyz/rime-wanxiang` releases 下载方案包、
+  从 `RIME-LMDG` 下载语法模型；镜像优先 `https://gh-proxy.org/`，失败回落直连；解包到
+  Rime **用户目录**（librime 数据路径的可写半边，带 zip-slip 防护），随后重新渲染 custom 配置。
+  只用 `HttpURLConnection` + `ZipInputStream`，不引入 HTTP 依赖。
+- **Base** 为默认包；**Pro** 对应 release 里真实存在的 9 个「辅助码」包
+  （flypy / zrm / hanxin / wubi / moqi / shouyou / shyplus / tiger / wx），可再选具体辅助码；
+  语法模型（约 400 MB）是显式开关。
+- 版本号走 GitHub API 查询（同样走镜像），失败回落到固定 tag；`releases/download/latest/...` 实测是 **404**，不能用。
+- 入口在 **功能 → Rime 方案 → 词库**：版本下拉、辅助码下拉（仅 Pro）、语法模型开关、
+  下载/更新行（带实时进度与已装版本）。
+- 首次运行由 `RimeAutoDeploy` 在后台自动下载 Base，不必先打开设置页。
+- `RimeManager.isWanxiangAvailable()` 现在也查用户目录。
+
+### 液态玻璃底栏（stage-39）
+
+模板的玻璃底栏依赖 API 31 的 RenderEffect，Android 10 上会静默降级。FlClash 能在旧系统上做到，
+是因为它模糊的是**软件位图**。本工程已有 `BitmapBlurUtil`（≤API 30 走 RenderScript），所以照此实现：
+
+- `FcitxApp` 把 pager 内容录进 `GraphicsLayer`，页面稳定后读回、4 倍降采样、用 `BitmapBlurUtil` 模糊，得到 backdrop；
+- `LiquidGlassBar` 把 backdrop 中「底栏正下方」那一条按胶囊圆角裁出来绘制，再叠 tint、细描边、顶部高光；
+- 不使用 RenderEffect / RuntimeShader，**API 24 起效果一致**；拿不到快照时回落到原来的半透明胶囊。
+
+三条流水线在 `69a20261` 全绿（Compile Check / Commit CI / Emulator UI Test，API 30 与 34）。
