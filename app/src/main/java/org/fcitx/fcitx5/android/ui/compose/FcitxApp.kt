@@ -81,6 +81,7 @@ import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBarBlu
 import org.fcitx.fcitx5.android.ui.main.MainViewModel
 import org.fcitx.fcitx5.android.ui.main.settings.SettingsRoute
 import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 
 /** Test tag for a bottom-bar tab, used by the instrumented UI tests. */
@@ -118,8 +119,11 @@ fun FcitxApp(
         // in; it must have the content drawn into it, which is what layerBackdrop does below.
         // Same construction the template uses: a layer backdrop tinted with the surface colour,
         // into which the pager content is drawn via Modifier.layerBackdrop.
+        // The colour is read here, in composition: reading it inside the backdrop's draw lambda
+        // is a composable call in a non-composable scope.
+        val backdropSurface = MiuixTheme.colorScheme.surface
         val barBackdrop = rememberLayerBackdrop {
-            drawRect(top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surface)
+            drawRect(backdropSurface)
             drawContent()
         }
 
