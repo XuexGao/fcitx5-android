@@ -395,13 +395,64 @@ miuix 的 `Scaffold` 签名是 `popupHost: @Composable () -> Unit = { MiuixPopup
 - 首次运行由 `RimeAutoDeploy` 在后台自动下载 Base，不必先打开设置页。
 - `RimeManager.isWanxiangAvailable()` 现在也查用户目录。
 
-### 液态玻璃底栏（stage-39）
+### 液态玻璃底栏（stage-39 起，stage-41 定型）
 
-模板的玻璃底栏依赖 API 31 的 RenderEffect，Android 10 上会静默降级。FlClash 能在旧系统上做到，
-是因为它模糊的是**软件位图**。本工程已有 `BitmapBlurUtil`（≤API 30 走 RenderScript），所以照此实现：
+第一次尝试是自写「软件位图模糊」（stage-39），**已废弃**：它在外观上与模板不等价（无折射、无镜头、无高光）。
+现在直接移植 miuix 官方示例的 `IosLiquidGlassNavigationBar`
+（`compose-miuix-ui/miuix` → `example/shared/.../component/liquid/LiquidGlassNavigationBar.kt`，Apache-2.0，
+其本身改编自 Kyant0/AndroidLiquidGlass），逐行搬到
+`ui/compose/component/liquid/LiquidGlassNavigationBar.kt`，只改包名与内部依赖路径：
 
-- `FcitxApp` 把 pager 内容录进 `GraphicsLayer`，页面稳定后读回、4 倍降采样、用 `BitmapBlurUtil` 模糊，得到 backdrop；
-- `LiquidGlassBar` 把 backdrop 中「底栏正下方」那一条按胶囊圆角裁出来绘制，再叠 tint、细描边、顶部高光；
-- 不使用 RenderEffect / RuntimeShader，**API 24 起效果一致**；拿不到快照时回落到原来的半透明胶囊。
+- 模糊 `blur(4dp)` + 活力 `vibrancy()` + **镜头折射** `lens(24dp, 24dp)`，胶囊形 `drawShadow`；
+- 随重力方向旋转的**镜面高光**（`BloomStroke` + `LightSource`）、按压放大 16dp 的指示器、
+  标签间拖拽切换（`DampedDragAnimation`）、`innerShadow` 反馈。
 
-三条流水线在 `69a20261` 全绿（Compile Check / Commit CI / Emulator UI Test，API 30 与 34）。
+调用方式必须和模板一致，否则「抄了也不像」——这是 stage-40 的真正问题（移植本体无误，diff 只有我加的守卫）：
+
+| 要点 | 错误做法（stage-40） | 正确做法（stage-41） |
+| --- | --- | --- |
+| backdrop | 传 `Color.Transparent` 底的 layer backdrop | 传 **surface 底色 + `drawContent()`**，并把 pager 内容用 `Modifier.layerBackdrop` 画进去 |
+| `isBlurActive` | 绑 `rememberBlurBackdrop()`（API<31 返回 null → 永远走纯色分支） | 直接用「浮动底栏模糊」设置值 |
+
+**两个必须保留的能力守卫**（模板 minSdk 是 31，本工程是 24）：
+
+- `InteractiveHighlight` 构造时调 `android.graphics.RuntimeShader(String)`（**API 33**）。
+  API 30 上抛 `NoSuchMethodError` 并**连累整个底栏不渲染**（仪器化测试报 `bottom_tab_0` 找不到）。
+  仅在 `isRuntimeShaderSupported()` 时创建，否则跳过按压高光——模糊/折射/指示器不受影响。
+- 底栏本体经 RenderEffect 合成（**API 31**），低版本加 `isRenderEffectSupported()` 判定，
+  回落为圆角半透明胶囊（几何与配色一致，仅无折射）。
+
+**设备倾斜高光默认关闭**（`GlassSettings.useDeviceTilt`）：miuix 的 `rememberDeviceTilt()` 以
+~50Hz 注册游戏旋转矢量传感器并**无节流写入 Compose state**，会让组合永不停歇（上一版移植在模拟器上
+就是因此超时）。需要完全一致的观感可打开，但请预期持续重组与更高耗电。
+
+### 主题设置实时生效（stage-40）
+
+`ManagedPreference` **不是** Compose 状态：在组合中读 `prefs.colorMode.getValue()` 不会订阅变更，
+所以主题设置（颜色模式/主色/调色板风格/颜色规格/界面风格/模糊/浮动底栏/玻璃）**只能重启后生效**。
+`FcitxTheme` 现在通过 `rememberAppearanceSnapshot()`（内部用 `rememberPref` 注册真实监听）读取，
+任何一项改动都立刻重绘整棵树。
+
+### Material 圆角与滑杆（stage-41）
+
+`SettingsGroup` 的 Material 分支此前只把各行放进一个 `Column`，**从未提供 `LocalListItemShapes`**；
+而 `SegmentedListItem` 取形状的写法是 `LocalListItemShapes.current ?: ListItemDefaults.segmentedShapes(0, 1)`
+——兜底值是「单行整段」，于是每行都是大圆角，我写的 12dp/20dp 根本没被执行。
+现在由分组统一提供 `uniformSegmentedShapes()`：**常态 12dp、按下 20dp**。
+滑杆行也补上 `surfaceColorAtElevation(1dp)` + 12dp 圆角的卡片背景，不再像分组里缺了一块。
+
+### 键盘预览（stage-42）
+
+`KeyboardPreviewUi` 从屏幕尺寸算出键盘高度（默认占屏高 30%，加 40dp 功能栏 ≈ 295dp），
+再由 `setSizeScale` 自行缩放。stage-40 我把缩放**写死 0.72**，那需要 213dp 的卡片放进 200dp，
+必然被圆角裁掉；而 stage-39 的 `fillMaxSize` + 视图缩放（`KeyboardPreviewUi` 内容贴 `bottomOfParent`）
+正是「跑到右下角」的原因。
+
+现在按两个已经内嵌该组件的 Activity（`CustomThemeActivity` / `MonetThemeEditorActivity`）的既有做法：
+卡片上报自身高度，组件通过 `onSizeMeasured` 上报**未缩放**高度，据此拟合缩放（只读一次，不会自激），
+卡片 240dp —— 键盘比之前更大，同时完整落在圆角内。
+
+### 三条流水线
+
+`stage-42`（`1c744889`）上 Compile Check / Commit CI / Emulator UI Test 全绿，
+API 30 与 34 均 `OK (23 tests)`。
