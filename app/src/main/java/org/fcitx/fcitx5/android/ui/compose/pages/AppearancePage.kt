@@ -130,15 +130,15 @@ private fun KeyboardPreview(revision: Int, modifier: Modifier = Modifier) {
         key(revision) {
             AndroidView(
                 modifier = Modifier.fillMaxSize(),
-                factory = { parent ->
+                factory = {
                     val ui = KeyboardPreviewUi(context, ThemeManager.activeTheme)
                     ui.root.apply {
                         // Natural width, scaled about its own centre: the keyboard keeps its
                         // proportions and stays centred instead of being stretched to the card.
                         scaleX = PREVIEW_SCALE
                         scaleY = PREVIEW_SCALE
-                        layoutParams = android.widget.FrameLayout.LayoutParams(
-                            parent.width.coerceAtLeast(1),
+                        layoutParams = android.view.ViewGroup.LayoutParams(
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                             android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                         )
                     }
