@@ -7,7 +7,6 @@ package org.fcitx.fcitx5.android.ui.compose.pages
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,6 +18,8 @@ import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Wallpaper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -107,7 +108,7 @@ private fun LazyListScope.previewSection() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 12.dp, vertical = 12.dp)
-                        .height(200.dp)
+                        .height(PREVIEW_CARD_HEIGHT)
                         .clip(RoundedCornerShape(20.dp)),
                 )
             }
@@ -118,38 +119,73 @@ private fun LazyListScope.previewSection() {
 /**
  * Hosts the View-based keyboard preview inside Compose.
  *
- * [KeyboardPreviewUi] lays its keyboard out at the bottom of a FrameLayout and reports its natural
- * size through `onSizeMeasured`; the preview therefore uses `wrap_content` and the component's own
- * `setSizeScale` rather than scaling the view (scaling a bottom-anchored view pushed it into a
- * corner). Rebuilt only when [revision] changes.
+ * [KeyboardPreviewUi] derives its keyboard size from the screen metrics and shrinks itself through
+ * `setSizeScale`; both Activities that embed it compute that scale from the height available to them
+ * (`CustomThemeActivity.updatePreviewScale`, `MonetThemeEditorActivity.updatePreviewScale`). Same
+ * approach here: the preview is scaled to fit the card, which keeps it inside the rounded corners
+ * instead of being cropped, and leaves it centred.
+ *
+ * The scale is derived from the keyboard's **unscaled** height, reported once through
+ * `onSizeMeasured`, so the computation cannot feed back into itself.
  */
 @Composable
 private fun KeyboardPreview(revision: Int, modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+    var cardHeightPx by remember { mutableIntStateOf(0) }
+    var naturalHeightPx by remember(revision) { mutableIntStateOf(0) }
+    val holder = remember(revision) { PreviewHolder() }
+
+    LaunchedEffect(holder, cardHeightPx, naturalHeightPx) {
+        val ui = holder.ui ?: return@LaunchedEffect
+        val scale = if (cardHeightPx > 0 && naturalHeightPx > 0) {
+            (cardHeightPx * PREVIEW_HEIGHT_FRACTION / naturalHeightPx)
+                .coerceIn(PREVIEW_MIN_SCALE, PREVIEW_MAX_SCALE)
+        } else {
+            PREVIEW_MAX_SCALE
+        }
+        ui.setSizeScale(scale)
+    }
+
+    Box(
+        modifier = modifier.onSizeChanged { cardHeightPx = it.height },
+        contentAlignment = Alignment.Center,
+    ) {
+        // Only this subtree is keyed: the rest of the page keeps its state across revisions.
         key(revision) {
             AndroidView(
                 modifier = Modifier.fillMaxWidth(),
                 factory = {
-                    val ui = KeyboardPreviewUi(context, ThemeManager.activeTheme)
-                    // Let the component shrink itself so the keyboard keeps its proportions and
-                    // stays inside the card.
-                    ui.setSizeScale(PREVIEW_SCALE)
-                    ui.root.apply {
+                    val created = KeyboardPreviewUi(context, ThemeManager.activeTheme)
+                    holder.ui = created
+                    // Fires once, at the view's natural (scale 1) size, before any scaling.
+                    created.onSizeMeasured = { _, height ->
+                        if (naturalHeightPx == 0 && height > 0) naturalHeightPx = height
+                    }
+                    created.root.apply {
                         layoutParams = android.widget.FrameLayout.LayoutParams(
                             android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                             android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
                         )
                     }
+                    created.root
                 },
-                update = { view -> view.invalidate() },
             )
         }
     }
 }
 
-/** How much the real keyboard is shrunk inside the preview card. */
-private const val PREVIEW_SCALE = 0.72f
+/** Holds the preview across recompositions without making it observable state. */
+private class PreviewHolder {
+    var ui: KeyboardPreviewUi? = null
+}
+
+/** Height of the preview card; the keyboard is scaled to fit inside it. */
+private val PREVIEW_CARD_HEIGHT = 240.dp
+
+/** Fraction of the card the keyboard may fill, leaving room inside the rounded corners. */
+private const val PREVIEW_HEIGHT_FRACTION = 0.94f
+private const val PREVIEW_MIN_SCALE = 0.35f
+private const val PREVIEW_MAX_SCALE = 1f
 
 private fun LazyListScope.themeSection(
     onOpenRoute: (SettingsRoute) -> Unit,

@@ -112,15 +112,11 @@ fun FcitxApp(
         val pagerState = rememberPagerState(pageCount = { MainDestination.entries.size })
         val mainPagerState = rememberMainPagerState(pagerState, scope, animatePageChanges = !useRail)
 
-        // The reference glass bar samples two backdrops: one for the bar's own surface and one
-        // for its moving indicator. Both are provided here, above the pager.
         val glassEnabled = enableFloatingBottomBar && enableFloatingBottomBarBlur
-        // The bar samples the page content behind it. This is *the* backdrop the template passes
-        // in; it must have the content drawn into it, which is what layerBackdrop does below.
-        // Same construction the template uses: a layer backdrop tinted with the surface colour,
-        // into which the pager content is drawn via Modifier.layerBackdrop.
-        // The colour is read here, in composition: reading it inside the backdrop's draw lambda
-        // is a composable call in a non-composable scope.
+        // The glass bar samples the page behind it. This is the backdrop the template passes in:
+        // tinted with the surface colour, with the pager content drawn into it through
+        // Modifier.layerBackdrop below. The colour is read here because reading it inside the
+        // backdrop's draw lambda would be a composable call in a non-composable scope.
         val backdropSurface = MiuixTheme.colorScheme.surface
         val barBackdrop = rememberLayerBackdrop {
             drawRect(backdropSurface)
