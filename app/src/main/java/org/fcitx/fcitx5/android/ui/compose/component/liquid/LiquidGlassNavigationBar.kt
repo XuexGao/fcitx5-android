@@ -59,6 +59,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
@@ -373,6 +374,9 @@ internal fun IosLiquidGlassNavigationBar(
         items.forEachIndexed { index, item ->
             Column(
                 modifier = Modifier
+                    // The instrumented tests address tabs by tag; the reference bar renders plain
+                    // Columns, so the tag is added here without changing its semantics.
+                    .testTag(org.fcitx.fcitx5.android.ui.compose.tabTag(index))
                     .semantics(mergeDescendants = true) {
                         selected = index == currentIndex
                         role = Role.Tab
