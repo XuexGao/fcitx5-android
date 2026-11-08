@@ -14,10 +14,12 @@ import org.fcitx.fcitx5.android.ui.compose.UiMode
 @Composable
 fun BottomBar(
     modifier: Modifier = Modifier,
-    glass: GlassBackdrop? = null,
+    backdrop: top.yukonga.miuix.kmp.blur.Backdrop? = null,
+    blurBackdrop: top.yukonga.miuix.kmp.blur.LayerBackdrop? = null,
+    blurActive: Boolean = false,
 ) {
     when (LocalUiMode.current) {
-        UiMode.Miuix -> BottomBarMiuix(modifier, glass)
+        UiMode.Miuix -> BottomBarMiuix(modifier, backdrop, blurBackdrop, blurActive)
         UiMode.Material -> BottomBarMaterial()
     }
 }

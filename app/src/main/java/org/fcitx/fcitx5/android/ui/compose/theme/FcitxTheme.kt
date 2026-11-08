@@ -4,59 +4,36 @@
  */
 package org.fcitx.fcitx5.android.ui.compose.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.runtime.staticCompositionLocalOf
-import org.fcitx.fcitx5.android.data.prefs.AppearancePrefs
-import org.fcitx.fcitx5.android.data.prefs.AppearancePrefs.ColorMode
-import org.fcitx.fcitx5.android.ui.compose.LocalUiMode
 import org.fcitx.fcitx5.android.ui.compose.UiMode
-
-/** Current colour mode as an Int, exposed so descendants can tell forced-dark from system. */
-val LocalColorMode = staticCompositionLocalOf { ColorMode.System.value }
-
-/** Whether frosted-glass surfaces are enabled by the user. */
-val LocalEnableBlur = staticCompositionLocalOf { false }
-
-val LocalEnableFloatingBottomBar = staticCompositionLocalOf { true }
-
-val LocalEnableFloatingBottomBarBlur = staticCompositionLocalOf { true }
-
-@Composable
-@ReadOnlyComposable
-fun isInDarkTheme(): Boolean = when (LocalColorMode.current) {
-    ColorMode.Light.value, ColorMode.MonetLight.value -> false
-    ColorMode.Dark.value, ColorMode.MonetDark.value, ColorMode.Amoled.value -> true
-    else -> isSystemInDarkTheme()
-}
 
 /**
  * Applies the appearance settings to the whole settings app.
  *
- * Two component styles are supported, selected by [AppearancePrefs.uiMode] and published through
- * [LocalUiMode]: the miuix look (the template's original) and a Material 3 look. Both build their
- * palette from the same preferences, so switching style keeps the user's colours.
+ * The preferences are read through [rememberAppearanceSnapshot], so any edit re-renders the tree
+ * immediately instead of waiting for a restart. Two component styles are supported, selected by
+ * `AppearancePrefs.uiMode` and published as [UiMode]: miuix (the template's original) and Material 3.
+ * Both build their palette from the same values, so switching style keeps the user's colours.
  */
 @Composable
 fun FcitxTheme(
-    prefs: AppearancePrefs,
+    prefs: org.fcitx.fcitx5.android.data.prefs.AppearancePrefs,
     content: @Composable () -> Unit,
 ) {
-    val uiMode = UiMode.fromValue(prefs.uiMode.getValue())
+    val appearance = rememberAppearanceSnapshot(prefs)
     val styledContent: @Composable () -> Unit = {
         CompositionLocalProvider(
-            LocalUiMode provides uiMode,
-            LocalColorMode provides prefs.colorModeValue.value,
-            LocalEnableBlur provides prefs.enableBlur.getValue(),
-            LocalEnableFloatingBottomBar provides prefs.floatingBottomBar.getValue(),
-            LocalEnableFloatingBottomBarBlur provides prefs.floatingBottomBarBlur.getValue(),
+            org.fcitx.fcitx5.android.ui.compose.LocalUiMode provides appearance.uiMode,
+            LocalColorMode provides appearance.colorMode.value,
+            LocalEnableBlur provides appearance.enableBlur,
+            LocalEnableFloatingBottomBar provides appearance.floatingBottomBar,
+            LocalEnableFloatingBottomBarBlur provides appearance.floatingBottomBarBlur,
             content = content,
         )
     }
-    when (uiMode) {
-        UiMode.Miuix -> FcitxMiuixTheme(prefs = prefs, content = styledContent)
-        UiMode.Material -> FcitxMaterialTheme(prefs = prefs, content = styledContent)
+    when (appearance.uiMode) {
+        UiMode.Miuix -> FcitxMiuixTheme(appearance = appearance, content = styledContent)
+        UiMode.Material -> FcitxMaterialTheme(appearance = appearance, content = styledContent)
     }
 }

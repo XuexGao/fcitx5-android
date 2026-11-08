@@ -227,7 +227,6 @@ fun ColorPaletteScreenMiuix(
             ) {
                 OverlayDropdownPreference(
                     title = stringResource(id = R.string.ksu_app_ui_mode),
-                    summary = stringResource(id = R.string.ksu_app_ui_mode_summary),
                     items = listOf("Miuix", "Material"),
                     selectedIndex = if (state.uiMode == "material") 1 else 0,
                     startAction = {

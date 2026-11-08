@@ -32,19 +32,19 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  */
 @Composable
 fun FcitxMaterialTheme(
-    prefs: AppearancePrefs,
+    appearance: AppearanceSnapshot,
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
     val systemDark = isSystemInDarkTheme()
-    val colorMode = prefs.colorModeValue
+    val colorMode = appearance.colorMode
     val darkTheme = colorMode.isDark || (colorMode.isSystem && systemDark)
     val amoled = colorMode.isAmoled
 
-    val paletteStyle = parsePaletteStyle(prefs.paletteStyle.getValue())
-    val colorSpec = parseColorSpec(prefs.colorSpec.getValue())
+    val paletteStyle = parsePaletteStyle(appearance.paletteStyle)
+    val colorSpec = parseColorSpec(appearance.colorSpec)
 
-    val keyColor = prefs.keyColor.getValue()
+    val keyColor = appearance.keyColor
     val dynamicSystemColor = keyColor == 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
     val colorScheme = if (dynamicSystemColor) {
@@ -89,7 +89,7 @@ fun FcitxMaterialTheme(
             // A few widgets in the Material screens are still miuix ones (icon tints, small titles).
             // miuix's unprovided palette is all-transparent, which would render them invisible, so
             // the matching miuix palette is provided as well.
-            MiuixTheme(controller = miuixController(prefs), content = content)
+            MiuixTheme(controller = miuixController(appearance), content = content)
         },
     )
 }

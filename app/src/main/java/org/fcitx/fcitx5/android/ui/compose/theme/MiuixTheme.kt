@@ -40,10 +40,20 @@ import top.yukonga.miuix.kmp.theme.ThemePaletteStyle
  * miuix's all-zero default palette.
  */
 @Composable
-fun miuixController(prefs: AppearancePrefs): ThemeController {
+fun miuixController(prefs: AppearancePrefs): ThemeController =
+    miuixController(rememberAppearanceSnapshot(prefs))
+
+/**
+ * Builds the miuix controller from an already-observed [AppearanceSnapshot].
+ *
+ * Both styles use it: the miuix style for its own surfaces, and the Material style to keep the
+ * handful of miuix widgets it still contains from falling back to miuix's all-zero default palette.
+ */
+@Composable
+fun miuixController(appearance: AppearanceSnapshot): ThemeController {
     val systemDark = isSystemInDarkTheme()
-    val monet = prefs.miuixMonet.getValue()
-    val storedMode = prefs.colorModeValue
+    val monet = appearance.miuixMonet
+    val storedMode = appearance.colorMode
     val colorMode = when {
         !monet && storedMode.isMonet -> ColorMode.fromValue(storedMode.toNonMonetMode())
         monet && !storedMode.isMonet -> ColorMode.fromValue(storedMode.toMonetMode())
@@ -52,9 +62,9 @@ fun miuixController(prefs: AppearancePrefs): ThemeController {
     val darkTheme = colorMode.isDark || (colorMode.isSystem && systemDark)
 
     val paletteStyle = runCatching {
-        ThemePaletteStyle.valueOf(parsePaletteStyle(prefs.paletteStyle.getValue()).name)
+        ThemePaletteStyle.valueOf(parsePaletteStyle(appearance.paletteStyle).name)
     }.getOrDefault(ThemePaletteStyle.TonalSpot)
-    val colorSpec = if (parseColorSpec(prefs.colorSpec.getValue()) == ColorSpec.SpecVersion.SPEC_2025) {
+    val colorSpec = if (parseColorSpec(appearance.colorSpec) == ColorSpec.SpecVersion.SPEC_2025) {
         ThemeColorSpec.Spec2025
     } else {
         ThemeColorSpec.Spec2021
@@ -69,7 +79,7 @@ fun miuixController(prefs: AppearancePrefs): ThemeController {
             ColorMode.MonetLight -> ColorSchemeMode.MonetLight
             ColorMode.MonetDark, ColorMode.Amoled -> ColorSchemeMode.MonetDark
         },
-        keyColor = prefs.keyColor.getValue().takeIf { it != 0 }?.let { Color(it) },
+        keyColor = appearance.keyColor.takeIf { it != 0 }?.let { Color(it) },
         isDark = darkTheme,
         paletteStyle = paletteStyle,
         colorSpec = colorSpec,
@@ -78,11 +88,11 @@ fun miuixController(prefs: AppearancePrefs): ThemeController {
 
 @Composable
 fun FcitxMiuixTheme(
-    prefs: AppearancePrefs,
+    appearance: AppearanceSnapshot,
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
-    val controller = miuixController(prefs)
+    val controller = miuixController(appearance)
     val darkTheme = controller.isDark == true
 
     MiuixTheme(

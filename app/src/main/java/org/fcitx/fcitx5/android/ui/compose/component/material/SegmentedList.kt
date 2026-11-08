@@ -24,6 +24,7 @@ import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MenuDefaults
@@ -70,14 +71,35 @@ private fun defaultSegmentedColors(): ListItemColors = ListItemDefaults.segmente
     supportingContentColor = colorScheme.outline
 )
 
+/**
+ * Small corners at rest, larger while pressed.
+ *
+ * The template's rows keep a tight radius so a group reads as one card, and grow on press to give
+ * the tap some weight. `ListItemShapes` carries the four corner radii (top-start/top-end/
+ * bottom-end/bottom-start), so only the outer corners are enlarged and a group still looks
+ * continuous.
+ */
 @Composable
 private fun defaultSingleSegmentedShape(index: Int, count: Int): ListItemShapes {
     val base = ListItemDefaults.segmentedShapes(index, count)
-    return if (count == 1) {
-        base.copy(shape = MaterialTheme.shapes.large)
-    } else {
-        base
-    }
+    val rest = 12.dp
+    val pressed = 20.dp
+    val first = index == 0
+    val last = index == count - 1
+    return base.copy(
+        shape = RoundedCornerShape(
+            topStart = if (first) rest else 2.dp,
+            topEnd = if (first) rest else 2.dp,
+            bottomEnd = if (last) rest else 2.dp,
+            bottomStart = if (last) rest else 2.dp,
+        ),
+        pressedShape = RoundedCornerShape(
+            topStart = if (first) pressed else 2.dp,
+            topEnd = if (first) pressed else 2.dp,
+            bottomEnd = if (last) pressed else 2.dp,
+            bottomStart = if (last) pressed else 2.dp,
+        ),
+    )
 }
 
 @Composable

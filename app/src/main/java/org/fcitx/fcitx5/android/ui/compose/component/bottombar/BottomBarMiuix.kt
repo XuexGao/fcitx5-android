@@ -7,101 +7,96 @@ package org.fcitx.fcitx5.android.ui.compose.component.bottombar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import org.fcitx.fcitx5.android.ui.compose.component.liquid.LiquidGlassNavigationBar
 import org.fcitx.fcitx5.android.ui.compose.tabTag
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBar
 import org.fcitx.fcitx5.android.ui.compose.theme.LocalEnableFloatingBottomBarBlur
-import top.yukonga.miuix.kmp.basic.LocalNavigationBarDisplayMode
-import top.yukonga.miuix.kmp.basic.NavigationBar
-import top.yukonga.miuix.kmp.basic.NavigationBarDisplayMode
-import top.yukonga.miuix.kmp.basic.NavigationBarItem
+import top.yukonga.miuix.kmp.basic.NavigationItem
+import top.yukonga.miuix.kmp.blur.Backdrop
+import top.yukonga.miuix.kmp.blur.LayerBackdrop
 import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
 
 /**
- * The miuix bottom bar: inset and translucent (with a hairline border) when the floating bar is on,
- * docked otherwise. miuix's own `FloatingNavigationBar` is icon-only, so the floating variant is the
- * regular [NavigationBar] on a rounded surface with the selected tab's label shown.
+ * The miuix bottom bar.
  *
- * The liquid-glass variant of the template needs its backdrop wiring to be re-verified on-device
- * (it kept Compose permanently busy in the emulator test), so it is deliberately not used yet.
+ * The floating variant is the template's own liquid-glass navigation bar
+ * ([LiquidGlassNavigationBar], ported verbatim from compose-miuix-ui's example and adapted from
+ * Kyant0/AndroidLiquidGlass): a frosted pill with a lens refraction, a moving specular highlight
+ * and a press-to-scale indicator. It needs RenderEffect, so below API 31 the bar falls back to the
+ * flat rounded translucent pill — the same look, minus the refraction.
+ *
+ * The docked variant is a plain [top.yukonga.miuix.kmp.basic.NavigationBar].
  */
 @Composable
-fun BottomBarMiuix(modifier: Modifier = Modifier, glass: GlassBackdrop? = null) {
+fun BottomBarMiuix(
+    modifier: Modifier = Modifier,
+    backdrop: Backdrop? = null,
+    blurBackdrop: LayerBackdrop? = null,
+    blurActive: Boolean = false,
+) {
     val mainState = LocalMainPagerState.current
     val floating = LocalEnableFloatingBottomBar.current
     val glassEnabled = LocalEnableFloatingBottomBarBlur.current
-    val shape = RoundedCornerShape(26.dp)
-    val surface = if (glassEnabled) colorScheme.surface.copy(alpha = 0.78f) else colorScheme.surface
+    val items = MainDestination.entries.map { destination ->
+        NavigationItem(label = stringResource(destination.label), icon = destination.icon)
+    }
 
-    if (floating) {
-        if (glassEnabled && glass != null) {
-            // Blurred snapshot behind the bar; works from API 24 up (see LiquidGlassBar).
-            LiquidGlassBar(
-                backdrop = glass.bitmap,
-                backdropScale = glass.scale,
-                modifier = modifier,
-            ) {
-                CompositionLocalProvider(
-                    LocalNavigationBarDisplayMode
-                        provides NavigationBarDisplayMode.IconWithSelectedLabel
-                ) {
-                    NavigationBar(color = Color.Transparent) {
-                        TabItems(mainState.selectedPage) { mainState.animateToPage(it) }
-                    }
-                }
-            }
-        } else {
-            Box(
-                modifier = modifier
-                    .padding(horizontal = 14.dp, vertical = 8.dp)
-                    .clip(shape)
-                    .background(surface)
-                    .then(
-                        if (glassEnabled) {
-                            Modifier.border(1.dp, colorScheme.outline.copy(alpha = 0.35f), shape)
-                        } else {
-                            Modifier
-                        }
-                    ),
-            ) {
-                // The bar reads this local when its own display mode is left at the default.
-                CompositionLocalProvider(
-                    LocalNavigationBarDisplayMode
-                        provides NavigationBarDisplayMode.IconWithSelectedLabel
-                ) {
-                    NavigationBar(color = Color.Transparent) {
-                        TabItems(mainState.selectedPage) { mainState.animateToPage(it) }
-                    }
-                }
-            }
-        }
+    if (floating && glassEnabled && blurBackdrop != null) {
+        LiquidGlassNavigationBar(
+            items = items,
+            selectedIndex = mainState.selectedPage,
+            onItemClick = { mainState.animateToPage(it) },
+            backdrop = blurBackdrop,
+            isBlurActive = blurActive,
+            modifier = modifier,
+        )
     } else {
-        NavigationBar(color = surface, modifier = modifier) {
-            TabItems(mainState.selectedPage) { mainState.animateToPage(it) }
+        // Docked bar, or a device without RenderEffect: keep the previous rounded pill.
+        val shape = RoundedCornerShape(26.dp)
+        val surface = if (glassEnabled) colorScheme.surface.copy(alpha = 0.78f) else colorScheme.surface
+        Box(
+            modifier = modifier
+                .padding(horizontal = 14.dp, vertical = 8.dp)
+                .clip(shape)
+                .background(surface)
+                .then(
+                    if (glassEnabled) {
+                        Modifier.border(1.dp, colorScheme.outline.copy(alpha = 0.35f), shape)
+                    } else {
+                        Modifier
+                    }
+                ),
+        ) {
+            PlainNavigationBar(mainState.selectedPage) { mainState.animateToPage(it) }
         }
     }
 }
 
-/** The four tabs, shared by the floating and the docked bar. */
+/** The plain miuix navigation bar, used when the glass effect is unavailable. */
 @Composable
-internal fun RowScope.TabItems(selected: Int, onSelect: (Int) -> Unit) {
-    MainDestination.entries.forEachIndexed { index, destination ->
-        NavigationBarItem(
-            selected = selected == index,
-            onClick = { onSelect(index) },
-            icon = destination.icon,
-            label = stringResource(destination.label),
-            modifier = Modifier.testTag(tabTag(index)),
-        )
+private fun PlainNavigationBar(selected: Int, onSelect: (Int) -> Unit) {
+    androidx.compose.runtime.CompositionLocalProvider(
+        top.yukonga.miuix.kmp.basic.LocalNavigationBarDisplayMode provides
+            top.yukonga.miuix.kmp.basic.NavigationBarDisplayMode.IconWithSelectedLabel
+    ) {
+        top.yukonga.miuix.kmp.basic.NavigationBar(color = androidx.compose.ui.graphics.Color.Transparent) {
+            MainDestination.entries.forEachIndexed { index, destination ->
+                top.yukonga.miuix.kmp.basic.NavigationBarItem(
+                    selected = selected == index,
+                    onClick = { onSelect(index) },
+                    icon = destination.icon,
+                    label = stringResource(destination.label),
+                    modifier = Modifier.testTag(tabTag(index)),
+                )
+            }
+        }
     }
 }

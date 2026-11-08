@@ -220,7 +220,6 @@ fun ColorPaletteScreenMaterial(
                                 SegmentedDropdownItem(
                                     icon = Icons.Rounded.Dashboard,
                                     title = stringResource(R.string.ksu_app_ui_mode),
-                                    summary = stringResource(R.string.ksu_app_ui_mode_summary),
                                     items = listOf("Miuix", "Material"),
                                     selectedIndex = if (state.uiMode == "material") 1 else 0,
                                     onItemSelected = { index ->

@@ -17,6 +17,9 @@ import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon as MaterialIcon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text as MaterialText
 import androidx.compose.runtime.Composable
@@ -26,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -278,8 +282,12 @@ fun SliderRowRaw(
         )
 
         UiMode.Material -> Column(
+            // Same card treatment as the other rows: without it a slider looked like a gap in the
+            // group, because every neighbouring row is a filled segmented item.
             modifier = Modifier
                 .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp))
                 .padding(horizontal = 16.dp, vertical = 10.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {

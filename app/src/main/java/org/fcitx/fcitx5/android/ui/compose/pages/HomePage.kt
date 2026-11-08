@@ -5,6 +5,9 @@
 package org.fcitx.fcitx5.android.ui.compose.pages
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CheckCircle
@@ -58,6 +61,12 @@ fun HomePage(
  */
 private fun LazyListScope.homeStatusCard() {
     item {
+        // Spacer item: the ready card sits a little lower so it does not crowd the page title.
+        androidx.compose.foundation.layout.Spacer(
+            Modifier
+                .fillMaxWidth()
+                .height(20.dp)
+        )
         val context = LocalContext.current
         val imeEnabled = remember(context) {
             runCatching { InputMethodUtil.isEnabled() }.getOrDefault(false)

@@ -16,6 +16,8 @@ import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Wallpaper
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
+import androidx.compose.ui.Alignment
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -103,7 +105,7 @@ private fun LazyListScope.previewSection() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 12.dp, vertical = 12.dp)
-                        .height(268.dp)
+                        .height(200.dp)
                         .clip(RoundedCornerShape(20.dp)),
                 )
             }
@@ -111,34 +113,42 @@ private fun LazyListScope.previewSection() {
     }
 }
 
-/** Hosts the existing View-based keyboard preview inside Compose. */
+/**
+ * Hosts the View-based keyboard preview inside Compose.
+ *
+ * The keyboard is laid out at its natural width and centred, then scaled down to fit, so it looks
+ * like a keyboard rather than a stretched strip. It is rebuilt only when [revision] changes (the
+ * preference listeners bump it), not on every recomposition.
+ */
 @Composable
 private fun KeyboardPreview(revision: Int, modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    androidx.compose.foundation.layout.Box(modifier = modifier) {
-        // key() forces a fresh AndroidView (and therefore a fresh KeyboardPreviewUi) per revision.
-        androidx.compose.runtime.key(revision) {
-        AndroidView(
-            modifier = Modifier.fillMaxWidth(),
-            factory = {
-                // A fresh KeyboardPreviewUi per revision: KeyView reads the appearance preferences in
-                // its constructor, so rebuilding is what makes the preview live.
-                val ui = KeyboardPreviewUi(context, ThemeManager.activeTheme)
-                ui.root.apply {
-                    scaleX = 0.74f
-                    scaleY = 0.74f
-                    layoutParams = android.widget.FrameLayout.LayoutParams(
-                        android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                        android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
-                    )
-                }
-                ui.root
-            },
-            update = { },
-        )
+    Box(modifier = modifier, contentAlignment = Alignment.Center) {
+        // Only this subtree is keyed: the rest of the page keeps its state across revisions.
+        key(revision) {
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { parent ->
+                    val ui = KeyboardPreviewUi(context, ThemeManager.activeTheme)
+                    ui.root.apply {
+                        // Natural width, scaled about its own centre: the keyboard keeps its
+                        // proportions and stays centred instead of being stretched to the card.
+                        scaleX = PREVIEW_SCALE
+                        scaleY = PREVIEW_SCALE
+                        layoutParams = android.widget.FrameLayout.LayoutParams(
+                            parent.width.coerceAtLeast(1),
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                        )
+                    }
+                },
+                update = { view -> view.invalidate() },
+            )
         }
     }
 }
+
+/** How much the real keyboard is shrunk inside the preview card. */
+private const val PREVIEW_SCALE = 0.72f
 
 private fun LazyListScope.themeSection(
     onOpenRoute: (SettingsRoute) -> Unit,
